@@ -22,8 +22,10 @@ interface OnboardingState {
   admissionYear: number | null;
   grade: number | null;
   affiliation: AffiliationType | null;
+  college: string | null;
   setAdmissionYear: (year: number) => void;
   setAffiliation: (type: AffiliationType) => void;
+  setCollege: (college: string) => void;
 }
 
 export const useOnboardingStore = create<OnboardingState>()(
@@ -32,6 +34,7 @@ export const useOnboardingStore = create<OnboardingState>()(
       admissionYear: null,
       grade: null,
       affiliation: null,
+      college: null,
       setAdmissionYear: (year: number) => {
         const currentYear = new Date().getFullYear();
         const calculatedGrade = Math.max(1, currentYear - year + 1);
@@ -43,6 +46,9 @@ export const useOnboardingStore = create<OnboardingState>()(
       },
       setAffiliation: (type: AffiliationType) => {
         set({ affiliation: type });
+      },
+      setCollege: (college: string) => {
+        set({ college });
       },
     }),
     {

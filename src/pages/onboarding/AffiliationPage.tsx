@@ -30,6 +30,10 @@ export function AffiliationPage({ navigation }: Props) {
   const handleSelectAffiliation = (type: '1학년' | '2학년이상') => {
     setAffiliation(type);
     console.log(`[Onboarding] 소속 선택 완료: ${type}`);
+    if (type === '1학년') {
+      navigation.navigate('CollegeSelect');
+      return;
+    }
     console.log('[Onboarding] 다음 화면은 아직 미구현입니다.');
   };
 
