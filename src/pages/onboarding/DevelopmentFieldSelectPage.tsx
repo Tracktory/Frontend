@@ -8,48 +8,41 @@ import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
 import { useOnboardingStore } from '../../stores/onboardingStore';
 import { InterestChip } from './components/InterestChip';
 
-type Props = StackScreenProps<OnboardingStackParamList, 'InterestSelect'>;
+type Props = StackScreenProps<OnboardingStackParamList, 'DevelopmentFieldSelect'>;
 
-const interests = [
-  '프론트엔드',
-  '백엔드',
-  '데이터분석',
-  'AI/ML',
-  '모바일앱',
-  '게임개발',
+const developmentFields = [
+  '웹 서비스 개발',
+  '모바일 앱 개발',
+  '게임 개발',
+  '데이터 엔지니어링',
+  '데이터 분석',
+  'AI/ML 모델 개발',
   '클라우드/인프라',
-  '보안',
-  'UI/UX디자인',
-  '블록체인',
-  'IoT/임베디드',
-  'AR/VR',
-  'DevOps',
-  '로봇공학',
+  'DevOps/SRE',
+  '보안 엔지니어링',
+  '임베디드/IoT',
 ];
 
-export function InterestSelectPage({ navigation }: Props) {
-  const selectedInterests = useOnboardingStore((state) => state.interests);
-  const toggleInterest = useOnboardingStore((state) => state.toggleInterest);
+export function DevelopmentFieldSelectPage({ navigation }: Props) {
+  const selectedFields = useOnboardingStore((state) => state.developmentFields);
+  const toggleDevelopmentField = useOnboardingStore((state) => state.toggleDevelopmentField);
+  const maxReached = selectedFields.length >= 3;
 
-  const maxReached = selectedInterests.length >= 5;
-
-  const handleToggleInterest = (interest: string) => {
-    const alreadySelected = selectedInterests.includes(interest);
-
+  const handleToggleField = (field: string) => {
+    const alreadySelected = selectedFields.includes(field);
     if (!alreadySelected && maxReached) {
-      console.log('[Onboarding] 관심사는 최대 5개까지 선택할 수 있습니다.');
+      console.log('[Onboarding] 개발 분야는 최대 3개까지 선택할 수 있습니다.');
       return;
     }
-
-    toggleInterest(interest);
+    toggleDevelopmentField(field);
   };
 
   const handleNext = () => {
-    if (selectedInterests.length < 1) {
+    if (selectedFields.length < 1) {
       return;
     }
-    console.log('[Onboarding] 선택한 관심사:', selectedInterests);
-    navigation.navigate('DevelopmentFieldSelect');
+    console.log('[Onboarding] 선택한 개발 분야:', selectedFields);
+    console.log('[Onboarding] 다음 화면은 아직 미구현입니다.');
   };
 
   return (
@@ -62,34 +55,34 @@ export function InterestSelectPage({ navigation }: Props) {
           <Text style={styles.headerTitle}>1학년 흐름</Text>
         </View>
 
-        <Text style={styles.screenId}>ON-SCR-04a | ON-007</Text>
-        <ProgressBar progress={0.42} />
+        <Text style={styles.screenId}>ON-SCR-05a | ON-008</Text>
+        <ProgressBar progress={0.56} />
 
-        <Text style={styles.title}>관심있는 분야를 선택해주세요</Text>
-        <Text style={styles.subtitle}>1~5개 선택 가능</Text>
+        <Text style={styles.title}>흥미있는 개발 분야를 선택해주세요</Text>
+        <Text style={styles.subtitle}>1~3개 선택 가능</Text>
 
         <View style={styles.chipGroup}>
-          {interests.map((interest) => {
-            const isSelected = selectedInterests.includes(interest);
+          {developmentFields.map((field) => {
+            const isSelected = selectedFields.includes(field);
             return (
               <InterestChip
-                key={interest}
-                label={interest}
+                key={field}
+                label={field}
                 selected={isSelected}
                 disabled={maxReached && !isSelected}
-                onPress={() => handleToggleInterest(interest)}
+                onPress={() => handleToggleField(field)}
               />
             );
           })}
         </View>
 
-        <Text style={styles.counterText}>선택됨: {selectedInterests.length}/5</Text>
+        <Text style={styles.counterText}>선택됨: {selectedFields.length}/3</Text>
       </View>
 
       <View style={styles.bottomArea}>
         <Button
-          title={selectedInterests.length > 0 ? '다음' : '다음 (관심사를 선택해주세요)'}
-          variant={selectedInterests.length > 0 ? 'primary' : 'disabled'}
+          title={selectedFields.length > 0 ? '다음' : '다음 (개발 분야를 선택해주세요)'}
+          variant={selectedFields.length > 0 ? 'primary' : 'disabled'}
           onPress={handleNext}
         />
       </View>
