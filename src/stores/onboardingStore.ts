@@ -26,6 +26,7 @@ interface OnboardingState {
   interests: string[];
   developmentFields: string[];
   learningMethods: string[];
+  onboardingGoals: string[];
   setAdmissionYear: (year: number) => void;
   setAffiliation: (type: AffiliationType) => void;
   setCollege: (college: string) => void;
@@ -35,6 +36,8 @@ interface OnboardingState {
   clearDevelopmentFields: () => void;
   toggleLearningMethod: (method: string) => void;
   clearLearningMethods: () => void;
+  toggleOnboardingGoal: (goal: string) => void;
+  clearOnboardingGoals: () => void;
 }
 
 export const useOnboardingStore = create<OnboardingState>()(
@@ -47,6 +50,7 @@ export const useOnboardingStore = create<OnboardingState>()(
       interests: [],
       developmentFields: [],
       learningMethods: [],
+      onboardingGoals: [],
       setAdmissionYear: (year: number) => {
         const currentYear = new Date().getFullYear();
         const calculatedGrade = Math.max(1, currentYear - year + 1);
@@ -115,6 +119,24 @@ export const useOnboardingStore = create<OnboardingState>()(
       },
       clearLearningMethods: () => {
         set({ learningMethods: [] });
+      },
+      toggleOnboardingGoal: (goal: string) => {
+        set((state) => {
+          if (state.onboardingGoals.includes(goal)) {
+            return {
+              onboardingGoals: state.onboardingGoals.filter((item) => item !== goal),
+            };
+          }
+          if (state.onboardingGoals.length >= 2) {
+            return state;
+          }
+          return {
+            onboardingGoals: [...state.onboardingGoals, goal],
+          };
+        });
+      },
+      clearOnboardingGoals: () => {
+        set({ onboardingGoals: [] });
       },
     }),
     {

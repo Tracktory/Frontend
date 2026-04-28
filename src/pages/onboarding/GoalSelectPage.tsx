@@ -8,37 +8,37 @@ import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
 import { useOnboardingStore } from '../../stores/onboardingStore';
 import { InterestChip } from './components/InterestChip';
 
-type Props = StackScreenProps<OnboardingStackParamList, 'LearningMethodSelect'>;
+type Props = StackScreenProps<OnboardingStackParamList, 'GoalSelect'>;
 
-const learningMethods = [
-  '프로젝트 실습 중심',
-  '이론/개념 학습',
-  '멘토링/코드리뷰',
-  '스터디 그룹',
-  '온라인 강의',
-  '해커톤 참여',
+const onboardingGoals = [
+  '기초 역량 쌓기',
+  '포트폴리오 완성',
+  '공모전/해커톤 준비',
+  '인턴십 준비',
+  '진로 탐색',
+  '협업 경험 쌓기',
 ];
 
-export function LearningMethodSelectPage({ navigation }: Props) {
-  const selectedMethods = useOnboardingStore((state) => state.learningMethods);
-  const toggleLearningMethod = useOnboardingStore((state) => state.toggleLearningMethod);
-  const maxReached = selectedMethods.length >= 2;
+export function GoalSelectPage({ navigation }: Props) {
+  const selectedGoals = useOnboardingStore((state) => state.onboardingGoals);
+  const toggleOnboardingGoal = useOnboardingStore((state) => state.toggleOnboardingGoal);
+  const maxReached = selectedGoals.length >= 2;
 
-  const handleToggleMethod = (method: string) => {
-    const alreadySelected = selectedMethods.includes(method);
+  const handleToggleGoal = (goal: string) => {
+    const alreadySelected = selectedGoals.includes(goal);
     if (!alreadySelected && maxReached) {
-      console.log('[Onboarding] 학습 방식은 최대 2개까지 선택할 수 있습니다.');
+      console.log('[Onboarding] 목표는 최대 2개까지 선택할 수 있습니다.');
       return;
     }
-    toggleLearningMethod(method);
+    toggleOnboardingGoal(goal);
   };
 
   const handleNext = () => {
-    if (selectedMethods.length < 1) {
+    if (selectedGoals.length < 1) {
       return;
     }
-    console.log('[Onboarding] 선택한 학습 방식:', selectedMethods);
-    navigation.navigate('GoalSelect');
+    console.log('[Onboarding] 선택한 목표:', selectedGoals);
+    console.log('[Onboarding] 다음 화면은 아직 미구현입니다.');
   };
 
   return (
@@ -51,34 +51,34 @@ export function LearningMethodSelectPage({ navigation }: Props) {
           <Text style={styles.headerTitle}>1학년 흐름</Text>
         </View>
 
-        <Text style={styles.screenId}>ON-SCR-06 | ON-009</Text>
-        <ProgressBar progress={0.7} />
+        <Text style={styles.screenId}>ON-SCR-07 | ON-010</Text>
+        <ProgressBar progress={0.84} />
 
-        <Text style={styles.title}>선호하는 학습 방식을 선택해주세요</Text>
+        <Text style={styles.title}>이번 학기 목표를 선택해주세요</Text>
         <Text style={styles.subtitle}>1~2개 선택 가능</Text>
 
         <View style={styles.chipGroup}>
-          {learningMethods.map((method) => {
-            const isSelected = selectedMethods.includes(method);
+          {onboardingGoals.map((goal) => {
+            const isSelected = selectedGoals.includes(goal);
             return (
               <InterestChip
-                key={method}
-                label={method}
+                key={goal}
+                label={goal}
                 selected={isSelected}
                 disabled={maxReached && !isSelected}
-                onPress={() => handleToggleMethod(method)}
+                onPress={() => handleToggleGoal(goal)}
               />
             );
           })}
         </View>
 
-        <Text style={styles.counterText}>선택됨: {selectedMethods.length}/2</Text>
+        <Text style={styles.counterText}>선택됨: {selectedGoals.length}/2</Text>
       </View>
 
       <View style={styles.bottomArea}>
         <Button
-          title={selectedMethods.length > 0 ? '다음' : '다음 (학습 방식을 선택해주세요)'}
-          variant={selectedMethods.length > 0 ? 'primary' : 'disabled'}
+          title={selectedGoals.length > 0 ? '다음' : '다음 (목표를 선택해주세요)'}
+          variant={selectedGoals.length > 0 ? 'primary' : 'disabled'}
           onPress={handleNext}
         />
       </View>
