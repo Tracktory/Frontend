@@ -3,6 +3,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 
 import { AdmissionYearPage } from '@/src/pages/onboarding/AdmissionYearPage';
 import { AffiliationPage } from '@/src/pages/onboarding/AffiliationPage';
+import { CollaborationStyleSelectPage } from '@/src/pages/onboarding/CollaborationStyleSelectPage';
 import { CollegeSelectPage } from '@/src/pages/onboarding/CollegeSelectPage';
 import { DevelopmentFieldSelectPage } from '@/src/pages/onboarding/DevelopmentFieldSelectPage';
 import { GoalSelectPage } from '@/src/pages/onboarding/GoalSelectPage';
@@ -17,6 +18,7 @@ export type OnboardingStackParamList = {
   DevelopmentFieldSelect: undefined;
   LearningMethodSelect: undefined;
   GoalSelect: undefined;
+  CollaborationStyleSelect: undefined;
 };
 
 const Stack = createStackNavigator<OnboardingStackParamList>();
@@ -36,6 +38,7 @@ export function OnboardingNavigator() {
       <Stack.Screen name="DevelopmentFieldSelect" component={DevelopmentFieldSelectPage} />
       <Stack.Screen name="LearningMethodSelect" component={LearningMethodSelectPage} />
       <Stack.Screen name="GoalSelect" component={GoalSelectPage} />
+      <Stack.Screen name="CollaborationStyleSelect" component={CollaborationStyleSelectPage} />
     </Stack.Navigator>
   );
 }

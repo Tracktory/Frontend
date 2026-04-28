@@ -8,37 +8,37 @@ import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
 import { useOnboardingStore } from '../../stores/onboardingStore';
 import { InterestChip } from './components/InterestChip';
 
-type Props = StackScreenProps<OnboardingStackParamList, 'GoalSelect'>;
+type Props = StackScreenProps<OnboardingStackParamList, 'CollaborationStyleSelect'>;
 
-const onboardingGoals = [
-  '기초 역량 쌓기',
-  '포트폴리오 완성',
-  '공모전/해커톤 준비',
-  '인턴십 준비',
-  '진로 탐색',
-  '협업 경험 쌓기',
+const collaborationStyles = [
+  '빠른 실행 후 개선',
+  '충분한 설계 후 개발',
+  '역할 분담 중심',
+  '페어 프로그래밍',
+  '주기적 피드백',
+  '자율 진행 + 체크인',
 ];
 
-export function GoalSelectPage({ navigation }: Props) {
-  const selectedGoals = useOnboardingStore((state) => state.onboardingGoals);
-  const toggleOnboardingGoal = useOnboardingStore((state) => state.toggleOnboardingGoal);
-  const maxReached = selectedGoals.length >= 2;
+export function CollaborationStyleSelectPage({ navigation }: Props) {
+  const selectedStyles = useOnboardingStore((state) => state.collaborationStyles);
+  const toggleCollaborationStyle = useOnboardingStore((state) => state.toggleCollaborationStyle);
+  const maxReached = selectedStyles.length >= 2;
 
-  const handleToggleGoal = (goal: string) => {
-    const alreadySelected = selectedGoals.includes(goal);
+  const handleToggleStyle = (style: string) => {
+    const alreadySelected = selectedStyles.includes(style);
     if (!alreadySelected && maxReached) {
-      console.log('[Onboarding] 목표는 최대 2개까지 선택할 수 있습니다.');
+      console.log('[Onboarding] 협업 방식은 최대 2개까지 선택할 수 있습니다.');
       return;
     }
-    toggleOnboardingGoal(goal);
+    toggleCollaborationStyle(style);
   };
 
   const handleNext = () => {
-    if (selectedGoals.length < 1) {
+    if (selectedStyles.length < 1) {
       return;
     }
-    console.log('[Onboarding] 선택한 목표:', selectedGoals);
-    navigation.navigate('CollaborationStyleSelect');
+    console.log('[Onboarding] 선택한 협업 방식:', selectedStyles);
+    console.log('[Onboarding] 다음 화면은 아직 미구현입니다.');
   };
 
   return (
@@ -51,34 +51,34 @@ export function GoalSelectPage({ navigation }: Props) {
           <Text style={styles.headerTitle}>1학년 흐름</Text>
         </View>
 
-        <Text style={styles.screenId}>ON-SCR-07 | ON-010</Text>
-        <ProgressBar progress={0.84} />
+        <Text style={styles.screenId}>ON-SCR-08 | ON-011</Text>
+        <ProgressBar progress={0.96} />
 
-        <Text style={styles.title}>이번 학기 목표를 선택해주세요</Text>
+        <Text style={styles.title}>선호하는 협업 방식을 선택해주세요</Text>
         <Text style={styles.subtitle}>1~2개 선택 가능</Text>
 
         <View style={styles.chipGroup}>
-          {onboardingGoals.map((goal) => {
-            const isSelected = selectedGoals.includes(goal);
+          {collaborationStyles.map((style) => {
+            const isSelected = selectedStyles.includes(style);
             return (
               <InterestChip
-                key={goal}
-                label={goal}
+                key={style}
+                label={style}
                 selected={isSelected}
                 disabled={maxReached && !isSelected}
-                onPress={() => handleToggleGoal(goal)}
+                onPress={() => handleToggleStyle(style)}
               />
             );
           })}
         </View>
 
-        <Text style={styles.counterText}>선택됨: {selectedGoals.length}/2</Text>
+        <Text style={styles.counterText}>선택됨: {selectedStyles.length}/2</Text>
       </View>
 
       <View style={styles.bottomArea}>
         <Button
-          title={selectedGoals.length > 0 ? '다음' : '다음 (목표를 선택해주세요)'}
-          variant={selectedGoals.length > 0 ? 'primary' : 'disabled'}
+          title={selectedStyles.length > 0 ? '다음' : '다음 (협업 방식을 선택해주세요)'}
+          variant={selectedStyles.length > 0 ? 'primary' : 'disabled'}
           onPress={handleNext}
         />
       </View>
