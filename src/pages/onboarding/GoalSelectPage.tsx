@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { StackScreenProps } from '@react-navigation/stack';
 
 import { Button } from '../../components/Button';
@@ -10,40 +10,37 @@ import { InterestChip } from './components/InterestChip';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'GoalSelect'>;
 
-const onboardingGoals = [
-  '기초 역량 쌓기',
-  '포트폴리오 완성',
-  '공모전/해커톤 준비',
-  '인턴십 준비',
-  '진로 탐색',
-  '협업 경험 쌓기',
+const techTags = [
+  'Python',
+  'Java',
+  'JavaScript',
+  'C/C++',
+  'SQL',
+  'React',
+  'Spring',
+  'Flutter',
 ];
 
 export function GoalSelectPage({ navigation }: Props) {
-  const selectedGoals = useOnboardingStore((state) => state.onboardingGoals);
-  const toggleOnboardingGoal = useOnboardingStore((state) => state.toggleOnboardingGoal);
-  const maxReached = selectedGoals.length >= 2;
-
-  const handleToggleGoal = (goal: string) => {
-    const alreadySelected = selectedGoals.includes(goal);
-    if (!alreadySelected && maxReached) {
-      console.log('[Onboarding] 목표는 최대 2개까지 선택할 수 있습니다.');
-      return;
-    }
-    toggleOnboardingGoal(goal);
-  };
+  const selectedFields = useOnboardingStore((state) => state.experiencedFields);
+  const toggleExperiencedField = useOnboardingStore((state) => state.toggleExperiencedField);
+  const fieldInput = useOnboardingStore((state) => state.experiencedFieldInput);
+  const setExperiencedFieldInput = useOnboardingStore((state) => state.setExperiencedFieldInput);
 
   const handleNext = () => {
-    if (selectedGoals.length < 1) {
-      return;
-    }
-    console.log('[Onboarding] 선택한 목표:', selectedGoals);
-    navigation.navigate('CollaborationStyleSelect');
+    console.log('[Onboarding] 공부해본 분야 텍스트:', fieldInput);
+    console.log('[Onboarding] 선택한 태그:', selectedFields);
+    console.log('[Onboarding] 다음 화면은 아직 미구현입니다.');
+  };
+
+  const handleSkip = () => {
+    console.log('[Onboarding] 공부해본 분야 건너뛰기');
+    console.log('[Onboarding] 다음 화면은 아직 미구현입니다.');
   };
 
   return (
     <View style={styles.screen}>
-      <View style={styles.content}>
+      <ScrollView style={styles.scrollArea} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.headerRow}>
           <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
             <Text style={styles.backButtonText}>← 뒤로</Text>
@@ -51,34 +48,48 @@ export function GoalSelectPage({ navigation }: Props) {
           <Text style={styles.headerTitle}>1학년 흐름</Text>
         </View>
 
-        <Text style={styles.screenId}>ON-SCR-07 | ON-010</Text>
-        <ProgressBar progress={0.84} />
+        <Text style={styles.screenId}>ON-SCR-07a | ON-011-1 [P2]</Text>
+        <ProgressBar progress={0.7} />
 
-        <Text style={styles.title}>이번 학기 목표를 선택해주세요</Text>
-        <Text style={styles.subtitle}>1~2개 선택 가능</Text>
+        <Text style={styles.title}>공부해본 분야가 있나요?</Text>
+        <Text style={styles.subtitle}>선택사항 — 건너뛰기 가능</Text>
+
+        <TextInput
+          style={styles.textInput}
+          placeholder="예: Python, React, 데이터분석 등"
+          placeholderTextColor="#AAAAAA"
+          value={fieldInput}
+          onChangeText={setExperiencedFieldInput}
+          returnKeyType="done"
+        />
+
+        <Text style={styles.tagHint}>자유 입력 또는 아래 태그 선택</Text>
 
         <View style={styles.chipGroup}>
-          {onboardingGoals.map((goal) => {
-            const isSelected = selectedGoals.includes(goal);
+          {techTags.map((tag) => {
+            const isSelected = selectedFields.includes(tag);
             return (
               <InterestChip
-                key={goal}
-                label={goal}
+                key={tag}
+                label={tag}
                 selected={isSelected}
-                disabled={maxReached && !isSelected}
-                onPress={() => handleToggleGoal(goal)}
+                onPress={() => toggleExperiencedField(tag)}
               />
             );
           })}
         </View>
-
-        <Text style={styles.counterText}>선택됨: {selectedGoals.length}/2</Text>
-      </View>
+      </ScrollView>
 
       <View style={styles.bottomArea}>
         <Button
-          title={selectedGoals.length > 0 ? '다음' : '다음 (목표를 선택해주세요)'}
-          variant={selectedGoals.length > 0 ? 'primary' : 'disabled'}
+          title="건너뛰기"
+          variant="disabled"
+          onPress={handleSkip}
+        />
+        <View style={styles.spacer} />
+        <Button
+          title="다음"
+          variant="primary"
           onPress={handleNext}
         />
       </View>
@@ -94,8 +105,11 @@ const styles = StyleSheet.create({
     paddingTop: 48,
     paddingBottom: 28,
   },
-  content: {
+  scrollArea: {
     flex: 1,
+  },
+  content: {
+    paddingBottom: 16,
   },
   headerRow: {
     minHeight: 44,
@@ -134,10 +148,26 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 22,
-    lineHeight: 30,
+    fontSize: 18,
+    lineHeight: 26,
     color: '#737373',
     marginBottom: 20,
+  },
+  textInput: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 15,
+    color: '#171717',
+    marginBottom: 12,
+  },
+  tagHint: {
+    fontSize: 13,
+    color: '#A3A3A3',
+    marginBottom: 12,
   },
   chipGroup: {
     flexDirection: 'row',
@@ -145,11 +175,10 @@ const styles = StyleSheet.create({
     gap: 10,
     marginBottom: 16,
   },
-  counterText: {
-    fontSize: 14,
-    color: '#737373',
-  },
   bottomArea: {
     paddingTop: 12,
+  },
+  spacer: {
+    height: 10,
   },
 });

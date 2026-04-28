@@ -23,24 +23,27 @@ interface OnboardingState {
   grade: number | null;
   affiliation: AffiliationType | null;
   college: string | null;
+  // ON-SCR-04a
   interests: string[];
-  developmentFields: string[];
-  learningMethods: string[];
-  onboardingGoals: string[];
-  collaborationStyles: string[];
+  // ON-SCR-06a (두 섹션 한 화면)
+  preferredCompanyTypes: string[];
+  employmentValues: string[];
+  // ON-SCR-07a
+  experiencedFields: string[];
+  experiencedFieldInput: string;
+
   setAdmissionYear: (year: number) => void;
   setAffiliation: (type: AffiliationType) => void;
   setCollege: (college: string) => void;
   toggleInterest: (interest: string) => void;
   clearInterests: () => void;
-  toggleDevelopmentField: (field: string) => void;
-  clearDevelopmentFields: () => void;
-  toggleLearningMethod: (method: string) => void;
-  clearLearningMethods: () => void;
-  toggleOnboardingGoal: (goal: string) => void;
-  clearOnboardingGoals: () => void;
-  toggleCollaborationStyle: (style: string) => void;
-  clearCollaborationStyles: () => void;
+  togglePreferredCompanyType: (type: string) => void;
+  clearPreferredCompanyTypes: () => void;
+  toggleEmploymentValue: (value: string) => void;
+  clearEmploymentValues: () => void;
+  toggleExperiencedField: (field: string) => void;
+  clearExperiencedFields: () => void;
+  setExperiencedFieldInput: (text: string) => void;
 }
 
 export const useOnboardingStore = create<OnboardingState>()(
@@ -51,18 +54,15 @@ export const useOnboardingStore = create<OnboardingState>()(
       affiliation: null,
       college: null,
       interests: [],
-      developmentFields: [],
-      learningMethods: [],
-      onboardingGoals: [],
-      collaborationStyles: [],
+      preferredCompanyTypes: [],
+      employmentValues: [],
+      experiencedFields: [],
+      experiencedFieldInput: '',
+
       setAdmissionYear: (year: number) => {
         const currentYear = new Date().getFullYear();
         const calculatedGrade = Math.max(1, currentYear - year + 1);
-
-        set({
-          admissionYear: year,
-          grade: calculatedGrade,
-        });
+        set({ admissionYear: year, grade: calculatedGrade });
       },
       setAffiliation: (type: AffiliationType) => {
         set({ affiliation: type });
@@ -73,92 +73,58 @@ export const useOnboardingStore = create<OnboardingState>()(
       toggleInterest: (interest: string) => {
         set((state) => {
           if (state.interests.includes(interest)) {
-            return {
-              interests: state.interests.filter((item) => item !== interest),
-            };
+            return { interests: state.interests.filter((item) => item !== interest) };
           }
-          if (state.interests.length >= 5) {
-            return state;
-          }
-          return {
-            interests: [...state.interests, interest],
-          };
+          if (state.interests.length >= 5) return state;
+          return { interests: [...state.interests, interest] };
         });
       },
       clearInterests: () => {
         set({ interests: [] });
       },
-      toggleDevelopmentField: (field: string) => {
+      // 복수선택 (제한 없음)
+      togglePreferredCompanyType: (type: string) => {
         set((state) => {
-          if (state.developmentFields.includes(field)) {
+          if (state.preferredCompanyTypes.includes(type)) {
             return {
-              developmentFields: state.developmentFields.filter((item) => item !== field),
+              preferredCompanyTypes: state.preferredCompanyTypes.filter((item) => item !== type),
             };
           }
-          if (state.developmentFields.length >= 3) {
-            return state;
-          }
-          return {
-            developmentFields: [...state.developmentFields, field],
-          };
+          return { preferredCompanyTypes: [...state.preferredCompanyTypes, type] };
         });
       },
-      clearDevelopmentFields: () => {
-        set({ developmentFields: [] });
+      clearPreferredCompanyTypes: () => {
+        set({ preferredCompanyTypes: [] });
       },
-      toggleLearningMethod: (method: string) => {
+      // 최대 3개
+      toggleEmploymentValue: (value: string) => {
         set((state) => {
-          if (state.learningMethods.includes(method)) {
+          if (state.employmentValues.includes(value)) {
+            return { employmentValues: state.employmentValues.filter((item) => item !== value) };
+          }
+          if (state.employmentValues.length >= 3) return state;
+          return { employmentValues: [...state.employmentValues, value] };
+        });
+      },
+      clearEmploymentValues: () => {
+        set({ employmentValues: [] });
+      },
+      // 선택사항 (최대 제한 없음)
+      toggleExperiencedField: (field: string) => {
+        set((state) => {
+          if (state.experiencedFields.includes(field)) {
             return {
-              learningMethods: state.learningMethods.filter((item) => item !== method),
+              experiencedFields: state.experiencedFields.filter((item) => item !== field),
             };
           }
-          if (state.learningMethods.length >= 2) {
-            return state;
-          }
-          return {
-            learningMethods: [...state.learningMethods, method],
-          };
+          return { experiencedFields: [...state.experiencedFields, field] };
         });
       },
-      clearLearningMethods: () => {
-        set({ learningMethods: [] });
+      clearExperiencedFields: () => {
+        set({ experiencedFields: [] });
       },
-      toggleOnboardingGoal: (goal: string) => {
-        set((state) => {
-          if (state.onboardingGoals.includes(goal)) {
-            return {
-              onboardingGoals: state.onboardingGoals.filter((item) => item !== goal),
-            };
-          }
-          if (state.onboardingGoals.length >= 2) {
-            return state;
-          }
-          return {
-            onboardingGoals: [...state.onboardingGoals, goal],
-          };
-        });
-      },
-      clearOnboardingGoals: () => {
-        set({ onboardingGoals: [] });
-      },
-      toggleCollaborationStyle: (style: string) => {
-        set((state) => {
-          if (state.collaborationStyles.includes(style)) {
-            return {
-              collaborationStyles: state.collaborationStyles.filter((item) => item !== style),
-            };
-          }
-          if (state.collaborationStyles.length >= 2) {
-            return state;
-          }
-          return {
-            collaborationStyles: [...state.collaborationStyles, style],
-          };
-        });
-      },
-      clearCollaborationStyles: () => {
-        set({ collaborationStyles: [] });
+      setExperiencedFieldInput: (text: string) => {
+        set({ experiencedFieldInput: text });
       },
     }),
     {

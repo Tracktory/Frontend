@@ -3,22 +3,18 @@ import { createStackNavigator } from '@react-navigation/stack';
 
 import { AdmissionYearPage } from '@/src/pages/onboarding/AdmissionYearPage';
 import { AffiliationPage } from '@/src/pages/onboarding/AffiliationPage';
-import { CollaborationStyleSelectPage } from '@/src/pages/onboarding/CollaborationStyleSelectPage';
 import { CollegeSelectPage } from '@/src/pages/onboarding/CollegeSelectPage';
-import { DevelopmentFieldSelectPage } from '@/src/pages/onboarding/DevelopmentFieldSelectPage';
+import { EmploymentPreferencePage } from '@/src/pages/onboarding/EmploymentPreferencePage';
 import { GoalSelectPage } from '@/src/pages/onboarding/GoalSelectPage';
 import { InterestSelectPage } from '@/src/pages/onboarding/InterestSelectPage';
-import { LearningMethodSelectPage } from '@/src/pages/onboarding/LearningMethodSelectPage';
 
 export type OnboardingStackParamList = {
   AdmissionYear: undefined;
   Affiliation: undefined;
   CollegeSelect: undefined;
   InterestSelect: undefined;
-  DevelopmentFieldSelect: undefined;
-  LearningMethodSelect: undefined;
+  EmploymentPreference: undefined;
   GoalSelect: undefined;
-  CollaborationStyleSelect: undefined;
 };
 
 const Stack = createStackNavigator<OnboardingStackParamList>();
@@ -35,10 +31,8 @@ export function OnboardingNavigator() {
       <Stack.Screen name="Affiliation" component={AffiliationPage} />
       <Stack.Screen name="CollegeSelect" component={CollegeSelectPage} />
       <Stack.Screen name="InterestSelect" component={InterestSelectPage} />
-      <Stack.Screen name="DevelopmentFieldSelect" component={DevelopmentFieldSelectPage} />
-      <Stack.Screen name="LearningMethodSelect" component={LearningMethodSelectPage} />
+      <Stack.Screen name="EmploymentPreference" component={EmploymentPreferencePage} />
       <Stack.Screen name="GoalSelect" component={GoalSelectPage} />
-      <Stack.Screen name="CollaborationStyleSelect" component={CollaborationStyleSelectPage} />
     </Stack.Navigator>
   );
 }

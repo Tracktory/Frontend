@@ -49,7 +49,7 @@ export function InterestSelectPage({ navigation }: Props) {
       return;
     }
     console.log('[Onboarding] 선택한 관심사:', selectedInterests);
-    navigation.navigate('DevelopmentFieldSelect');
+    navigation.navigate('EmploymentPreference');
   };
 
   return (
