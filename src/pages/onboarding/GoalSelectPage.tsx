@@ -30,12 +30,12 @@ export function GoalSelectPage({ navigation }: Props) {
   const handleNext = () => {
     console.log('[Onboarding] 공부해본 분야 텍스트:', fieldInput);
     console.log('[Onboarding] 선택한 태그:', selectedFields);
-    console.log('[Onboarding] 다음 화면은 아직 미구현입니다.');
+    navigation.navigate('OnboardingConfirm');
   };
 
   const handleSkip = () => {
     console.log('[Onboarding] 공부해본 분야 건너뛰기');
-    console.log('[Onboarding] 다음 화면은 아직 미구현입니다.');
+    navigation.navigate('OnboardingConfirm');
   };
 
   return (

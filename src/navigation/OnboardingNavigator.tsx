@@ -7,6 +7,7 @@ import { CollegeSelectPage } from '@/src/pages/onboarding/CollegeSelectPage';
 import { EmploymentPreferencePage } from '@/src/pages/onboarding/EmploymentPreferencePage';
 import { GoalSelectPage } from '@/src/pages/onboarding/GoalSelectPage';
 import { InterestSelectPage } from '@/src/pages/onboarding/InterestSelectPage';
+import { OnboardingConfirmPage } from '@/src/pages/onboarding/OnboardingConfirmPage';
 
 export type OnboardingStackParamList = {
   AdmissionYear: undefined;
@@ -15,6 +16,7 @@ export type OnboardingStackParamList = {
   InterestSelect: undefined;
   EmploymentPreference: undefined;
   GoalSelect: undefined;
+  OnboardingConfirm: undefined;
 };
 
 const Stack = createStackNavigator<OnboardingStackParamList>();
@@ -33,6 +35,7 @@ export function OnboardingNavigator() {
       <Stack.Screen name="InterestSelect" component={InterestSelectPage} />
       <Stack.Screen name="EmploymentPreference" component={EmploymentPreferencePage} />
       <Stack.Screen name="GoalSelect" component={GoalSelectPage} />
+      <Stack.Screen name="OnboardingConfirm" component={OnboardingConfirmPage} />
     </Stack.Navigator>
   );
 }
