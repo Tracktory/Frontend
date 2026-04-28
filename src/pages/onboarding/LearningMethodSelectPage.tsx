@@ -8,41 +8,37 @@ import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
 import { useOnboardingStore } from '../../stores/onboardingStore';
 import { InterestChip } from './components/InterestChip';
 
-type Props = StackScreenProps<OnboardingStackParamList, 'DevelopmentFieldSelect'>;
+type Props = StackScreenProps<OnboardingStackParamList, 'LearningMethodSelect'>;
 
-const developmentFields = [
-  '웹 서비스 개발',
-  '모바일 앱 개발',
-  '게임 개발',
-  '데이터 엔지니어링',
-  '데이터 분석',
-  'AI/ML 모델 개발',
-  '클라우드/인프라',
-  'DevOps/SRE',
-  '보안 엔지니어링',
-  '임베디드/IoT',
+const learningMethods = [
+  '프로젝트 실습 중심',
+  '이론/개념 학습',
+  '멘토링/코드리뷰',
+  '스터디 그룹',
+  '온라인 강의',
+  '해커톤 참여',
 ];
 
-export function DevelopmentFieldSelectPage({ navigation }: Props) {
-  const selectedFields = useOnboardingStore((state) => state.developmentFields);
-  const toggleDevelopmentField = useOnboardingStore((state) => state.toggleDevelopmentField);
-  const maxReached = selectedFields.length >= 3;
+export function LearningMethodSelectPage({ navigation }: Props) {
+  const selectedMethods = useOnboardingStore((state) => state.learningMethods);
+  const toggleLearningMethod = useOnboardingStore((state) => state.toggleLearningMethod);
+  const maxReached = selectedMethods.length >= 2;
 
-  const handleToggleField = (field: string) => {
-    const alreadySelected = selectedFields.includes(field);
+  const handleToggleMethod = (method: string) => {
+    const alreadySelected = selectedMethods.includes(method);
     if (!alreadySelected && maxReached) {
-      console.log('[Onboarding] 개발 분야는 최대 3개까지 선택할 수 있습니다.');
+      console.log('[Onboarding] 학습 방식은 최대 2개까지 선택할 수 있습니다.');
       return;
     }
-    toggleDevelopmentField(field);
+    toggleLearningMethod(method);
   };
 
   const handleNext = () => {
-    if (selectedFields.length < 1) {
+    if (selectedMethods.length < 1) {
       return;
     }
-    console.log('[Onboarding] 선택한 개발 분야:', selectedFields);
-    navigation.navigate('LearningMethodSelect');
+    console.log('[Onboarding] 선택한 학습 방식:', selectedMethods);
+    console.log('[Onboarding] 다음 화면은 아직 미구현입니다.');
   };
 
   return (
@@ -55,34 +51,34 @@ export function DevelopmentFieldSelectPage({ navigation }: Props) {
           <Text style={styles.headerTitle}>1학년 흐름</Text>
         </View>
 
-        <Text style={styles.screenId}>ON-SCR-05a | ON-008</Text>
-        <ProgressBar progress={0.56} />
+        <Text style={styles.screenId}>ON-SCR-06 | ON-009</Text>
+        <ProgressBar progress={0.7} />
 
-        <Text style={styles.title}>흥미있는 개발 분야를 선택해주세요</Text>
-        <Text style={styles.subtitle}>1~3개 선택 가능</Text>
+        <Text style={styles.title}>선호하는 학습 방식을 선택해주세요</Text>
+        <Text style={styles.subtitle}>1~2개 선택 가능</Text>
 
         <View style={styles.chipGroup}>
-          {developmentFields.map((field) => {
-            const isSelected = selectedFields.includes(field);
+          {learningMethods.map((method) => {
+            const isSelected = selectedMethods.includes(method);
             return (
               <InterestChip
-                key={field}
-                label={field}
+                key={method}
+                label={method}
                 selected={isSelected}
                 disabled={maxReached && !isSelected}
-                onPress={() => handleToggleField(field)}
+                onPress={() => handleToggleMethod(method)}
               />
             );
           })}
         </View>
 
-        <Text style={styles.counterText}>선택됨: {selectedFields.length}/3</Text>
+        <Text style={styles.counterText}>선택됨: {selectedMethods.length}/2</Text>
       </View>
 
       <View style={styles.bottomArea}>
         <Button
-          title={selectedFields.length > 0 ? '다음' : '다음 (개발 분야를 선택해주세요)'}
-          variant={selectedFields.length > 0 ? 'primary' : 'disabled'}
+          title={selectedMethods.length > 0 ? '다음' : '다음 (학습 방식을 선택해주세요)'}
+          variant={selectedMethods.length > 0 ? 'primary' : 'disabled'}
           onPress={handleNext}
         />
       </View>
