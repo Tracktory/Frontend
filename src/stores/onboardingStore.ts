@@ -23,9 +23,12 @@ interface OnboardingState {
   grade: number | null;
   affiliation: AffiliationType | null;
   college: string | null;
+  interests: string[];
   setAdmissionYear: (year: number) => void;
   setAffiliation: (type: AffiliationType) => void;
   setCollege: (college: string) => void;
+  toggleInterest: (interest: string) => void;
+  clearInterests: () => void;
 }
 
 export const useOnboardingStore = create<OnboardingState>()(
@@ -35,6 +38,7 @@ export const useOnboardingStore = create<OnboardingState>()(
       grade: null,
       affiliation: null,
       college: null,
+      interests: [],
       setAdmissionYear: (year: number) => {
         const currentYear = new Date().getFullYear();
         const calculatedGrade = Math.max(1, currentYear - year + 1);
@@ -49,6 +53,24 @@ export const useOnboardingStore = create<OnboardingState>()(
       },
       setCollege: (college: string) => {
         set({ college });
+      },
+      toggleInterest: (interest: string) => {
+        set((state) => {
+          if (state.interests.includes(interest)) {
+            return {
+              interests: state.interests.filter((item) => item !== interest),
+            };
+          }
+          if (state.interests.length >= 5) {
+            return state;
+          }
+          return {
+            interests: [...state.interests, interest],
+          };
+        });
+      },
+      clearInterests: () => {
+        set({ interests: [] });
       },
     }),
     {
