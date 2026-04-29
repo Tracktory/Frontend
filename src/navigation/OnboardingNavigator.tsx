@@ -8,7 +8,7 @@ import { DevelopmentFieldSelectSophomorePage } from '@/src/pages/onboarding/Deve
 import { EmploymentPreferenceSophomorePage } from '@/src/pages/onboarding/EmploymentPreferenceSophomorePage';
 import { EmploymentPreferencePage } from '@/src/pages/onboarding/EmploymentPreferencePage';
 import { ExperiencedFieldSophomorePage } from '@/src/pages/onboarding/ExperiencedFieldSophomorePage';
-import { GoalSelectPage } from '@/src/pages/onboarding/GoalSelectPage';
+import { ExperiencedFieldPage } from '@/src/pages/onboarding/ExperiencedFieldPage';
 import { InterestSelectPage } from '@/src/pages/onboarding/InterestSelectPage';
 import { InterestSelectSophomorePage } from '@/src/pages/onboarding/InterestSelectSophomorePage';
 import { OnboardingConfirmPage } from '@/src/pages/onboarding/OnboardingConfirmPage';
@@ -48,7 +48,7 @@ export function OnboardingNavigator() {
       <Stack.Screen name="CollegeSelect" component={CollegeSelectPage} />
       <Stack.Screen name="InterestSelect" component={InterestSelectPage} />
       <Stack.Screen name="EmploymentPreference" component={EmploymentPreferencePage} />
-      <Stack.Screen name="GoalSelect" component={GoalSelectPage} />
+      <Stack.Screen name="GoalSelect" component={ExperiencedFieldPage} />
       <Stack.Screen name="OnboardingConfirm" component={OnboardingConfirmPage} />
       <Stack.Screen name="TrackInput" component={TrackInputPage} />
       <Stack.Screen name="InterestSelectSophomore" component={InterestSelectSophomorePage} />

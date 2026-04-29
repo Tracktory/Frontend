@@ -7,25 +7,9 @@ import { ProgressBar } from '../../components/ProgressBar';
 import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
 import { useOnboardingStore } from '../../stores/onboardingStore';
 import { InterestChip } from './components/InterestChip';
+import { INTEREST_OPTIONS } from './constants';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'InterestSelect'>;
-
-const interests = [
-  '프론트엔드',
-  '백엔드',
-  '데이터분석',
-  'AI/ML',
-  '모바일앱',
-  '게임개발',
-  '클라우드/인프라',
-  '보안',
-  'UI/UX디자인',
-  '블록체인',
-  'IoT/임베디드',
-  'AR/VR',
-  'DevOps',
-  '로봇공학',
-];
 
 export function InterestSelectPage({ navigation }: Props) {
   const selectedInterests = useOnboardingStore((state) => state.interests);
@@ -69,7 +53,7 @@ export function InterestSelectPage({ navigation }: Props) {
         <Text style={styles.subtitle}>1~5개 선택 가능</Text>
 
         <View style={styles.chipGroup}>
-          {interests.map((interest) => {
+          {INTEREST_OPTIONS.map((interest) => {
             const isSelected = selectedInterests.includes(interest);
             return (
               <InterestChip

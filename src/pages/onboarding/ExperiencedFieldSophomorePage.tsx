@@ -7,10 +7,9 @@ import { ProgressBar } from '../../components/ProgressBar';
 import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
 import { useOnboardingStore } from '../../stores/onboardingStore';
 import { InterestChip } from './components/InterestChip';
+import { TECH_TAG_OPTIONS } from './constants';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'ExperiencedFieldSophomore'>;
-
-const techTags = ['Python', 'Java', 'JavaScript', 'C/C++', 'SQL', 'React', 'Spring', 'Flutter'];
 
 export function ExperiencedFieldSophomorePage({ navigation }: Props) {
   const selectedFields = useOnboardingStore((state) => state.experiencedFieldsSophomore);
@@ -43,7 +42,7 @@ export function ExperiencedFieldSophomorePage({ navigation }: Props) {
           onChangeText={setFieldInput}
         />
         <View style={styles.chipGroup}>
-          {techTags.map((tag) => (
+          {TECH_TAG_OPTIONS.map((tag) => (
             <InterestChip
               key={tag}
               label={tag}

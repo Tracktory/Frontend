@@ -7,19 +7,9 @@ import { ProgressBar } from '../../components/ProgressBar';
 import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
 import { useOnboardingStore } from '../../stores/onboardingStore';
 import { InterestChip } from './components/InterestChip';
+import { COMPANY_TYPE_OPTIONS, EMPLOYMENT_VALUE_OPTIONS } from './constants';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'EmploymentPreference'>;
-
-const companyTypes = ['대기업', '스타트업', 'IT기업', '공공기관', '외국계', '프리랜서'];
-
-const employmentValueOptions = [
-  '연봉',
-  '워라밸',
-  '성장가능성',
-  '안정성',
-  '기술스택',
-  '사내문화',
-];
 
 export function EmploymentPreferencePage({ navigation }: Props) {
   const selectedCompanyTypes = useOnboardingStore((state) => state.preferredCompanyTypes);
@@ -68,7 +58,7 @@ export function EmploymentPreferencePage({ navigation }: Props) {
         {/* 섹션 1: 희망 회사 유형 */}
         <Text style={styles.sectionLabel}>희망 회사 유형 (복수선택)</Text>
         <View style={styles.chipGroup}>
-          {companyTypes.map((type) => {
+          {COMPANY_TYPE_OPTIONS.map((type) => {
             const isSelected = selectedCompanyTypes.includes(type);
             return (
               <InterestChip
@@ -84,7 +74,7 @@ export function EmploymentPreferencePage({ navigation }: Props) {
         {/* 섹션 2: 취업 시 중요 가치 */}
         <Text style={styles.sectionLabel}>취업 시 중요 가치 (최대 3개)</Text>
         <View style={styles.chipGroup}>
-          {employmentValueOptions.map((value) => {
+          {EMPLOYMENT_VALUE_OPTIONS.map((value) => {
             const isSelected = selectedValues.includes(value);
             return (
               <InterestChip

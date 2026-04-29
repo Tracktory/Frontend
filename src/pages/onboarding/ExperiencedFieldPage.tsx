@@ -7,21 +7,11 @@ import { ProgressBar } from '../../components/ProgressBar';
 import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
 import { useOnboardingStore } from '../../stores/onboardingStore';
 import { InterestChip } from './components/InterestChip';
+import { TECH_TAG_OPTIONS } from './constants';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'GoalSelect'>;
 
-const techTags = [
-  'Python',
-  'Java',
-  'JavaScript',
-  'C/C++',
-  'SQL',
-  'React',
-  'Spring',
-  'Flutter',
-];
-
-export function GoalSelectPage({ navigation }: Props) {
+export function ExperiencedFieldPage({ navigation }: Props) {
   const selectedFields = useOnboardingStore((state) => state.experiencedFields);
   const toggleExperiencedField = useOnboardingStore((state) => state.toggleExperiencedField);
   const fieldInput = useOnboardingStore((state) => state.experiencedFieldInput);
@@ -66,7 +56,7 @@ export function GoalSelectPage({ navigation }: Props) {
         <Text style={styles.tagHint}>자유 입력 또는 아래 태그 선택</Text>
 
         <View style={styles.chipGroup}>
-          {techTags.map((tag) => {
+          {TECH_TAG_OPTIONS.map((tag) => {
             const isSelected = selectedFields.includes(tag);
             return (
               <InterestChip
