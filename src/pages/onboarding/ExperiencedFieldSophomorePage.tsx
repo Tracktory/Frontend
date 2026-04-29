@@ -7,7 +7,7 @@ import { ProgressBar } from '../../components/ProgressBar';
 import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
 import { useOnboardingStore } from '../../stores/onboardingStore';
 import { InterestChip } from './components/InterestChip';
-import { TECH_TAG_OPTIONS } from './constants';
+import { TECH_TAG_OPTIONS } from './data/onboardingOptions';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'ExperiencedFieldSophomore'>;
 

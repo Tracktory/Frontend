@@ -7,7 +7,7 @@ import { ProgressBar } from '../../components/ProgressBar';
 import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
 import { useOnboardingStore } from '../../stores/onboardingStore';
 import { InterestChip } from './components/InterestChip';
-import { INTEREST_OPTIONS } from './constants';
+import { INTEREST_OPTIONS } from './data/onboardingOptions';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'InterestSelectSophomore'>;
 

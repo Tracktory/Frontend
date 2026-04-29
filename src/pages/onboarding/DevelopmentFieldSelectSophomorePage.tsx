@@ -7,10 +7,9 @@ import { ProgressBar } from '../../components/ProgressBar';
 import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
 import { useOnboardingStore } from '../../stores/onboardingStore';
 import { InterestChip } from './components/InterestChip';
+import { DEVELOPMENT_FIELD_OPTIONS } from './data/onboardingOptions';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'DevelopmentFieldSelectSophomore'>;
-
-const developmentFields = ['앱 개발', '웹 개발', '데이터 분석', '게임 개발', 'AI/머신러닝', '보안'];
 
 export function DevelopmentFieldSelectSophomorePage({ navigation }: Props) {
   const selectedFields = useOnboardingStore((state) => state.developmentFieldsSophomore);
@@ -49,7 +48,7 @@ export function DevelopmentFieldSelectSophomorePage({ navigation }: Props) {
         <Text style={styles.subtitle}>1~3개 선택</Text>
 
         <View style={styles.chipGroup}>
-          {developmentFields.map((field) => {
+          {DEVELOPMENT_FIELD_OPTIONS.map((field) => {
             const isSelected = selectedFields.includes(field);
             return (
               <InterestChip

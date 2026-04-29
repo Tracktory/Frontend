@@ -7,7 +7,7 @@ import { ProgressBar } from '../../components/ProgressBar';
 import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
 import { useOnboardingStore } from '../../stores/onboardingStore';
 import { InterestChip } from './components/InterestChip';
-import { COMPANY_TYPE_OPTIONS, EMPLOYMENT_VALUE_OPTIONS } from './constants';
+import { COMPANY_TYPE_OPTIONS, EMPLOYMENT_VALUE_OPTIONS } from './data/onboardingOptions';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'EmploymentPreference'>;
 
