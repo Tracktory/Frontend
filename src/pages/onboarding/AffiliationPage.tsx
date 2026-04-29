@@ -36,10 +36,11 @@ export function AffiliationPage({ navigation }: Props) {
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.screenLabel}>온보딩</Text>
         <ProgressBar progress={0.28} />
 
-        <Text style={styles.title}>소속을 선택해주세요</Text>
+        <Text style={styles.title}>
+          <Text style={styles.titleHighlight}>소속</Text>을 선택해주세요
+        </Text>
         <Text style={styles.subtitle}>{subtitle}</Text>
 
         <AffiliationCard
@@ -92,18 +93,15 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  screenLabel: {
-    fontSize: 12,
-    color: colors.textHint,
-    marginBottom: 8,
-    fontWeight: '500',
-  },
   title: {
     fontSize: 28,
     lineHeight: 36,
     fontWeight: '700',
-    color: colors.primary,
+    color: colors.textPrimary,
     marginBottom: 8,
+  },
+  titleHighlight: {
+    color: colors.primary,
   },
   subtitle: {
     fontSize: 16,

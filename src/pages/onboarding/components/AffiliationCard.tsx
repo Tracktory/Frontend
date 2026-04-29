@@ -14,7 +14,7 @@ export function AffiliationCard({ title, selected = false, onPress }: Affiliatio
     <Pressable
       style={({ pressed }) => [
         styles.card,
-        selected && styles.selectedCard,
+        selected ? styles.selectedCard : styles.defaultCard,
         pressed && styles.pressed,
       ]}
       onPress={onPress}
@@ -26,19 +26,23 @@ export function AffiliationCard({ title, selected = false, onPress }: Affiliatio
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
+    borderRadius: 12,
     paddingVertical: 24,
     paddingHorizontal: 20,
     marginBottom: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  defaultCard: {
+    backgroundColor: '#F7F8F9',
+  },
   selectedCard: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primaryLight,
+    backgroundColor: '#F4FFFE',
+    shadowColor: 'rgba(20, 184, 166, 0.80)',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+    elevation: 4,
   },
   pressed: {
     opacity: 0.92,

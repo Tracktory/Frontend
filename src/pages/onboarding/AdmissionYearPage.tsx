@@ -26,10 +26,13 @@ export function AdmissionYearPage({ navigation }: Props) {
 
   return (
     <View style={styles.screen}>
+      <View style={styles.headerSpacer} />
+
       <View style={styles.content}>
-        <Text style={styles.screenLabel}>온보딩</Text>
         <ProgressBar progress={0.14} />
-        <Text style={styles.title}>입학년도를 선택해주세요</Text>
+        <Text style={styles.title}>
+          <Text style={styles.titleHighlight}>입학년도</Text>를 선택해주세요
+        </Text>
         <Text style={styles.subtitle}>학년을 자동으로 산출합니다.</Text>
 
         {admissionYears.map((year) => (
@@ -58,24 +61,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
     paddingHorizontal: 20,
-    paddingTop: 64,
+    paddingTop: 48,
     paddingBottom: 28,
+  },
+  headerSpacer: {
+    minHeight: 44,
   },
   content: {
     flex: 1,
-  },
-  screenLabel: {
-    fontSize: 12,
-    color: colors.textHint,
-    marginBottom: 8,
-    fontWeight: '500',
   },
   title: {
     fontSize: 28,
     lineHeight: 36,
     fontWeight: '700',
-    color: colors.primary,
+    color: colors.textPrimary,
     marginBottom: 8,
+  },
+  titleHighlight: {
+    color: colors.primary,
   },
   subtitle: {
     fontSize: 16,

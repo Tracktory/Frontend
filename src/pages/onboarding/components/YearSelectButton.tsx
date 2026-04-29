@@ -14,7 +14,7 @@ export function YearSelectButton({ year, selected, onPress }: YearSelectButtonPr
     <Pressable
       style={({ pressed }) => [
         styles.button,
-        selected && styles.selectedButton,
+        selected ? styles.selectedButton : styles.defaultButton,
         pressed && styles.pressed,
       ]}
       onPress={onPress}
@@ -27,18 +27,22 @@ export function YearSelectButton({ year, selected, onPress }: YearSelectButtonPr
 const styles = StyleSheet.create({
   button: {
     width: '100%',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
+    borderRadius: 12,
     paddingVertical: 22,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
   },
+  defaultButton: {
+    backgroundColor: '#F7F8F9',
+  },
   selectedButton: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primaryLight,
+    backgroundColor: '#F4FFFE',
+    shadowColor: 'rgba(20, 184, 166, 0.80)',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+    elevation: 4,
   },
   pressed: {
     opacity: 0.92,
