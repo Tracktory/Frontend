@@ -1,21 +1,15 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
+
+import { colors } from '../../../styles/colors';
 
 interface AffiliationCardProps {
   title: string;
-  description: string;
-  linkText: string;
   selected?: boolean;
   onPress: () => void;
 }
 
-export function AffiliationCard({
-  title,
-  description,
-  linkText,
-  selected = false,
-  onPress,
-}: AffiliationCardProps) {
+export function AffiliationCard({ title, selected = false, onPress }: AffiliationCardProps) {
   return (
     <Pressable
       style={({ pressed }) => [
@@ -25,11 +19,7 @@ export function AffiliationCard({
       ]}
       onPress={onPress}
     >
-      <View>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.description}>{description}</Text>
-        <Text style={styles.link}>{linkText}</Text>
-      </View>
+      <Text style={[styles.title, selected && styles.selectedTitle]}>{title}</Text>
     </Pressable>
   );
 }
@@ -37,36 +27,29 @@ export function AffiliationCard({
 const styles = StyleSheet.create({
   card: {
     borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    backgroundColor: '#FAFAFA',
-    padding: 18,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    paddingVertical: 24,
+    paddingHorizontal: 20,
     marginBottom: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   selectedCard: {
-    borderColor: '#2563EB',
-    backgroundColor: '#F0F4FF',
+    borderColor: colors.primary,
+    backgroundColor: colors.primaryLight,
   },
   pressed: {
     opacity: 0.92,
   },
   title: {
-    fontSize: 24,
-    lineHeight: 32,
-    fontWeight: '700',
-    color: '#171717',
-    marginBottom: 6,
-  },
-  description: {
     fontSize: 18,
-    lineHeight: 24,
-    color: '#737373',
-    marginBottom: 8,
+    lineHeight: 26,
+    fontWeight: '600',
+    color: colors.textSecondary,
   },
-  link: {
-    fontSize: 17,
-    lineHeight: 24,
-    color: '#2563EB',
-    fontWeight: '500',
+  selectedTitle: {
+    color: colors.primary,
   },
 });

@@ -1,6 +1,8 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
+import { colors } from '../../../styles/colors';
+
 interface YearSelectButtonProps {
   year: number;
   selected: boolean;
@@ -27,16 +29,16 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
-    backgroundColor: '#F8F8F8',
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
     paddingVertical: 22,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
   },
   selectedButton: {
-    borderColor: '#2563EB',
-    backgroundColor: '#EEF4FF',
+    borderColor: colors.primary,
+    backgroundColor: colors.primaryLight,
   },
   pressed: {
     opacity: 0.92,
@@ -45,9 +47,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 22,
     fontWeight: '500',
-    color: '#333333',
+    color: colors.textPrimary,
   },
   selectedLabel: {
-    color: '#1E40AF',
+    color: colors.primary,
   },
 });

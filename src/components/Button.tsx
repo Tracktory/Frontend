@@ -1,29 +1,35 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+
+import { colors } from '../styles/colors';
 
 interface ButtonProps {
   title: string;
   onPress?: () => void;
   variant?: 'primary' | 'disabled';
+  subtitle?: string;
 }
 
-export function Button({ title, onPress, variant = 'primary' }: ButtonProps) {
+export function Button({ title, onPress, variant = 'primary', subtitle }: ButtonProps) {
   const isDisabled = variant === 'disabled';
 
   return (
-    <Pressable
-      style={({ pressed }) => [
-        styles.base,
-        isDisabled ? styles.disabled : styles.primary,
-        pressed && !isDisabled && styles.pressed,
-      ]}
-      onPress={onPress}
-      disabled={isDisabled}
-    >
-      <Text style={[styles.label, isDisabled ? styles.disabledLabel : styles.primaryLabel]}>
-        {title}
-      </Text>
-    </Pressable>
+    <View>
+      <Pressable
+        style={({ pressed }) => [
+          styles.base,
+          isDisabled ? styles.disabled : styles.primary,
+          pressed && !isDisabled && styles.pressed,
+        ]}
+        onPress={onPress}
+        disabled={isDisabled}
+      >
+        <Text style={[styles.label, isDisabled ? styles.disabledLabel : styles.primaryLabel]}>
+          {title}
+        </Text>
+      </Pressable>
+      {subtitle ? <Text style={styles.subtitleText}>{subtitle}</Text> : null}
+    </View>
   );
 }
 
@@ -36,10 +42,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   primary: {
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.primary,
   },
   disabled: {
-    backgroundColor: '#E0E0E0',
+    backgroundColor: colors.border,
   },
   pressed: {
     opacity: 0.9,
@@ -49,9 +55,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   primaryLabel: {
-    color: '#FFFFFF',
+    color: colors.white,
   },
   disabledLabel: {
-    color: '#FFFFFF',
+    color: colors.white,
+  },
+  subtitleText: {
+    marginTop: 8,
+    fontSize: 13,
+    color: colors.textHint,
+    textAlign: 'center',
   },
 });
