@@ -7,5 +7,5 @@ interface SaveAndRecommendButtonProps {
 }
 
 export function SaveAndRecommendButton({ onPress }: SaveAndRecommendButtonProps) {
-  return <Button title="저장하고 추천 받기" variant="primary" onPress={onPress} />;
+  return <Button title="저장하고 추천받기" variant="primary" onPress={onPress} />;
 }
