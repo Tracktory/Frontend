@@ -46,7 +46,6 @@ export function EmploymentPreferencePage({ navigation }: Props) {
           <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
             <Text style={styles.backButtonText}>← 뒤로</Text>
           </Pressable>
-          <Text style={styles.headerTitle}>1학년 흐름</Text>
         </View>
 
         <Text style={styles.screenId}>ON-SCR-06a | ON-008, ON-009</Text>

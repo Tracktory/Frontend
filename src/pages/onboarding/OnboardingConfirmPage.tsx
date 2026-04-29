@@ -78,8 +78,12 @@ const cardStyles = StyleSheet.create({
 export function OnboardingConfirmPage({ navigation }: Props) {
   const admissionYear = useOnboardingStore((state) => state.admissionYear);
   const grade = useOnboardingStore((state) => state.grade);
+  const affiliation = useOnboardingStore((state) => state.affiliation);
   const college = useOnboardingStore((state) => state.college);
+  const track1 = useOnboardingStore((state) => state.track1);
+  const track2 = useOnboardingStore((state) => state.track2);
   const interests = useOnboardingStore((state) => state.interests);
+  const developmentFields = useOnboardingStore((state) => state.developmentFields);
   const preferredCompanyTypes = useOnboardingStore((state) => state.preferredCompanyTypes);
   const employmentValues = useOnboardingStore((state) => state.employmentValues);
   const experiencedFields = useOnboardingStore((state) => state.experiencedFields);
@@ -112,8 +116,12 @@ export function OnboardingConfirmPage({ navigation }: Props) {
     console.log('[Onboarding] 최종 데이터:', {
       admissionYear,
       grade,
+      affiliation,
       college,
+      track1,
+      track2,
       interests,
+      developmentFields,
       preferredCompanyTypes,
       employmentValues,
       experiencedFields: allExperiencedFields,
@@ -132,7 +140,6 @@ export function OnboardingConfirmPage({ navigation }: Props) {
           <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
             <Text style={styles.backButtonText}>← 뒤로</Text>
           </Pressable>
-          <Text style={styles.headerTitle}>1학년 흐름</Text>
         </View>
 
         <Text style={styles.screenId}>ON-SCR-08a | ON-013</Text>
@@ -150,18 +157,36 @@ export function OnboardingConfirmPage({ navigation }: Props) {
           )}
         </ConfirmCard>
 
-        {/* 소속 */}
-        <ConfirmCard label="소속">
-          {college ? (
-            <Text style={styles.valueText}>{college}</Text>
-          ) : (
-            <Text style={cardStyles.empty}>선택 안 함</Text>
-          )}
-        </ConfirmCard>
+        {/* 소속 — 1학년: 단과대, 2학년+: 트랙 */}
+        {affiliation === '1학년' ? (
+          <ConfirmCard label="단과대">
+            {college ? (
+              <Text style={styles.valueText}>{college}</Text>
+            ) : (
+              <Text style={cardStyles.empty}>선택 안 함</Text>
+            )}
+          </ConfirmCard>
+        ) : (
+          <ConfirmCard label="트랙">
+            {track1 ? (
+              <Text style={styles.valueText}>
+                {track1}
+                {track2 ? `  /  ${track2}` : ''}
+              </Text>
+            ) : (
+              <Text style={cardStyles.empty}>선택 안 함</Text>
+            )}
+          </ConfirmCard>
+        )}
 
         {/* 관심사 */}
         <ConfirmCard label="관심사">
           <ChipList items={interests} />
+        </ConfirmCard>
+
+        {/* 흥미 개발 분야 */}
+        <ConfirmCard label="흥미 개발 분야">
+          <ChipList items={developmentFields} />
         </ConfirmCard>
 
         {/* 취업 선호 */}

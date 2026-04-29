@@ -22,24 +22,18 @@ interface OnboardingState {
   admissionYear: number | null;
   grade: number | null;
   affiliation: AffiliationType | null;
+  // 1학년 전용
   college: string | null;
+  // 2학년+ 전용
   track1: string;
   track2: string;
-  // ON-SCR-04a
+  // 공통 온보딩 데이터
   interests: string[];
-  // ON-SCR-06a (두 섹션 한 화면)
+  developmentFields: string[];
   preferredCompanyTypes: string[];
   employmentValues: string[];
-  // ON-SCR-07a
   experiencedFields: string[];
   experiencedFieldInput: string;
-  // 2학년+ 전용
-  interestsSophomore: string[];
-  developmentFieldsSophomore: string[];
-  preferredCompanyTypesSophomore: string[];
-  employmentValuesSophomore: string[];
-  experiencedFieldsSophomore: string[];
-  experiencedFieldInputSophomore: string;
 
   setAdmissionYear: (year: number) => void;
   setAffiliation: (type: AffiliationType) => void;
@@ -48,6 +42,8 @@ interface OnboardingState {
   setTrack2: (value: string) => void;
   toggleInterest: (interest: string) => void;
   clearInterests: () => void;
+  toggleDevelopmentField: (field: string) => void;
+  clearDevelopmentFields: () => void;
   togglePreferredCompanyType: (type: string) => void;
   clearPreferredCompanyTypes: () => void;
   toggleEmploymentValue: (value: string) => void;
@@ -55,17 +51,6 @@ interface OnboardingState {
   toggleExperiencedField: (field: string) => void;
   clearExperiencedFields: () => void;
   setExperiencedFieldInput: (text: string) => void;
-  toggleInterestSophomore: (interest: string) => void;
-  clearInterestsSophomore: () => void;
-  toggleDevelopmentFieldSophomore: (field: string) => void;
-  clearDevelopmentFieldsSophomore: () => void;
-  togglePreferredCompanyTypeSophomore: (type: string) => void;
-  clearPreferredCompanyTypesSophomore: () => void;
-  toggleEmploymentValueSophomore: (value: string) => void;
-  clearEmploymentValuesSophomore: () => void;
-  toggleExperiencedFieldSophomore: (field: string) => void;
-  clearExperiencedFieldsSophomore: () => void;
-  setExperiencedFieldInputSophomore: (text: string) => void;
 }
 
 export const useOnboardingStore = create<OnboardingState>()(
@@ -78,16 +63,11 @@ export const useOnboardingStore = create<OnboardingState>()(
       track1: '',
       track2: '',
       interests: [],
+      developmentFields: [],
       preferredCompanyTypes: [],
       employmentValues: [],
       experiencedFields: [],
       experiencedFieldInput: '',
-      interestsSophomore: [],
-      developmentFieldsSophomore: [],
-      preferredCompanyTypesSophomore: [],
-      employmentValuesSophomore: [],
-      experiencedFieldsSophomore: [],
-      experiencedFieldInputSophomore: '',
 
       setAdmissionYear: (year: number) => {
         const currentYear = new Date().getFullYear();
@@ -118,6 +98,21 @@ export const useOnboardingStore = create<OnboardingState>()(
       clearInterests: () => {
         set({ interests: [] });
       },
+      // 최대 3개
+      toggleDevelopmentField: (field: string) => {
+        set((state) => {
+          if (state.developmentFields.includes(field)) {
+            return {
+              developmentFields: state.developmentFields.filter((item) => item !== field),
+            };
+          }
+          if (state.developmentFields.length >= 3) return state;
+          return { developmentFields: [...state.developmentFields, field] };
+        });
+      },
+      clearDevelopmentFields: () => {
+        set({ developmentFields: [] });
+      },
       // 복수선택 (제한 없음)
       togglePreferredCompanyType: (type: string) => {
         set((state) => {
@@ -145,7 +140,7 @@ export const useOnboardingStore = create<OnboardingState>()(
       clearEmploymentValues: () => {
         set({ employmentValues: [] });
       },
-      // 선택사항 (최대 제한 없음)
+      // 선택사항 (제한 없음)
       toggleExperiencedField: (field: string) => {
         set((state) => {
           if (state.experiencedFields.includes(field)) {
@@ -161,93 +156,6 @@ export const useOnboardingStore = create<OnboardingState>()(
       },
       setExperiencedFieldInput: (text: string) => {
         set({ experiencedFieldInput: text });
-      },
-      toggleInterestSophomore: (interest: string) => {
-        set((state) => {
-          if (state.interestsSophomore.includes(interest)) {
-            return {
-              interestsSophomore: state.interestsSophomore.filter((item) => item !== interest),
-            };
-          }
-          if (state.interestsSophomore.length >= 5) return state;
-          return { interestsSophomore: [...state.interestsSophomore, interest] };
-        });
-      },
-      clearInterestsSophomore: () => {
-        set({ interestsSophomore: [] });
-      },
-      toggleDevelopmentFieldSophomore: (field: string) => {
-        set((state) => {
-          if (state.developmentFieldsSophomore.includes(field)) {
-            return {
-              developmentFieldsSophomore: state.developmentFieldsSophomore.filter(
-                (item) => item !== field
-              ),
-            };
-          }
-          if (state.developmentFieldsSophomore.length >= 3) return state;
-          return {
-            developmentFieldsSophomore: [...state.developmentFieldsSophomore, field],
-          };
-        });
-      },
-      clearDevelopmentFieldsSophomore: () => {
-        set({ developmentFieldsSophomore: [] });
-      },
-      togglePreferredCompanyTypeSophomore: (type: string) => {
-        set((state) => {
-          if (state.preferredCompanyTypesSophomore.includes(type)) {
-            return {
-              preferredCompanyTypesSophomore: state.preferredCompanyTypesSophomore.filter(
-                (item) => item !== type
-              ),
-            };
-          }
-          return {
-            preferredCompanyTypesSophomore: [...state.preferredCompanyTypesSophomore, type],
-          };
-        });
-      },
-      clearPreferredCompanyTypesSophomore: () => {
-        set({ preferredCompanyTypesSophomore: [] });
-      },
-      toggleEmploymentValueSophomore: (value: string) => {
-        set((state) => {
-          if (state.employmentValuesSophomore.includes(value)) {
-            return {
-              employmentValuesSophomore: state.employmentValuesSophomore.filter(
-                (item) => item !== value
-              ),
-            };
-          }
-          if (state.employmentValuesSophomore.length >= 3) return state;
-          return {
-            employmentValuesSophomore: [...state.employmentValuesSophomore, value],
-          };
-        });
-      },
-      clearEmploymentValuesSophomore: () => {
-        set({ employmentValuesSophomore: [] });
-      },
-      toggleExperiencedFieldSophomore: (field: string) => {
-        set((state) => {
-          if (state.experiencedFieldsSophomore.includes(field)) {
-            return {
-              experiencedFieldsSophomore: state.experiencedFieldsSophomore.filter(
-                (item) => item !== field
-              ),
-            };
-          }
-          return {
-            experiencedFieldsSophomore: [...state.experiencedFieldsSophomore, field],
-          };
-        });
-      },
-      clearExperiencedFieldsSophomore: () => {
-        set({ experiencedFieldsSophomore: [] });
-      },
-      setExperiencedFieldInputSophomore: (text: string) => {
-        set({ experiencedFieldInputSophomore: text });
       },
     }),
     {
