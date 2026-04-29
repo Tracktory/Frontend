@@ -23,7 +23,7 @@ export function CollegeSelectPage({ navigation }: Props) {
   const handleSelectCollege = (selectedCollege: string) => {
     setCollege(selectedCollege);
     console.log(`[Onboarding] 단과대 선택 완료: ${selectedCollege}`);
-    console.log('[Onboarding] 다음 화면은 아직 미구현입니다.');
+    navigation.navigate('InterestSelect');
   };
 
   return (
