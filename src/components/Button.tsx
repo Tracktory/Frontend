@@ -6,27 +6,37 @@ import { colors } from '../styles/colors';
 interface ButtonProps {
   title: string;
   onPress?: () => void;
-  variant?: 'primary' | 'disabled';
+  variant?: 'primary' | 'disabled' | 'secondary';
   subtitle?: string;
 }
 
 export function Button({ title, onPress, variant = 'primary', subtitle }: ButtonProps) {
   const isDisabled = variant === 'disabled';
 
+  const buttonStyle = () => {
+    if (variant === 'secondary') return styles.secondary;
+    if (variant === 'disabled') return styles.disabled;
+    return styles.primary;
+  };
+
+  const labelStyle = () => {
+    if (variant === 'secondary') return styles.secondaryLabel;
+    if (variant === 'disabled') return styles.disabledLabel;
+    return styles.primaryLabel;
+  };
+
   return (
     <View>
       <Pressable
         style={({ pressed }) => [
           styles.base,
-          isDisabled ? styles.disabled : styles.primary,
+          buttonStyle(),
           pressed && !isDisabled && styles.pressed,
         ]}
         onPress={onPress}
         disabled={isDisabled}
       >
-        <Text style={[styles.label, isDisabled ? styles.disabledLabel : styles.primaryLabel]}>
-          {title}
-        </Text>
+        <Text style={[styles.label, labelStyle()]}>{title}</Text>
       </Pressable>
       {subtitle ? <Text style={styles.subtitleText}>{subtitle}</Text> : null}
     </View>
@@ -44,11 +54,14 @@ const styles = StyleSheet.create({
   primary: {
     backgroundColor: colors.primary,
   },
+  secondary: {
+    backgroundColor: '#F4F4F4',
+  },
   disabled: {
     backgroundColor: colors.border,
   },
   pressed: {
-    opacity: 0.9,
+    opacity: 0.85,
   },
   label: {
     fontSize: 18,
@@ -56,6 +69,9 @@ const styles = StyleSheet.create({
   },
   primaryLabel: {
     color: colors.white,
+  },
+  secondaryLabel: {
+    color: colors.textSecondary,
   },
   disabledLabel: {
     color: colors.white,
