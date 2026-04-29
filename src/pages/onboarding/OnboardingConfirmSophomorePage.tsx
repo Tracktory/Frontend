@@ -2,10 +2,10 @@ import React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { StackScreenProps } from '@react-navigation/stack';
 
-import { Button } from '../../components/Button';
 import { ProgressBar } from '../../components/ProgressBar';
 import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
 import { useOnboardingStore } from '../../stores/onboardingStore';
+import { SaveAndRecommendButton } from './components/SaveAndRecommendButton';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'OnboardingConfirmSophomore'>;
 
@@ -111,7 +111,7 @@ export function OnboardingConfirmSophomorePage({ navigation }: Props) {
       </ScrollView>
 
       <View style={styles.bottomArea}>
-        <Button title="저장하고 추천 받기" variant="primary" onPress={handleSave} />
+        <SaveAndRecommendButton onPress={handleSave} />
       </View>
     </View>
   );
