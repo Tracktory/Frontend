@@ -14,6 +14,7 @@ import { InterestSelectSophomorePage } from '@/src/pages/onboarding/InterestSele
 import { OnboardingConfirmPage } from '@/src/pages/onboarding/OnboardingConfirmPage';
 import { OnboardingConfirmSophomorePage } from '@/src/pages/onboarding/OnboardingConfirmSophomorePage';
 import { TrackInputPage } from '@/src/pages/onboarding/TrackInputPage';
+import { RecommendLoadingPage } from '@/src/pages/recommendation/RecommendLoadingPage';
 
 export type OnboardingStackParamList = {
   AdmissionYear: undefined;
@@ -29,6 +30,7 @@ export type OnboardingStackParamList = {
   EmploymentPreferenceSophomore: undefined;
   ExperiencedFieldSophomore: undefined;
   OnboardingConfirmSophomore: undefined;
+  RecommendLoading: undefined;
 };
 
 const Stack = createStackNavigator<OnboardingStackParamList>();
@@ -66,6 +68,7 @@ export function OnboardingNavigator() {
         name="OnboardingConfirmSophomore"
         component={OnboardingConfirmSophomorePage}
       />
+      <Stack.Screen name="RecommendLoading" component={RecommendLoadingPage} />
     </Stack.Navigator>
   );
 }

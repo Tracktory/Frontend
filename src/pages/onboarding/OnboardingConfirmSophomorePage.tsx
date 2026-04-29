@@ -70,7 +70,7 @@ export function OnboardingConfirmSophomorePage({ navigation }: Props) {
       values,
       experiencedFields: allExperienced,
     });
-    console.log('[Onboarding] 다음 화면은 아직 미구현입니다.');
+    navigation.navigate('RecommendLoading');
   };
 
   return (
