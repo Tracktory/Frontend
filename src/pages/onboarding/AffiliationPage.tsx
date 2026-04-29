@@ -34,7 +34,7 @@ export function AffiliationPage({ navigation }: Props) {
       navigation.navigate('CollegeSelect');
       return;
     }
-    console.log('[Onboarding] 다음 화면은 아직 미구현입니다.');
+    navigation.navigate('TrackInput');
   };
 
   return (
