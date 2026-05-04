@@ -6,22 +6,12 @@ import { Button } from '../../components/Button';
 import { ProgressBar } from '../../components/ProgressBar';
 import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
 import { colors } from '../../styles/colors';
-import { useOnboardingStore } from '../../stores/onboardingStore';
+import { useTrackInputViewModel } from '../../hooks/useTrackInputViewModel';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'TrackInput'>;
 
 export function TrackInputPage({ navigation }: Props) {
-  const track1 = useOnboardingStore((state) => state.track1);
-  const track2 = useOnboardingStore((state) => state.track2);
-  const setTrack1 = useOnboardingStore((state) => state.setTrack1);
-  const setTrack2 = useOnboardingStore((state) => state.setTrack2);
-
-  const canProceed = track1.trim().length > 0;
-
-  const handleNext = () => {
-    if (!canProceed) return;
-    navigation.navigate('InterestSelect');
-  };
+  const vm = useTrackInputViewModel(navigation);
 
   return (
     <View style={styles.screen}>
@@ -44,8 +34,8 @@ export function TrackInputPage({ navigation }: Props) {
           style={styles.input}
           placeholder="예: 웹공학트랙"
           placeholderTextColor={colors.textHint}
-          value={track1}
-          onChangeText={setTrack1}
+          value={vm.track1}
+          onChangeText={vm.setTrack1}
           returnKeyType="next"
         />
         <View style={styles.warningBox}>
@@ -59,8 +49,8 @@ export function TrackInputPage({ navigation }: Props) {
           style={styles.input}
           placeholder="EX) 웹공학트랙"
           placeholderTextColor={colors.textHint}
-          value={track2}
-          onChangeText={setTrack2}
+          value={vm.track2}
+          onChangeText={vm.setTrack2}
           returnKeyType="done"
         />
       </View>
@@ -68,8 +58,8 @@ export function TrackInputPage({ navigation }: Props) {
       <View style={styles.bottomArea}>
         <Button
           title="다음 단계로"
-          variant={canProceed ? 'primary' : 'disabled'}
-          onPress={handleNext}
+          variant={vm.canProceed ? 'primary' : 'disabled'}
+          onPress={vm.handleNext}
         />
       </View>
     </View>

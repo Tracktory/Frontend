@@ -5,7 +5,7 @@ import { StackScreenProps } from '@react-navigation/stack';
 import { ProgressBar } from '../../components/ProgressBar';
 import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
 import { colors } from '../../styles/colors';
-import { useOnboardingStore } from '../../stores/onboardingStore';
+import { useOnboardingConfirmViewModel } from '../../hooks/useOnboardingConfirmViewModel';
 import { SaveAndRecommendButton } from './components/SaveAndRecommendButton';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'OnboardingConfirm'>;
@@ -77,49 +77,7 @@ const cardStyles = StyleSheet.create({
 });
 
 export function OnboardingConfirmPage({ navigation }: Props) {
-  const admissionYear = useOnboardingStore((state) => state.admissionYear);
-  const grade = useOnboardingStore((state) => state.grade);
-  const affiliation = useOnboardingStore((state) => state.affiliation);
-  const college = useOnboardingStore((state) => state.college);
-  const track1 = useOnboardingStore((state) => state.track1);
-  const track2 = useOnboardingStore((state) => state.track2);
-  const interests = useOnboardingStore((state) => state.interests);
-  const developmentFields = useOnboardingStore((state) => state.developmentFields);
-  const preferredCompanyTypes = useOnboardingStore((state) => state.preferredCompanyTypes);
-  const employmentValues = useOnboardingStore((state) => state.employmentValues);
-  const experiencedFields = useOnboardingStore((state) => state.experiencedFields);
-  const experiencedFieldInput = useOnboardingStore((state) => state.experiencedFieldInput);
-
-  const admissionYearLabel =
-    admissionYear && grade ? `${admissionYear}년 (${grade}학년)` : null;
-
-  const inputTags = experiencedFieldInput
-    ? experiencedFieldInput
-        .split(/[,，]/)
-        .map((s) => s.trim())
-        .filter(Boolean)
-    : [];
-  const allExperiencedFields = [...new Set([...inputTags, ...experiencedFields])];
-
-  const employmentChips = [...preferredCompanyTypes, ...employmentValues];
-
-  const handleSave = () => {
-    console.log('[Onboarding] 저장하고 추천받기 클릭');
-    console.log('[Onboarding] 최종 데이터:', {
-      admissionYear,
-      grade,
-      affiliation,
-      college,
-      track1,
-      track2,
-      interests,
-      developmentFields,
-      preferredCompanyTypes,
-      employmentValues,
-      experiencedFields: allExperiencedFields,
-    });
-    navigation.navigate('RecommendLoading');
-  };
+  const vm = useOnboardingConfirmViewModel(navigation);
 
   return (
     <View style={styles.screen}>
@@ -141,30 +99,28 @@ export function OnboardingConfirmPage({ navigation }: Props) {
         </Text>
         <Text style={styles.subtitle}>저장 후 AI가 맞춤 추천을 생성합니다</Text>
 
-        {/* 입학년도 */}
         <ConfirmCard label="입학년도">
-          {admissionYearLabel ? (
-            <Text style={styles.valueText}>{admissionYearLabel}</Text>
+          {vm.admissionYearLabel ? (
+            <Text style={styles.valueText}>{vm.admissionYearLabel}</Text>
           ) : (
             <Text style={cardStyles.empty}>선택 안 함</Text>
           )}
         </ConfirmCard>
 
-        {/* 소속 — 1학년: 단과대, 2학년+: 트랙 */}
-        {affiliation === '1학년' ? (
+        {vm.affiliation === '1학년' ? (
           <ConfirmCard label="소속">
-            {college ? (
-              <Text style={styles.valueText}>{college}</Text>
+            {vm.college ? (
+              <Text style={styles.valueText}>{vm.college}</Text>
             ) : (
               <Text style={cardStyles.empty}>선택 안 함</Text>
             )}
           </ConfirmCard>
         ) : (
           <ConfirmCard label="소속">
-            {track1 ? (
+            {vm.track1 ? (
               <Text style={styles.valueText}>
-                {track1}
-                {track2 ? `  /  ${track2}` : ''}
+                {vm.track1}
+                {vm.track2 ? `  /  ${vm.track2}` : ''}
               </Text>
             ) : (
               <Text style={cardStyles.empty}>선택 안 함</Text>
@@ -172,31 +128,27 @@ export function OnboardingConfirmPage({ navigation }: Props) {
           </ConfirmCard>
         )}
 
-        {/* 관심사 */}
         <ConfirmCard label="관심사">
-          <ChipList items={interests} />
+          <ChipList items={vm.interests} />
         </ConfirmCard>
 
-        {/* 흥미 개발분야 */}
         <ConfirmCard label="흥미 개발분야">
-          <ChipList items={developmentFields} />
+          <ChipList items={vm.developmentFields} />
         </ConfirmCard>
 
-        {/* 취업 선호 */}
         <ConfirmCard label="취업 선호">
-          <ChipList items={employmentChips} />
+          <ChipList items={vm.employmentChips} />
         </ConfirmCard>
 
-        {/* 공부해본 분야 (선택사항) */}
-        {allExperiencedFields.length > 0 && (
+        {vm.allExperiencedFields.length > 0 && (
           <ConfirmCard label="공부해본 분야">
-            <ChipList items={allExperiencedFields} />
+            <ChipList items={vm.allExperiencedFields} />
           </ConfirmCard>
         )}
       </ScrollView>
 
       <View style={styles.bottomArea}>
-        <SaveAndRecommendButton onPress={handleSave} />
+        <SaveAndRecommendButton onPress={vm.handleSave} />
       </View>
     </View>
   );

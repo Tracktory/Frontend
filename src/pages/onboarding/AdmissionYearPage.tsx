@@ -6,7 +6,7 @@ import { Button } from '../../components/Button';
 import { ProgressBar } from '../../components/ProgressBar';
 import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
 import { colors } from '../../styles/colors';
-import { useOnboardingStore } from '../../stores/onboardingStore';
+import { useAdmissionYearViewModel } from '../../hooks/useAdmissionYearViewModel';
 import { YearSelectButton } from './components/YearSelectButton';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'AdmissionYear'>;
@@ -14,15 +14,7 @@ type Props = StackScreenProps<OnboardingStackParamList, 'AdmissionYear'>;
 const admissionYears = [2024, 2025, 2026];
 
 export function AdmissionYearPage({ navigation }: Props) {
-  const admissionYear = useOnboardingStore((state) => state.admissionYear);
-  const setAdmissionYear = useOnboardingStore((state) => state.setAdmissionYear);
-
-  const isYearSelected = admissionYear !== null;
-
-  const handleNext = () => {
-    if (!isYearSelected) return;
-    navigation.navigate('Affiliation');
-  };
+  const vm = useAdmissionYearViewModel(navigation);
 
   return (
     <View style={styles.screen}>
@@ -39,8 +31,8 @@ export function AdmissionYearPage({ navigation }: Props) {
           <YearSelectButton
             key={year}
             year={year}
-            selected={admissionYear === year}
-            onPress={() => setAdmissionYear(year)}
+            selected={vm.admissionYear === year}
+            onPress={() => vm.setAdmissionYear(year)}
           />
         ))}
       </View>
@@ -48,8 +40,8 @@ export function AdmissionYearPage({ navigation }: Props) {
       <View style={styles.bottomArea}>
         <Button
           title="다음 단계로"
-          variant={isYearSelected ? 'primary' : 'disabled'}
-          onPress={handleNext}
+          variant={vm.isYearSelected ? 'primary' : 'disabled'}
+          onPress={vm.handleNext}
         />
       </View>
     </View>

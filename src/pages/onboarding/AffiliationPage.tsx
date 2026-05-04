@@ -6,26 +6,13 @@ import { Button } from '../../components/Button';
 import { ProgressBar } from '../../components/ProgressBar';
 import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
 import { colors } from '../../styles/colors';
-import { useOnboardingStore } from '../../stores/onboardingStore';
+import { useAffiliationViewModel } from '../../hooks/useAffiliationViewModel';
 import { AffiliationCard } from './components/AffiliationCard';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'Affiliation'>;
 
 export function AffiliationPage({ navigation }: Props) {
-  const admissionYear = useOnboardingStore((state) => state.admissionYear);
-  const affiliation = useOnboardingStore((state) => state.affiliation);
-  const setAffiliation = useOnboardingStore((state) => state.setAffiliation);
-
-  const subtitle = admissionYear ? `${admissionYear}년 입학생 기준` : '';
-
-  const handleNext = () => {
-    if (!affiliation) return;
-    if (affiliation === '1학년') {
-      navigation.navigate('CollegeSelect');
-    } else {
-      navigation.navigate('TrackInput');
-    }
-  };
+  const vm = useAffiliationViewModel(navigation);
 
   return (
     <View style={styles.screen}>
@@ -41,26 +28,26 @@ export function AffiliationPage({ navigation }: Props) {
         <Text style={styles.title}>
           <Text style={styles.titleHighlight}>소속</Text>을 선택해주세요
         </Text>
-        <Text style={styles.subtitle}>{subtitle}</Text>
+        <Text style={styles.subtitle}>{vm.subtitle}</Text>
 
         <AffiliationCard
           title="1학년 신입생"
-          selected={affiliation === '1학년'}
-          onPress={() => setAffiliation('1학년')}
+          selected={vm.affiliation === '1학년'}
+          onPress={() => vm.setAffiliation('1학년')}
         />
         <AffiliationCard
           title="2학년 이상 재학생"
-          selected={affiliation === '2학년이상'}
-          onPress={() => setAffiliation('2학년이상')}
+          selected={vm.affiliation === '2학년이상'}
+          onPress={() => vm.setAffiliation('2학년이상')}
         />
       </View>
 
       <View style={styles.bottomArea}>
         <Button
           title="다음 단계로"
-          variant={affiliation ? 'primary' : 'disabled'}
-          onPress={handleNext}
-          subtitle={affiliation ? undefined : '소속을 선택해주세요'}
+          variant={vm.canProceed ? 'primary' : 'disabled'}
+          onPress={vm.handleNext}
+          subtitle={vm.canProceed ? undefined : '소속을 선택해주세요'}
         />
       </View>
     </View>

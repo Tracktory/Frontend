@@ -6,30 +6,14 @@ import { Button } from '../../components/Button';
 import { ProgressBar } from '../../components/ProgressBar';
 import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
 import { colors } from '../../styles/colors';
-import { useOnboardingStore } from '../../stores/onboardingStore';
+import { useInterestSelectViewModel } from '../../hooks/useInterestSelectViewModel';
 import { InterestChip } from './components/InterestChip';
 import { INTEREST_OPTIONS } from './data/onboardingOptions';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'InterestSelect'>;
 
 export function InterestSelectPage({ navigation }: Props) {
-  const selectedInterests = useOnboardingStore((state) => state.interests);
-  const toggleInterest = useOnboardingStore((state) => state.toggleInterest);
-
-  const maxReached = selectedInterests.length >= 5;
-  const canProceed = selectedInterests.length >= 1;
-
-  const handleToggleInterest = (interest: string) => {
-    const alreadySelected = selectedInterests.includes(interest);
-    if (!alreadySelected && maxReached) return;
-    toggleInterest(interest);
-  };
-
-  const handleNext = () => {
-    if (!canProceed) return;
-    console.log('[Onboarding] 선택한 관심사:', selectedInterests);
-    navigation.navigate('DevelopmentFieldSelect');
-  };
+  const vm = useInterestSelectViewModel(navigation);
 
   return (
     <View style={styles.screen}>
@@ -49,14 +33,14 @@ export function InterestSelectPage({ navigation }: Props) {
 
         <View style={styles.chipGroup}>
           {INTEREST_OPTIONS.map((interest) => {
-            const isSelected = selectedInterests.includes(interest);
+            const isSelected = vm.interests.includes(interest);
             return (
               <InterestChip
                 key={interest}
                 label={interest}
                 selected={isSelected}
-                disabled={maxReached && !isSelected}
-                onPress={() => handleToggleInterest(interest)}
+                disabled={vm.maxReached && !isSelected}
+                onPress={() => vm.handleToggle(interest)}
               />
             );
           })}
@@ -66,9 +50,9 @@ export function InterestSelectPage({ navigation }: Props) {
       <View style={styles.bottomArea}>
         <Button
           title="다음 단계로"
-          variant={canProceed ? 'primary' : 'disabled'}
-          onPress={handleNext}
-          subtitle={canProceed ? undefined : '관심분야를 선택해주세요'}
+          variant={vm.canProceed ? 'primary' : 'disabled'}
+          onPress={vm.handleNext}
+          subtitle={vm.canProceed ? undefined : '관심분야를 선택해주세요'}
         />
       </View>
     </View>

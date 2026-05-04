@@ -6,36 +6,14 @@ import { Button } from '../../components/Button';
 import { ProgressBar } from '../../components/ProgressBar';
 import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
 import { colors } from '../../styles/colors';
-import { useOnboardingStore } from '../../stores/onboardingStore';
+import { useEmploymentPreferenceViewModel } from '../../hooks/useEmploymentPreferenceViewModel';
 import { InterestChip } from './components/InterestChip';
 import { COMPANY_TYPE_OPTIONS, EMPLOYMENT_VALUE_OPTIONS } from './data/onboardingOptions';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'EmploymentPreference'>;
 
 export function EmploymentPreferencePage({ navigation }: Props) {
-  const selectedCompanyTypes = useOnboardingStore((state) => state.preferredCompanyTypes);
-  const togglePreferredCompanyType = useOnboardingStore(
-    (state) => state.togglePreferredCompanyType
-  );
-
-  const selectedValues = useOnboardingStore((state) => state.employmentValues);
-  const toggleEmploymentValue = useOnboardingStore((state) => state.toggleEmploymentValue);
-  const valuesMaxReached = selectedValues.length >= 3;
-
-  const handleToggleValue = (value: string) => {
-    const alreadySelected = selectedValues.includes(value);
-    if (!alreadySelected && valuesMaxReached) return;
-    toggleEmploymentValue(value);
-  };
-
-  const canProceed = selectedCompanyTypes.length >= 1 && selectedValues.length >= 1;
-
-  const handleNext = () => {
-    if (!canProceed) return;
-    console.log('[Onboarding] 선택한 희망 회사 유형:', selectedCompanyTypes);
-    console.log('[Onboarding] 선택한 취업 시 중요 가치:', selectedValues);
-    navigation.navigate('GoalSelect');
-  };
+  const vm = useEmploymentPreferenceViewModel(navigation);
 
   return (
     <View style={styles.screen}>
@@ -56,17 +34,16 @@ export function EmploymentPreferencePage({ navigation }: Props) {
           <Text style={styles.titleHighlight}>취업 선호도</Text>를 알려주세요
         </Text>
 
-        {/* 섹션 1: 희망 회사 유형 */}
         <Text style={styles.sectionLabel}>희망 회사 유형 (복수선택)</Text>
         <View style={styles.chipGroup}>
           {COMPANY_TYPE_OPTIONS.map((type) => {
-            const isSelected = selectedCompanyTypes.includes(type);
+            const isSelected = vm.selectedCompanyTypes.includes(type);
             return (
               <InterestChip
                 key={type}
                 label={type}
                 selected={isSelected}
-                onPress={() => togglePreferredCompanyType(type)}
+                onPress={() => vm.handleToggleCompanyType(type)}
               />
             );
           })}
@@ -74,18 +51,17 @@ export function EmploymentPreferencePage({ navigation }: Props) {
 
         <View style={styles.divider} />
 
-        {/* 섹션 2: 취업 시 중요 가치 */}
         <Text style={styles.sectionLabel}>취업 시 중요 가치 (최대 3개)</Text>
         <View style={styles.chipGroup}>
           {EMPLOYMENT_VALUE_OPTIONS.map((value) => {
-            const isSelected = selectedValues.includes(value);
+            const isSelected = vm.selectedValues.includes(value);
             return (
               <InterestChip
                 key={value}
                 label={value}
                 selected={isSelected}
-                disabled={valuesMaxReached && !isSelected}
-                onPress={() => handleToggleValue(value)}
+                disabled={vm.valuesMaxReached && !isSelected}
+                onPress={() => vm.handleToggleValue(value)}
               />
             );
           })}
@@ -95,9 +71,9 @@ export function EmploymentPreferencePage({ navigation }: Props) {
       <View style={styles.bottomArea}>
         <Button
           title="다음 단계로"
-          variant={canProceed ? 'primary' : 'disabled'}
-          onPress={handleNext}
-          subtitle={canProceed ? undefined : '취업 선호도를 선택해주세요'}
+          variant={vm.canProceed ? 'primary' : 'disabled'}
+          onPress={vm.handleNext}
+          subtitle={vm.canProceed ? undefined : '취업 선호도를 선택해주세요'}
         />
       </View>
     </View>
