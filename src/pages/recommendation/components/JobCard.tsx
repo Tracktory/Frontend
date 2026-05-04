@@ -23,9 +23,7 @@ export function JobCard({ job, selected, onPress }: JobCardProps) {
       <View style={styles.header}>
         <View style={styles.titleRow}>
           <Text style={styles.title}>{job.title}</Text>
-          <Text style={[styles.matchScore, selected && styles.matchScoreSelected]}>
-            매칭 {job.matchScore}%
-          </Text>
+          <Text style={styles.matchScore}>매칭 {job.matchScore}%</Text>
         </View>
         <Text style={styles.description}>{job.description}</Text>
       </View>
@@ -33,10 +31,8 @@ export function JobCard({ job, selected, onPress }: JobCardProps) {
       <View style={styles.techRow}>
         {job.techStackReady ? (
           job.techStack.map((tech) => (
-            <View key={tech} style={[styles.techChip, selected && styles.techChipSelected]}>
-              <Text style={[styles.techChipText, selected && styles.techChipTextSelected]}>
-                {tech}
-              </Text>
+            <View key={tech} style={styles.techChip}>
+              <Text style={styles.techChipText}>{tech}</Text>
             </View>
           ))
         ) : (
@@ -82,9 +78,6 @@ const styles = StyleSheet.create({
   matchScore: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.textSecondary,
-  },
-  matchScoreSelected: {
     color: colors.primary,
   },
   description: {
@@ -95,24 +88,21 @@ const styles = StyleSheet.create({
   techRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    alignItems: 'flex-start',
+    gap: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
   },
   techChip: {
-    backgroundColor: '#F3F4F6',
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  techChipSelected: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.primaryLight,
+    borderRadius: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
   },
   techChipText: {
     fontSize: 12,
-    color: colors.textSecondary,
-    fontWeight: '500',
-  },
-  techChipTextSelected: {
     color: colors.primary,
+    fontWeight: '500',
   },
   collectingBadge: {
     backgroundColor: '#FEF3C7',
