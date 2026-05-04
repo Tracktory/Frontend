@@ -23,7 +23,7 @@ export function JobCard({ job, selected, onPress }: JobCardProps) {
       <View style={styles.header}>
         <View style={styles.titleRow}>
           <Text style={styles.title}>{job.title}</Text>
-          <Text style={styles.matchScore}>매칭 {job.matchScore}%</Text>
+          <Text style={styles.matchScore}>{job.matchScore}%</Text>
         </View>
         <Text style={styles.description}>{job.description}</Text>
       </View>
@@ -49,66 +49,72 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.white,
     borderRadius: 16,
-    padding: 18,
+    padding: 20,
     marginBottom: 12,
-    borderWidth: 1.5,
-    borderColor: colors.border,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
   },
   cardSelected: {
     borderColor: colors.primary,
     backgroundColor: colors.primaryLight,
+    shadowOpacity: 0.1,
   },
   cardPressed: {
-    opacity: 0.92,
+    opacity: 0.94,
   },
   header: {
-    marginBottom: 12,
+    marginBottom: 14,
   },
   titleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   title: {
-    fontSize: 16,
+    flex: 1,
+    fontSize: 17,
     fontWeight: '700',
     color: colors.textPrimary,
+    marginRight: 12,
   },
   matchScore: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
     color: colors.primary,
   },
   description: {
-    fontSize: 13,
+    fontSize: 14,
     color: colors.textSecondary,
-    lineHeight: 18,
+    lineHeight: 20,
   },
   techRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     alignItems: 'flex-start',
     gap: 10,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
   },
   techChip: {
     backgroundColor: colors.primaryLight,
-    borderRadius: 4,
-    paddingVertical: 8,
+    borderRadius: 12,
+    paddingVertical: 6,
     paddingHorizontal: 12,
   },
   techChipText: {
-    fontSize: 12,
+    fontSize: 13,
     color: colors.primary,
     fontWeight: '500',
   },
   collectingBadge: {
     backgroundColor: '#FEF3C7',
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   collectingText: {
     fontSize: 12,

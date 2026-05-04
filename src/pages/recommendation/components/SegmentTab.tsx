@@ -6,8 +6,8 @@ import { colors } from '../../../styles/colors';
 export type TabKey = 'job' | 'track' | 'roadmap';
 
 const TAB_LABELS: Record<TabKey, string> = {
-  job: '직무추천',
-  track: '트랙추천',
+  job: '직무',
+  track: '트랙',
   roadmap: '학습 로드맵',
 };
 
@@ -20,54 +20,60 @@ interface SegmentTabProps {
 
 export function SegmentTab({ activeTab, onTabChange }: SegmentTabProps) {
   return (
-    <View style={styles.container}>
-      {TAB_KEYS.map((tab) => {
-        const isActive = activeTab === tab;
-        return (
-          <Pressable
-            key={tab}
-            style={[styles.tab, isActive && styles.tabActive]}
-            onPress={() => onTabChange(tab)}
-          >
-            <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
-              {TAB_LABELS[tab]}
-            </Text>
-          </Pressable>
-        );
-      })}
+    <View style={styles.wrap}>
+      <View style={styles.tabsRow}>
+        {TAB_KEYS.map((tab) => {
+          const isActive = activeTab === tab;
+          return (
+            <Pressable
+              key={tab}
+              style={[styles.tabBtn, isActive ? styles.tabBtnActive : styles.tabBtnInactive]}
+              onPress={() => onTabChange(tab)}
+            >
+              <Text style={[styles.tabText, isActive && styles.tabTextActive]}>{TAB_LABELS[tab]}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+      <View style={styles.divider} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  wrap: {
+    marginBottom: 16,
+  },
+  tabsRow: {
     flexDirection: 'row',
-    backgroundColor: '#F3F4F6',
-    borderRadius: 12,
-    padding: 4,
-    marginBottom: 20,
+    alignItems: 'flex-end',
+    paddingBottom: 0,
   },
-  tab: {
-    flex: 1,
-    paddingVertical: 8,
-    alignItems: 'center',
-    borderRadius: 9,
+  tabBtn: {
+    alignSelf: 'flex-start',
+    paddingTop: 4,
+    paddingBottom: 10,
+    paddingRight: 22,
+    marginRight: 4,
+    borderBottomWidth: 3,
   },
-  tabActive: {
-    backgroundColor: colors.white,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 2,
+  tabBtnActive: {
+    borderBottomColor: colors.primary,
+  },
+  tabBtnInactive: {
+    borderBottomColor: 'transparent',
   },
   tabText: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '500',
     color: colors.textSecondary,
   },
   tabTextActive: {
-    color: colors.textPrimary,
-    fontWeight: '600',
+    color: colors.primary,
+    fontWeight: '700',
+  },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.border,
   },
 });
