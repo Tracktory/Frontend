@@ -47,14 +47,13 @@ const styles = StyleSheet.create({
   tabsRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    paddingBottom: 0,
+    width: '100%',
   },
   tabBtn: {
-    alignSelf: 'flex-start',
+    flex: 1,
+    alignItems: 'center',
     paddingTop: 4,
     paddingBottom: 10,
-    paddingRight: 22,
-    marginRight: 4,
     borderBottomWidth: 3,
   },
   tabBtnActive: {
@@ -67,6 +66,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '500',
     color: colors.textSecondary,
+    textAlign: 'center',
   },
   tabTextActive: {
     color: colors.primary,
