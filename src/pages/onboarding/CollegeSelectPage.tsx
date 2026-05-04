@@ -6,19 +6,13 @@ import { Button } from '../../components/Button';
 import { ProgressBar } from '../../components/ProgressBar';
 import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
 import { colors } from '../../styles/colors';
-import { useOnboardingStore } from '../../stores/onboardingStore';
+import { useCollegeSelectViewModel } from '../../hooks/useCollegeSelectViewModel';
 import { COLLEGE_OPTIONS, COLLEGE_TRACK_MAP } from './data/onboardingOptions';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'CollegeSelect'>;
 
 export function CollegeSelectPage({ navigation }: Props) {
-  const college = useOnboardingStore((state) => state.college);
-  const setCollege = useOnboardingStore((state) => state.setCollege);
-
-  const handleNext = () => {
-    if (!college) return;
-    navigation.navigate('InterestSelect');
-  };
+  const vm = useCollegeSelectViewModel(navigation);
 
   return (
     <View style={styles.screen}>
@@ -41,22 +35,22 @@ export function CollegeSelectPage({ navigation }: Props) {
             key={item}
             style={({ pressed }) => [
               styles.collegeButton,
-              college === item ? styles.selectedButton : styles.defaultButton,
+              vm.college === item ? styles.selectedButton : styles.defaultButton,
               pressed && styles.pressed,
             ]}
-            onPress={() => setCollege(item)}
+            onPress={() => vm.setCollege(item)}
           >
-            <Text style={[styles.collegeLabel, college === item && styles.selectedLabel]}>
+            <Text style={[styles.collegeLabel, vm.college === item && styles.selectedLabel]}>
               {item}
             </Text>
           </Pressable>
         ))}
 
-        {college && (
+        {vm.college && (
           <View style={styles.trackPanel}>
             <Text style={styles.trackHeader}>💡 해당 단과대 트랙 목록</Text>
             <View style={styles.chipRow}>
-              {COLLEGE_TRACK_MAP[college].map((track) => (
+              {COLLEGE_TRACK_MAP[vm.college].map((track) => (
                 <View key={track} style={styles.trackChip}>
                   <Text style={styles.trackChipLabel}>{track}</Text>
                 </View>
@@ -69,8 +63,8 @@ export function CollegeSelectPage({ navigation }: Props) {
       <View style={styles.bottomArea}>
         <Button
           title="다음 단계로"
-          variant={college ? 'primary' : 'disabled'}
-          onPress={handleNext}
+          variant={vm.canProceed ? 'primary' : 'disabled'}
+          onPress={vm.handleNext}
         />
       </View>
     </View>

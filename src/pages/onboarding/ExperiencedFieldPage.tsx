@@ -6,28 +6,14 @@ import { Button } from '../../components/Button';
 import { ProgressBar } from '../../components/ProgressBar';
 import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
 import { colors } from '../../styles/colors';
-import { useOnboardingStore } from '../../stores/onboardingStore';
+import { useExperiencedFieldViewModel } from '../../hooks/useExperiencedFieldViewModel';
 import { InterestChip } from './components/InterestChip';
 import { TECH_TAG_OPTIONS } from './data/onboardingOptions';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'GoalSelect'>;
 
 export function ExperiencedFieldPage({ navigation }: Props) {
-  const selectedFields = useOnboardingStore((state) => state.experiencedFields);
-  const toggleExperiencedField = useOnboardingStore((state) => state.toggleExperiencedField);
-  const fieldInput = useOnboardingStore((state) => state.experiencedFieldInput);
-  const setExperiencedFieldInput = useOnboardingStore((state) => state.setExperiencedFieldInput);
-
-  const handleNext = () => {
-    console.log('[Onboarding] 공부해본 분야 텍스트:', fieldInput);
-    console.log('[Onboarding] 선택한 태그:', selectedFields);
-    navigation.navigate('OnboardingConfirm');
-  };
-
-  const handleSkip = () => {
-    console.log('[Onboarding] 공부해본 분야 건너뛰기');
-    navigation.navigate('OnboardingConfirm');
-  };
+  const vm = useExperiencedFieldViewModel(navigation);
 
   return (
     <View style={styles.screen}>
@@ -53,8 +39,8 @@ export function ExperiencedFieldPage({ navigation }: Props) {
           style={styles.textInput}
           placeholder="EX) Python, React, 데이터분석 등"
           placeholderTextColor={colors.textHint}
-          value={fieldInput}
-          onChangeText={setExperiencedFieldInput}
+          value={vm.fieldInput}
+          onChangeText={vm.setExperiencedFieldInput}
           returnKeyType="done"
         />
 
@@ -62,13 +48,13 @@ export function ExperiencedFieldPage({ navigation }: Props) {
 
         <View style={styles.chipGroup}>
           {TECH_TAG_OPTIONS.map((tag) => {
-            const isSelected = selectedFields.includes(tag);
+            const isSelected = vm.selectedFields.includes(tag);
             return (
               <InterestChip
                 key={tag}
                 label={tag}
                 selected={isSelected}
-                onPress={() => toggleExperiencedField(tag)}
+                onPress={() => vm.toggleExperiencedField(tag)}
               />
             );
           })}
@@ -76,9 +62,9 @@ export function ExperiencedFieldPage({ navigation }: Props) {
       </ScrollView>
 
       <View style={styles.bottomArea}>
-        <Button title="건너뛰기" variant="secondary" onPress={handleSkip} />
+        <Button title="건너뛰기" variant="secondary" onPress={vm.handleSkip} />
         <View style={styles.spacer} />
-        <Button title="다음 단계로" variant="primary" onPress={handleNext} />
+        <Button title="다음 단계로" variant="primary" onPress={vm.handleNext} />
       </View>
     </View>
   );

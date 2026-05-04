@@ -6,29 +6,14 @@ import { Button } from '../../components/Button';
 import { ProgressBar } from '../../components/ProgressBar';
 import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
 import { colors } from '../../styles/colors';
-import { useOnboardingStore } from '../../stores/onboardingStore';
+import { useDevelopmentFieldSelectViewModel } from '../../hooks/useDevelopmentFieldSelectViewModel';
 import { InterestChip } from './components/InterestChip';
 import { DEVELOPMENT_FIELD_OPTIONS } from './data/onboardingOptions';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'DevelopmentFieldSelect'>;
 
 export function DevelopmentFieldSelectPage({ navigation }: Props) {
-  const selectedFields = useOnboardingStore((state) => state.developmentFields);
-  const toggleField = useOnboardingStore((state) => state.toggleDevelopmentField);
-  const maxReached = selectedFields.length >= 3;
-  const canProceed = selectedFields.length >= 1;
-
-  const handleToggleField = (field: string) => {
-    const alreadySelected = selectedFields.includes(field);
-    if (!alreadySelected && maxReached) return;
-    toggleField(field);
-  };
-
-  const handleNext = () => {
-    if (!canProceed) return;
-    console.log('[Onboarding] 선택한 흥미 개발분야:', selectedFields);
-    navigation.navigate('EmploymentPreference');
-  };
+  const vm = useDevelopmentFieldSelectViewModel(navigation);
 
   return (
     <View style={styles.screen}>
@@ -48,14 +33,14 @@ export function DevelopmentFieldSelectPage({ navigation }: Props) {
 
         <View style={styles.chipGroup}>
           {DEVELOPMENT_FIELD_OPTIONS.map((field) => {
-            const isSelected = selectedFields.includes(field);
+            const isSelected = vm.developmentFields.includes(field);
             return (
               <InterestChip
                 key={field}
                 label={field}
                 selected={isSelected}
-                disabled={maxReached && !isSelected}
-                onPress={() => handleToggleField(field)}
+                disabled={vm.maxReached && !isSelected}
+                onPress={() => vm.handleToggle(field)}
               />
             );
           })}
@@ -65,9 +50,9 @@ export function DevelopmentFieldSelectPage({ navigation }: Props) {
       <View style={styles.bottomArea}>
         <Button
           title="다음 단계로"
-          variant={canProceed ? 'primary' : 'disabled'}
-          onPress={handleNext}
-          subtitle={canProceed ? undefined : '관심분야를 선택해주세요'}
+          variant={vm.canProceed ? 'primary' : 'disabled'}
+          onPress={vm.handleNext}
+          subtitle={vm.canProceed ? undefined : '관심분야를 선택해주세요'}
         />
       </View>
     </View>
