@@ -7,14 +7,14 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { useNavigationState } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useOnboardingStore } from '../../stores/onboardingStore';
 import { Ionicons } from '@expo/vector-icons';
 
 import { colors } from '../../styles/colors';
 import { useChatStore } from '../../stores/chatStore';
 import { ChatContent } from './ChatContent';
-import { MAIN_TAB_BAR_HEIGHT, FAB_RIGHT, FAB_SIZE } from './constants';
+import { MAIN_TAB_BAR_HEIGHT, FAB_RIGHT, FAB_SIZE, OVERLAY_DIM_COLOR } from './constants';
 
 const { height: SCREEN_H } = Dimensions.get('window');
 const SHEET_HEIGHT = Math.round(SCREEN_H * 0.88);
@@ -28,12 +28,10 @@ export function ChatOverlayHost() {
   const closeOverlay = useChatStore((s) => s.closeOverlay);
   const toggleMinimize = useChatStore((s) => s.toggleMinimize);
 
-  // 현재 루트 스크린 이름으로 온보딩 완료 여부 판단
-  const rootRouteName = useNavigationState((state) => {
-    if (!state || !state.routes) return null;
-    return state.routes[state.index]?.name ?? null;
-  });
-  const isOnboarding = rootRouteName === 'Onboarding';
+  // admissionYear가 입력된 시점부터 온보딩 진행 중으로 간주하지 않음
+  // (null 이면 첫 온보딩 단계도 미완료 = 온보딩 화면)
+  const admissionYear = useOnboardingStore((s) => s.admissionYear);
+  const isOnboarding = admissionYear === null;
 
   // 메인 탭일 때 FAB/시트 하단 오프셋에 탭바 높이 추가
   const tabBarOffset = isOnboarding ? 0 : MAIN_TAB_BAR_HEIGHT;
@@ -122,7 +120,7 @@ export function ChatOverlayHost() {
 const styles = StyleSheet.create({
   dimLayer: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.35)',
+    backgroundColor: OVERLAY_DIM_COLOR,
   },
   sheet: {
     position: 'absolute',

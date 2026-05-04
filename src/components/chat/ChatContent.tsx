@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -13,7 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 
 import { colors } from '../../styles/colors';
-import { useChatStore } from '../../stores/chatStore';
+import { useChatViewModel } from '../../hooks/useChatViewModel';
 import { ChatMessageBubble } from './ChatMessageBubble';
 
 interface ChatContentProps {
@@ -36,12 +36,7 @@ export function ChatContent({
   onClose,
   headerHeight = 52,
 }: ChatContentProps) {
-  const messages = useChatStore((s) => s.messages);
-  const resetConversation = useChatStore((s) => s.resetConversation);
-  const sendUserText = useChatStore((s) => s.sendUserText);
-  const selectChip = useChatStore((s) => s.selectChip);
-
-  const [inputText, setInputText] = useState('');
+  const vm = useChatViewModel();
   const scrollRef = useRef<ScrollView>(null);
 
   // 메시지 추가될 때마다 맨 아래로 스크롤
@@ -49,21 +44,19 @@ export function ChatContent({
     setTimeout(() => {
       scrollRef.current?.scrollToEnd({ animated: true });
     }, 50);
-  }, [messages]);
+  }, [vm.messages]);
 
   const handleSend = () => {
     if (onboardingRequired) return;
-    const ok = sendUserText(inputText);
+    const ok = vm.handleSend();
     if (!ok) {
       Alert.alert('알림', '질문을 입력해주세요.');
-      return;
     }
-    setInputText('');
   };
 
   const handleChip = (id: string, label: string) => {
     if (onboardingRequired) return;
-    selectChip(id, label);
+    vm.handleChip(id, label);
   };
 
   return (
@@ -73,7 +66,7 @@ export function ChatContent({
         <Text style={styles.headerTitle}>AI 학습경로 챗봇</Text>
         <View style={styles.headerIcons}>
           {/* 대화 초기화 */}
-          <Pressable style={styles.iconBtn} onPress={resetConversation} hitSlop={8}>
+          <Pressable style={styles.iconBtn} onPress={vm.resetConversation} hitSlop={8}>
             <Ionicons name="refresh" size={20} color={colors.textSecondary} />
           </Pressable>
           {showMinimize && (
@@ -92,9 +85,7 @@ export function ChatContent({
       {/* 온보딩 안내 배너 */}
       {onboardingRequired && (
         <View style={styles.onboardingBanner}>
-          <Text style={styles.onboardingText}>
-            먼저 온보딩을 완료해주세요.
-          </Text>
+          <Text style={styles.onboardingText}>먼저 온보딩을 완료해주세요.</Text>
         </View>
       )}
 
@@ -113,7 +104,7 @@ export function ChatContent({
             scrollRef.current?.scrollToEnd({ animated: true })
           }
         >
-          {messages.map((msg) => (
+          {vm.messages.map((msg) => (
             <ChatMessageBubble
               key={msg.id}
               message={msg}
@@ -128,8 +119,8 @@ export function ChatContent({
             style={styles.input}
             placeholder="궁금한 점을 물어보세요..."
             placeholderTextColor={colors.textHint}
-            value={inputText}
-            onChangeText={setInputText}
+            value={vm.inputText}
+            onChangeText={vm.setInputText}
             onSubmitEditing={handleSend}
             returnKeyType="send"
             editable={!onboardingRequired}
@@ -184,15 +175,15 @@ const styles = StyleSheet.create({
     padding: 6,
   },
   onboardingBanner: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: colors.warningBackground,
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#FCD34D',
+    borderBottomColor: colors.warningBorder,
   },
   onboardingText: {
     fontSize: 13,
-    color: '#92400E',
+    color: colors.warningText,
     fontWeight: '500',
     textAlign: 'center',
   },
@@ -216,7 +207,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     height: 42,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.inputSurface,
     borderRadius: 21,
     paddingHorizontal: 16,
     fontSize: 14,

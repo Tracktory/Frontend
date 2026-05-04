@@ -30,7 +30,7 @@ export function InterestChip({ label, selected, disabled = false, onPress }: Int
 const styles = StyleSheet.create({
   chip: {
     borderRadius: 100,
-    backgroundColor: '#F4F4F4',
+    backgroundColor: colors.chipSurface,
     paddingVertical: 10,
     paddingHorizontal: 18,
   },
@@ -42,11 +42,11 @@ const styles = StyleSheet.create({
   },
   chipText: {
     fontSize: 15,
-    color: '#333333',
+    color: colors.textStrong,
     fontWeight: '500',
   },
   chipTextSelected: {
-    color: '#FFFFFF',
+    color: colors.white,
     fontWeight: '600',
   },
   pressed: {

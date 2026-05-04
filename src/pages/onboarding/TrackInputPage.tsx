@@ -126,14 +126,14 @@ const styles = StyleSheet.create({
   },
   warningBox: {
     marginTop: 8,
-    backgroundColor: '#FFF8E7',
+    backgroundColor: colors.warningInfo,
     borderRadius: 8,
     paddingVertical: 8,
     paddingHorizontal: 12,
   },
   warningText: {
     fontSize: 12,
-    color: '#B45309',
+    color: colors.warningInfoText,
   },
   spacer: {
     height: 24,
