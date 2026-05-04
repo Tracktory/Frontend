@@ -1,11 +1,16 @@
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors } from '../../styles/colors';
 import { useRecommendResultViewModel } from '../../hooks/useRecommendResultViewModel';
 import { SegmentTab } from './components/SegmentTab';
 import { JobCard } from './components/JobCard';
+import { TrackRecommendPanel } from './components/TrackRecommendPanel';
+import { LlmSynergySection } from './components/LlmSynergySection';
+import { TrackDescriptionSection } from './components/TrackDescriptionSection';
+import { RequiredCoursesSection } from './components/RequiredCoursesSection';
+import { PrerequisiteSection } from './components/PrerequisiteSection';
 
 export function RecommendResultPage() {
   const vm = useRecommendResultViewModel();
@@ -30,7 +35,11 @@ export function RecommendResultPage() {
                 {vm.jobs.map((job) => (
                   <JobCard
                     key={job.id}
-                    job={job}
+                    title={job.title}
+                    description={job.description}
+                    titleTrailing={`${job.matchScore}%`}
+                    chips={job.techStack}
+                    chipsReady={job.techStackReady}
                     selected={vm.selectedJobId === job.id}
                     onPress={() => vm.handleSelectJob(job.id)}
                   />
@@ -46,14 +55,17 @@ export function RecommendResultPage() {
         )}
 
         {vm.activeTab === 'track' && (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>
-              {vm.selectedJobId
-                ? '해당 직무 기준 트랙 추천 준비 중'
-                : '직무추천 탭에서 직무를 먼저 선택해주세요'}
-            </Text>
-            <Text style={styles.emptySubText}>데이터 추가 예정입니다</Text>
-          </View>
+          <ScrollView
+            style={styles.scrollArea}
+            contentContainerStyle={styles.trackScrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <TrackRecommendPanel data={vm.trackRecommend} />
+            <LlmSynergySection body={vm.trackRecommend.llmSynergy} />
+            <TrackDescriptionSection description={vm.trackRecommend.trackDescription} />
+            <RequiredCoursesSection courses={vm.trackRecommend.requiredCourses} />
+            <PrerequisiteSection note={vm.trackRecommend.prerequisiteNote} />
+          </ScrollView>
         )}
 
         {vm.activeTab === 'roadmap' && (
@@ -62,12 +74,6 @@ export function RecommendResultPage() {
             <Text style={styles.emptySubText}>데이터 추가 예정입니다</Text>
           </View>
         )}
-
-        <View style={styles.bottomArea}>
-          <Pressable style={styles.detailButton} disabled>
-            <Text style={styles.detailButtonText}>[P2] HM-007 기술스택 상세보기</Text>
-          </Pressable>
-        </View>
       </View>
     </SafeAreaView>
   );
@@ -98,6 +104,9 @@ const styles = StyleSheet.create({
   listContent: {
     paddingBottom: 12,
   },
+  trackScrollContent: {
+    paddingBottom: 12,
+  },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -113,21 +122,5 @@ const styles = StyleSheet.create({
   emptySubText: {
     fontSize: 13,
     color: colors.textHint,
-  },
-  bottomArea: {
-    paddingTop: 12,
-  },
-  detailButton: {
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    borderStyle: 'dashed',
-    borderRadius: 12,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  detailButtonText: {
-    fontSize: 14,
-    color: colors.textHint,
-    fontWeight: '500',
   },
 });
