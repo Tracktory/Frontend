@@ -1,6 +1,8 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { colors } from '../styles/colors';
+
 interface ProgressBarProps {
   progress: number;
 }
@@ -20,13 +22,13 @@ const styles = StyleSheet.create({
     height: 3,
     width: '100%',
     borderRadius: 2,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: colors.border,
     marginBottom: 24,
     overflow: 'hidden',
   },
   fill: {
     height: '100%',
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.primary,
     borderRadius: 2,
   },
 });

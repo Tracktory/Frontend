@@ -1,6 +1,8 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
+import { colors } from '../../../styles/colors';
+
 interface YearSelectButtonProps {
   year: number;
   selected: boolean;
@@ -12,7 +14,7 @@ export function YearSelectButton({ year, selected, onPress }: YearSelectButtonPr
     <Pressable
       style={({ pressed }) => [
         styles.button,
-        selected && styles.selectedButton,
+        selected ? styles.selectedButton : styles.defaultButton,
         pressed && styles.pressed,
       ]}
       onPress={onPress}
@@ -25,18 +27,22 @@ export function YearSelectButton({ year, selected, onPress }: YearSelectButtonPr
 const styles = StyleSheet.create({
   button: {
     width: '100%',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    backgroundColor: '#F8F8F8',
+    borderRadius: 12,
     paddingVertical: 22,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
   },
+  defaultButton: {
+    backgroundColor: '#F7F8F9',
+  },
   selectedButton: {
-    borderColor: '#2563EB',
-    backgroundColor: '#EEF4FF',
+    backgroundColor: '#F4FFFE',
+    shadowColor: 'rgba(20, 184, 166, 0.80)',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+    elevation: 4,
   },
   pressed: {
     opacity: 0.92,
@@ -45,9 +51,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 22,
     fontWeight: '500',
-    color: '#333333',
+    color: colors.textPrimary,
   },
   selectedLabel: {
-    color: '#1E40AF',
+    color: colors.primary,
   },
 });

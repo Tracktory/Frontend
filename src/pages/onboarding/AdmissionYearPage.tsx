@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { StackScreenProps } from '@react-navigation/stack';
 
 import { Button } from '../../components/Button';
 import { ProgressBar } from '../../components/ProgressBar';
 import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
+import { colors } from '../../styles/colors';
 import { useOnboardingStore } from '../../stores/onboardingStore';
 import { YearSelectButton } from './components/YearSelectButton';
 
@@ -18,27 +19,21 @@ export function AdmissionYearPage({ navigation }: Props) {
 
   const isYearSelected = admissionYear !== null;
 
-  useEffect(() => {
-    console.log('[Render] AdmissionYearPage mounted', {
-      admissionYear,
-    });
-  }, [admissionYear]);
-
   const handleNext = () => {
-    if (!isYearSelected) {
-      return;
-    }
-
+    if (!isYearSelected) return;
     navigation.navigate('Affiliation');
   };
 
   return (
     <View style={styles.screen}>
+      <View style={styles.headerSpacer} />
+
       <View style={styles.content}>
-        <Text style={styles.screenId}>ON-SCR-01 | ON-001</Text>
         <ProgressBar progress={0.14} />
-        <Text style={styles.title}>입학년도를 선택해주세요</Text>
-        <Text style={styles.subtitle}>학년을 자동으로 산출합니다</Text>
+        <Text style={styles.title}>
+          <Text style={styles.titleHighlight}>입학년도</Text>를 선택해주세요
+        </Text>
+        <Text style={styles.subtitle}>학년을 자동으로 산출합니다.</Text>
 
         {admissionYears.map((year) => (
           <YearSelectButton
@@ -52,7 +47,7 @@ export function AdmissionYearPage({ navigation }: Props) {
 
       <View style={styles.bottomArea}>
         <Button
-          title={isYearSelected ? '다음' : '다음 (연도를 선택해주세요)'}
+          title="다음 단계로"
           variant={isYearSelected ? 'primary' : 'disabled'}
           onPress={handleNext}
         />
@@ -64,31 +59,31 @@ export function AdmissionYearPage({ navigation }: Props) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.background,
     paddingHorizontal: 20,
-    paddingTop: 56,
+    paddingTop: 48,
     paddingBottom: 28,
+  },
+  headerSpacer: {
+    minHeight: 44,
   },
   content: {
     flex: 1,
   },
-  screenId: {
-    fontSize: 12,
-    color: '#A3A3A3',
-    marginBottom: 8,
-    fontWeight: '500',
-  },
   title: {
-    fontSize: 36,
-    lineHeight: 44,
+    fontSize: 28,
+    lineHeight: 36,
     fontWeight: '700',
-    color: '#171717',
+    color: colors.textPrimary,
     marginBottom: 8,
+  },
+  titleHighlight: {
+    color: colors.primary,
   },
   subtitle: {
-    fontSize: 22,
-    lineHeight: 30,
-    color: '#737373',
+    fontSize: 16,
+    lineHeight: 24,
+    color: colors.textSecondary,
     marginBottom: 24,
   },
   bottomArea: {

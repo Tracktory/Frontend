@@ -4,6 +4,7 @@ import { StackScreenProps } from '@react-navigation/stack';
 
 import { ProgressBar } from '../../components/ProgressBar';
 import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
+import { colors } from '../../styles/colors';
 import { useOnboardingStore } from '../../stores/onboardingStore';
 import { SaveAndRecommendButton } from './components/SaveAndRecommendButton';
 
@@ -41,15 +42,15 @@ function ChipList({ items }: { items: string[] }) {
 
 const cardStyles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F4F4F4',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    marginBottom: 12,
+    marginBottom: 10,
   },
   label: {
-    fontSize: 13,
-    color: '#A3A3A3',
+    fontSize: 12,
+    color: colors.textHint,
     marginBottom: 8,
   },
   valueRow: {
@@ -59,27 +60,31 @@ const cardStyles = StyleSheet.create({
     alignItems: 'center',
   },
   chip: {
-    backgroundColor: '#F0F0F0',
-    borderRadius: 14,
+    backgroundColor: '#00C9B1',
+    borderRadius: 100,
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
   chipText: {
-    fontSize: 14,
-    color: '#333333',
+    fontSize: 13,
+    color: '#FFFFFF',
     fontWeight: '500',
   },
   empty: {
     fontSize: 14,
-    color: '#C4C4C4',
+    color: colors.textHint,
   },
 });
 
 export function OnboardingConfirmPage({ navigation }: Props) {
   const admissionYear = useOnboardingStore((state) => state.admissionYear);
   const grade = useOnboardingStore((state) => state.grade);
+  const affiliation = useOnboardingStore((state) => state.affiliation);
   const college = useOnboardingStore((state) => state.college);
+  const track1 = useOnboardingStore((state) => state.track1);
+  const track2 = useOnboardingStore((state) => state.track2);
   const interests = useOnboardingStore((state) => state.interests);
+  const developmentFields = useOnboardingStore((state) => state.developmentFields);
   const preferredCompanyTypes = useOnboardingStore((state) => state.preferredCompanyTypes);
   const employmentValues = useOnboardingStore((state) => state.employmentValues);
   const experiencedFields = useOnboardingStore((state) => state.experiencedFields);
@@ -88,32 +93,27 @@ export function OnboardingConfirmPage({ navigation }: Props) {
   const admissionYearLabel =
     admissionYear && grade ? `${admissionYear}년 (${grade}학년)` : null;
 
-  // 텍스트 입력값을 쉼표로 파싱해 칩 배열과 합치기
   const inputTags = experiencedFieldInput
     ? experiencedFieldInput
         .split(/[,，]/)
         .map((s) => s.trim())
         .filter(Boolean)
     : [];
-  const allExperiencedFields = [
-    ...new Set([...inputTags, ...experiencedFields]),
-  ];
+  const allExperiencedFields = [...new Set([...inputTags, ...experiencedFields])];
 
-  // 취업 선호: 회사 유형 + 구분자 + 가치
-  const employmentPreferenceChips: { text: string; isDot?: boolean }[] = [];
-  preferredCompanyTypes.forEach((t) => employmentPreferenceChips.push({ text: t }));
-  if (preferredCompanyTypes.length > 0 && employmentValues.length > 0) {
-    employmentPreferenceChips.push({ text: '•', isDot: true });
-  }
-  employmentValues.forEach((v) => employmentPreferenceChips.push({ text: v }));
+  const employmentChips = [...preferredCompanyTypes, ...employmentValues];
 
   const handleSave = () => {
-    console.log('[Onboarding] 저장하고 추천 받기 클릭');
+    console.log('[Onboarding] 저장하고 추천받기 클릭');
     console.log('[Onboarding] 최종 데이터:', {
       admissionYear,
       grade,
+      affiliation,
       college,
+      track1,
+      track2,
       interests,
+      developmentFields,
       preferredCompanyTypes,
       employmentValues,
       experiencedFields: allExperiencedFields,
@@ -123,22 +123,22 @@ export function OnboardingConfirmPage({ navigation }: Props) {
 
   return (
     <View style={styles.screen}>
+      <View style={styles.headerRow}>
+        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Text style={styles.backButtonText}>← 뒤로</Text>
+        </Pressable>
+      </View>
+
       <ScrollView
         style={styles.scrollArea}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.headerRow}>
-          <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={styles.backButtonText}>← 뒤로</Text>
-          </Pressable>
-          <Text style={styles.headerTitle}>1학년 흐름</Text>
-        </View>
-
-        <Text style={styles.screenId}>ON-SCR-08a | ON-013</Text>
         <ProgressBar progress={1.0} />
 
-        <Text style={styles.title}>입력 내용을 확인해주세요</Text>
+        <Text style={styles.title}>
+          <Text style={styles.titleHighlight}>이 내용이</Text>맞을까요?
+        </Text>
         <Text style={styles.subtitle}>저장 후 AI가 맞춤 추천을 생성합니다</Text>
 
         {/* 입학년도 */}
@@ -150,43 +150,49 @@ export function OnboardingConfirmPage({ navigation }: Props) {
           )}
         </ConfirmCard>
 
-        {/* 소속 */}
-        <ConfirmCard label="소속">
-          {college ? (
-            <Text style={styles.valueText}>{college}</Text>
-          ) : (
-            <Text style={cardStyles.empty}>선택 안 함</Text>
-          )}
-        </ConfirmCard>
+        {/* 소속 — 1학년: 단과대, 2학년+: 트랙 */}
+        {affiliation === '1학년' ? (
+          <ConfirmCard label="소속">
+            {college ? (
+              <Text style={styles.valueText}>{college}</Text>
+            ) : (
+              <Text style={cardStyles.empty}>선택 안 함</Text>
+            )}
+          </ConfirmCard>
+        ) : (
+          <ConfirmCard label="소속">
+            {track1 ? (
+              <Text style={styles.valueText}>
+                {track1}
+                {track2 ? `  /  ${track2}` : ''}
+              </Text>
+            ) : (
+              <Text style={cardStyles.empty}>선택 안 함</Text>
+            )}
+          </ConfirmCard>
+        )}
 
         {/* 관심사 */}
         <ConfirmCard label="관심사">
           <ChipList items={interests} />
         </ConfirmCard>
 
-        {/* 취업 선호 */}
-        <ConfirmCard label="취업 선호">
-          {employmentPreferenceChips.length === 0 ? (
-            <Text style={cardStyles.empty}>선택 안 함</Text>
-          ) : (
-            employmentPreferenceChips.map((item, idx) =>
-              item.isDot ? (
-                <Text key={`dot-${idx}`} style={styles.dotSeparator}>
-                  {item.text}
-                </Text>
-              ) : (
-                <View key={`${item.text}-${idx}`} style={cardStyles.chip}>
-                  <Text style={cardStyles.chipText}>{item.text}</Text>
-                </View>
-              )
-            )
-          )}
+        {/* 흥미 개발분야 */}
+        <ConfirmCard label="흥미 개발분야">
+          <ChipList items={developmentFields} />
         </ConfirmCard>
 
-        {/* 공부해본 분야 */}
-        <ConfirmCard label="공부해본 분야">
-          <ChipList items={allExperiencedFields} />
+        {/* 취업 선호 */}
+        <ConfirmCard label="취업 선호">
+          <ChipList items={employmentChips} />
         </ConfirmCard>
+
+        {/* 공부해본 분야 (선택사항) */}
+        {allExperiencedFields.length > 0 && (
+          <ConfirmCard label="공부해본 분야">
+            <ChipList items={allExperiencedFields} />
+          </ConfirmCard>
+        )}
       </ScrollView>
 
       <View style={styles.bottomArea}>
@@ -199,10 +205,25 @@ export function OnboardingConfirmPage({ navigation }: Props) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.background,
     paddingHorizontal: 20,
     paddingTop: 48,
     paddingBottom: 28,
+  },
+  headerRow: {
+    minHeight: 44,
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  backButton: {
+    alignSelf: 'flex-start',
+    paddingVertical: 8,
+    paddingRight: 12,
+  },
+  backButtonText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: colors.textSecondary,
   },
   scrollArea: {
     flex: 1,
@@ -210,57 +231,27 @@ const styles = StyleSheet.create({
   content: {
     paddingBottom: 16,
   },
-  headerRow: {
-    minHeight: 44,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ECECEC',
-    marginBottom: 10,
-  },
-  backButton: {
-    paddingVertical: 8,
-    paddingRight: 12,
-  },
-  backButtonText: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: '#333333',
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333333',
-    marginLeft: 8,
-  },
-  screenId: {
-    fontSize: 12,
-    color: '#A3A3A3',
-    marginBottom: 8,
-    fontWeight: '500',
-  },
   title: {
-    fontSize: 36,
-    lineHeight: 44,
+    fontSize: 28,
+    lineHeight: 36,
     fontWeight: '700',
-    color: '#171717',
+    color: colors.textPrimary,
+    marginTop: 16,
     marginBottom: 8,
+  },
+  titleHighlight: {
+    color: colors.primary,
   },
   subtitle: {
-    fontSize: 18,
-    lineHeight: 26,
-    color: '#737373',
-    marginBottom: 24,
+    fontSize: 14,
+    lineHeight: 22,
+    color: colors.textSecondary,
+    marginBottom: 20,
   },
   valueText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
-    color: '#171717',
-  },
-  dotSeparator: {
-    fontSize: 14,
-    color: '#A3A3A3',
-    marginHorizontal: 2,
+    color: colors.textPrimary,
   },
   bottomArea: {
     paddingTop: 12,

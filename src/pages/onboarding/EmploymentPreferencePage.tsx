@@ -5,6 +5,7 @@ import { StackScreenProps } from '@react-navigation/stack';
 import { Button } from '../../components/Button';
 import { ProgressBar } from '../../components/ProgressBar';
 import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
+import { colors } from '../../styles/colors';
 import { useOnboardingStore } from '../../stores/onboardingStore';
 import { InterestChip } from './components/InterestChip';
 import { COMPANY_TYPE_OPTIONS, EMPLOYMENT_VALUE_OPTIONS } from './data/onboardingOptions';
@@ -23,10 +24,7 @@ export function EmploymentPreferencePage({ navigation }: Props) {
 
   const handleToggleValue = (value: string) => {
     const alreadySelected = selectedValues.includes(value);
-    if (!alreadySelected && valuesMaxReached) {
-      console.log('[Onboarding] 취업 시 중요 가치는 최대 3개까지 선택할 수 있습니다.');
-      return;
-    }
+    if (!alreadySelected && valuesMaxReached) return;
     toggleEmploymentValue(value);
   };
 
@@ -41,19 +39,22 @@ export function EmploymentPreferencePage({ navigation }: Props) {
 
   return (
     <View style={styles.screen}>
-      <ScrollView style={styles.scrollArea} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.headerRow}>
-          <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={styles.backButtonText}>← 뒤로</Text>
-          </Pressable>
-          <Text style={styles.headerTitle}>1학년 흐름</Text>
-        </View>
+      <View style={styles.headerRow}>
+        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Text style={styles.backButtonText}>← 뒤로</Text>
+        </Pressable>
+      </View>
 
-        <Text style={styles.screenId}>ON-SCR-06a | ON-008, ON-009</Text>
-        <ProgressBar progress={0.56} />
+      <ScrollView
+        style={styles.scrollArea}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <ProgressBar progress={0.70} />
 
-        <Text style={styles.title}>취업 선호도를 알려주세요</Text>
-        <Text style={styles.subtitle}>원하는 회사 유형과 중요한 가치를 선택해주세요</Text>
+        <Text style={styles.title}>
+          <Text style={styles.titleHighlight}>취업 선호도</Text>를 알려주세요
+        </Text>
 
         {/* 섹션 1: 희망 회사 유형 */}
         <Text style={styles.sectionLabel}>희망 회사 유형 (복수선택)</Text>
@@ -70,6 +71,8 @@ export function EmploymentPreferencePage({ navigation }: Props) {
             );
           })}
         </View>
+
+        <View style={styles.divider} />
 
         {/* 섹션 2: 취업 시 중요 가치 */}
         <Text style={styles.sectionLabel}>취업 시 중요 가치 (최대 3개)</Text>
@@ -91,9 +94,10 @@ export function EmploymentPreferencePage({ navigation }: Props) {
 
       <View style={styles.bottomArea}>
         <Button
-          title={canProceed ? '다음' : '다음 (회사 유형과 가치를 선택해주세요)'}
+          title="다음 단계로"
           variant={canProceed ? 'primary' : 'disabled'}
           onPress={handleNext}
+          subtitle={canProceed ? undefined : '취업 선호도를 선택해주세요'}
         />
       </View>
     </View>
@@ -103,10 +107,25 @@ export function EmploymentPreferencePage({ navigation }: Props) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.background,
     paddingHorizontal: 20,
     paddingTop: 48,
     paddingBottom: 28,
+  },
+  headerRow: {
+    minHeight: 44,
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  backButton: {
+    alignSelf: 'flex-start',
+    paddingVertical: 8,
+    paddingRight: 12,
+  },
+  backButtonText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: colors.textSecondary,
   },
   scrollArea: {
     flex: 1,
@@ -114,59 +133,33 @@ const styles = StyleSheet.create({
   content: {
     paddingBottom: 16,
   },
-  headerRow: {
-    minHeight: 44,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ECECEC',
-    marginBottom: 10,
-  },
-  backButton: {
-    paddingVertical: 8,
-    paddingRight: 12,
-  },
-  backButtonText: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: '#333333',
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333333',
-    marginLeft: 8,
-  },
-  screenId: {
-    fontSize: 12,
-    color: '#A3A3A3',
-    marginBottom: 8,
-    fontWeight: '500',
-  },
   title: {
-    fontSize: 36,
-    lineHeight: 44,
+    fontSize: 28,
+    lineHeight: 36,
     fontWeight: '700',
-    color: '#171717',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 18,
-    lineHeight: 26,
-    color: '#737373',
+    color: colors.textPrimary,
+    marginTop: 16,
     marginBottom: 24,
   },
+  titleHighlight: {
+    color: colors.primary,
+  },
   sectionLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#404040',
+    fontSize: 13,
+    fontWeight: '500',
+    color: colors.textSecondary,
     marginBottom: 12,
   },
   chipGroup: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
-    marginBottom: 24,
+    marginBottom: 20,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#E5E5E5',
+    marginBottom: 20,
   },
   bottomArea: {
     paddingTop: 12,

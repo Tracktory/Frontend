@@ -1,28 +1,22 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { StackScreenProps } from '@react-navigation/stack';
 
+import { Button } from '../../components/Button';
 import { ProgressBar } from '../../components/ProgressBar';
 import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
+import { colors } from '../../styles/colors';
 import { useOnboardingStore } from '../../stores/onboardingStore';
+import { COLLEGE_OPTIONS, COLLEGE_TRACK_MAP } from './data/onboardingOptions';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'CollegeSelect'>;
-
-const colleges = [
-  '크리에이티브인문예술대학',
-  '미래융합대학',
-  '상상력인재학부',
-];
-
-const tracks = ['웹공학트랙', '모바일소프트웨어트랙', 'AI트랙'];
 
 export function CollegeSelectPage({ navigation }: Props) {
   const college = useOnboardingStore((state) => state.college);
   const setCollege = useOnboardingStore((state) => state.setCollege);
 
-  const handleSelectCollege = (selectedCollege: string) => {
-    setCollege(selectedCollege);
-    console.log(`[Onboarding] 단과대 선택 완료: ${selectedCollege}`);
+  const handleNext = () => {
+    if (!college) return;
     navigation.navigate('InterestSelect');
   };
 
@@ -32,38 +26,52 @@ export function CollegeSelectPage({ navigation }: Props) {
         <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
           <Text style={styles.backButtonText}>← 뒤로</Text>
         </Pressable>
-        <Text style={styles.headerTitle}>1학년 흐름</Text>
       </View>
 
-      <Text style={styles.screenId}>ON-SCR-03a | ON-003, ON-005</Text>
-      <ProgressBar progress={0.28} />
+      <ScrollView style={styles.scrollArea} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <ProgressBar progress={0.42} />
 
-      <Text style={styles.title}>단과대를 선택해주세요</Text>
-      <Text style={styles.subtitle}>소속 단과대의 트랙 목록을 참고용으로 표시합니다</Text>
+        <Text style={styles.title}>
+          <Text style={styles.titleHighlight}>단과대</Text>를 선택해주세요
+        </Text>
+        <Text style={styles.subtitle}>소속 단과대의 트랙 목록을 참고용으로 표시합니다</Text>
 
-      {colleges.map((item) => (
-        <Pressable
-          key={item}
-          style={({ pressed }) => [
-            styles.collegeButton,
-            college === item && styles.selectedButton,
-            pressed && styles.pressed,
-          ]}
-          onPress={() => handleSelectCollege(item)}
-        >
-          <Text style={[styles.collegeLabel, college === item && styles.selectedLabel]}>{item}</Text>
-        </Pressable>
-      ))}
+        {COLLEGE_OPTIONS.map((item) => (
+          <Pressable
+            key={item}
+            style={({ pressed }) => [
+              styles.collegeButton,
+              college === item ? styles.selectedButton : styles.defaultButton,
+              pressed && styles.pressed,
+            ]}
+            onPress={() => setCollege(item)}
+          >
+            <Text style={[styles.collegeLabel, college === item && styles.selectedLabel]}>
+              {item}
+            </Text>
+          </Pressable>
+        ))}
 
-      <View style={styles.trackContainer}>
-        <Text style={styles.trackHeader}>참고: 해당 단과대 트랙 목록</Text>
-        <View style={styles.tagsWrapper}>
-          {tracks.map((track) => (
-            <View key={track} style={styles.tag}>
-              <Text style={styles.tagLabel}>{track}</Text>
+        {college && (
+          <View style={styles.trackPanel}>
+            <Text style={styles.trackHeader}>💡 해당 단과대 트랙 목록</Text>
+            <View style={styles.chipRow}>
+              {COLLEGE_TRACK_MAP[college].map((track) => (
+                <View key={track} style={styles.trackChip}>
+                  <Text style={styles.trackChipLabel}>{track}</Text>
+                </View>
+              ))}
             </View>
-          ))}
-        </View>
+          </View>
+        )}
+      </ScrollView>
+
+      <View style={styles.bottomArea}>
+        <Button
+          title="다음 단계로"
+          variant={college ? 'primary' : 'disabled'}
+          onPress={handleNext}
+        />
       </View>
     </View>
   );
@@ -72,102 +80,109 @@ export function CollegeSelectPage({ navigation }: Props) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.background,
     paddingHorizontal: 20,
     paddingTop: 48,
+    paddingBottom: 28,
   },
   headerRow: {
     minHeight: 44,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ECECEC',
-    marginBottom: 10,
+    justifyContent: 'center',
+    marginBottom: 4,
   },
   backButton: {
+    alignSelf: 'flex-start',
     paddingVertical: 8,
     paddingRight: 12,
   },
   backButtonText: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: '#333333',
-  },
-  headerTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333333',
-    marginLeft: 8,
-  },
-  screenId: {
-    fontSize: 12,
-    color: '#A3A3A3',
-    marginBottom: 8,
     fontWeight: '500',
+    color: colors.textSecondary,
+  },
+  scrollArea: {
+    flex: 1,
+  },
+  content: {
+    paddingBottom: 16,
   },
   title: {
-    fontSize: 36,
-    lineHeight: 44,
+    fontSize: 28,
+    lineHeight: 36,
     fontWeight: '700',
-    color: '#171717',
+    color: colors.textPrimary,
     marginBottom: 8,
   },
+  titleHighlight: {
+    color: colors.primary,
+  },
   subtitle: {
-    fontSize: 22,
-    lineHeight: 30,
-    color: '#737373',
+    fontSize: 14,
+    lineHeight: 22,
+    color: colors.textSecondary,
     marginBottom: 24,
   },
   collegeButton: {
     width: '100%',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    backgroundColor: '#F8F8F8',
-    paddingVertical: 18,
-    paddingHorizontal: 14,
+    borderRadius: 12,
+    paddingVertical: 20,
+    paddingHorizontal: 16,
     marginBottom: 12,
     alignItems: 'center',
   },
+  defaultButton: {
+    backgroundColor: '#F7F8F9',
+  },
   selectedButton: {
-    borderColor: '#2563EB',
-    backgroundColor: '#EEF4FF',
+    backgroundColor: '#F4FFFE',
+    shadowColor: 'rgba(20, 184, 166, 0.80)',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+    elevation: 4,
   },
   pressed: {
     opacity: 0.92,
   },
   collegeLabel: {
-    fontSize: 18,
-    color: '#333333',
-    fontWeight: '500',
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.textSecondary,
   },
   selectedLabel: {
-    color: '#1E40AF',
+    color: colors.primary,
   },
-  trackContainer: {
-    marginTop: 8,
-    padding: 12,
-    borderRadius: 10,
-    backgroundColor: '#EEF4FF',
+  trackPanel: {
+    marginTop: 4,
+    marginBottom: 8,
+    padding: 14,
+    borderRadius: 12,
+    backgroundColor: '#F4FFFE',
   },
   trackHeader: {
     fontSize: 13,
-    color: '#666666',
-    marginBottom: 8,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    marginBottom: 10,
   },
-  tagsWrapper: {
+  chipRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
   },
-  tag: {
-    borderRadius: 8,
-    backgroundColor: '#E8F0FE',
+  trackChip: {
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.primary,
     paddingVertical: 4,
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
   },
-  tagLabel: {
+  trackChipLabel: {
     fontSize: 12,
-    color: '#2563EB',
+    color: colors.primary,
+    fontWeight: '500',
+  },
+  bottomArea: {
+    paddingTop: 12,
   },
 });

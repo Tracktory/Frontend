@@ -8,27 +8,26 @@ import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
 import { colors } from '../../styles/colors';
 import { useOnboardingStore } from '../../stores/onboardingStore';
 import { InterestChip } from './components/InterestChip';
-import { INTEREST_OPTIONS } from './data/onboardingOptions';
+import { DEVELOPMENT_FIELD_OPTIONS } from './data/onboardingOptions';
 
-type Props = StackScreenProps<OnboardingStackParamList, 'InterestSelect'>;
+type Props = StackScreenProps<OnboardingStackParamList, 'DevelopmentFieldSelect'>;
 
-export function InterestSelectPage({ navigation }: Props) {
-  const selectedInterests = useOnboardingStore((state) => state.interests);
-  const toggleInterest = useOnboardingStore((state) => state.toggleInterest);
+export function DevelopmentFieldSelectPage({ navigation }: Props) {
+  const selectedFields = useOnboardingStore((state) => state.developmentFields);
+  const toggleField = useOnboardingStore((state) => state.toggleDevelopmentField);
+  const maxReached = selectedFields.length >= 3;
+  const canProceed = selectedFields.length >= 1;
 
-  const maxReached = selectedInterests.length >= 5;
-  const canProceed = selectedInterests.length >= 1;
-
-  const handleToggleInterest = (interest: string) => {
-    const alreadySelected = selectedInterests.includes(interest);
+  const handleToggleField = (field: string) => {
+    const alreadySelected = selectedFields.includes(field);
     if (!alreadySelected && maxReached) return;
-    toggleInterest(interest);
+    toggleField(field);
   };
 
   const handleNext = () => {
     if (!canProceed) return;
-    console.log('[Onboarding] 선택한 관심사:', selectedInterests);
-    navigation.navigate('DevelopmentFieldSelect');
+    console.log('[Onboarding] 선택한 흥미 개발분야:', selectedFields);
+    navigation.navigate('EmploymentPreference');
   };
 
   return (
@@ -40,23 +39,23 @@ export function InterestSelectPage({ navigation }: Props) {
       </View>
 
       <View style={styles.content}>
-        <ProgressBar progress={0.42} />
+        <ProgressBar progress={0.56} />
 
         <Text style={styles.title}>
           <Text style={styles.titleHighlight}>관심분야</Text>를 선택해주세요
         </Text>
-        <Text style={styles.subtitle}>최대 5개까지 선택가능</Text>
+        <Text style={styles.subtitle}>최대 3개까지 선택가능</Text>
 
         <View style={styles.chipGroup}>
-          {INTEREST_OPTIONS.map((interest) => {
-            const isSelected = selectedInterests.includes(interest);
+          {DEVELOPMENT_FIELD_OPTIONS.map((field) => {
+            const isSelected = selectedFields.includes(field);
             return (
               <InterestChip
-                key={interest}
-                label={interest}
+                key={field}
+                label={field}
                 selected={isSelected}
                 disabled={maxReached && !isSelected}
-                onPress={() => handleToggleInterest(interest)}
+                onPress={() => handleToggleField(field)}
               />
             );
           })}

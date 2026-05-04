@@ -27,29 +27,27 @@ export function InterestChip({ label, selected, disabled = false, onPress }: Int
 
 const styles = StyleSheet.create({
   chip: {
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#DDDDDD',
-    backgroundColor: '#F8F8F8',
+    borderRadius: 100,
+    backgroundColor: '#F4F4F4',
     paddingVertical: 10,
-    paddingHorizontal: 16,
+    paddingHorizontal: 18,
   },
   chipSelected: {
-    borderColor: '#2563EB',
-    backgroundColor: '#2563EB',
+    backgroundColor: '#00C9B1',
   },
   chipDisabled: {
-    opacity: 0.45,
+    opacity: 0.35,
   },
   chipText: {
-    fontSize: 14,
-    color: '#555555',
+    fontSize: 15,
+    color: '#333333',
+    fontWeight: '500',
   },
   chipTextSelected: {
     color: '#FFFFFF',
     fontWeight: '600',
   },
   pressed: {
-    opacity: 0.9,
+    opacity: 0.85,
   },
 });

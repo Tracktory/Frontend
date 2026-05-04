@@ -1,29 +1,45 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+
+import { colors } from '../styles/colors';
 
 interface ButtonProps {
   title: string;
   onPress?: () => void;
-  variant?: 'primary' | 'disabled';
+  variant?: 'primary' | 'disabled' | 'secondary';
+  subtitle?: string;
 }
 
-export function Button({ title, onPress, variant = 'primary' }: ButtonProps) {
+export function Button({ title, onPress, variant = 'primary', subtitle }: ButtonProps) {
   const isDisabled = variant === 'disabled';
 
+  const buttonStyle = () => {
+    if (variant === 'secondary') return styles.secondary;
+    if (variant === 'disabled') return styles.disabled;
+    return styles.primary;
+  };
+
+  const labelStyle = () => {
+    if (variant === 'secondary') return styles.secondaryLabel;
+    if (variant === 'disabled') return styles.disabledLabel;
+    return styles.primaryLabel;
+  };
+
   return (
-    <Pressable
-      style={({ pressed }) => [
-        styles.base,
-        isDisabled ? styles.disabled : styles.primary,
-        pressed && !isDisabled && styles.pressed,
-      ]}
-      onPress={onPress}
-      disabled={isDisabled}
-    >
-      <Text style={[styles.label, isDisabled ? styles.disabledLabel : styles.primaryLabel]}>
-        {title}
-      </Text>
-    </Pressable>
+    <View>
+      <Pressable
+        style={({ pressed }) => [
+          styles.base,
+          buttonStyle(),
+          pressed && !isDisabled && styles.pressed,
+        ]}
+        onPress={onPress}
+        disabled={isDisabled}
+      >
+        <Text style={[styles.label, labelStyle()]}>{title}</Text>
+      </Pressable>
+      {subtitle ? <Text style={styles.subtitleText}>{subtitle}</Text> : null}
+    </View>
   );
 }
 
@@ -36,22 +52,34 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   primary: {
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.primary,
+  },
+  secondary: {
+    backgroundColor: '#F4F4F4',
   },
   disabled: {
-    backgroundColor: '#E0E0E0',
+    backgroundColor: colors.border,
   },
   pressed: {
-    opacity: 0.9,
+    opacity: 0.85,
   },
   label: {
     fontSize: 18,
     fontWeight: '600',
   },
   primaryLabel: {
-    color: '#FFFFFF',
+    color: colors.white,
+  },
+  secondaryLabel: {
+    color: colors.textSecondary,
   },
   disabledLabel: {
-    color: '#FFFFFF',
+    color: colors.white,
+  },
+  subtitleText: {
+    marginTop: 8,
+    fontSize: 13,
+    color: colors.textHint,
+    textAlign: 'center',
   },
 });
