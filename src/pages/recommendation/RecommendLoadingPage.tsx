@@ -1,9 +1,12 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 import { StackScreenProps } from '@react-navigation/stack';
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 
 import { Button } from '../../components/Button';
 import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
+import type { RootStackParamList } from '../../navigation/RootNavigator';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'RecommendLoading'>;
 
@@ -65,8 +68,10 @@ const dotStyles = StyleSheet.create({
 });
 
 export function RecommendLoadingPage(_props: Props) {
-  const handleDemoResult = () => {
-    console.log('[HM] 결과 보기 데모 (HM-SCR-02 미구현)');
+  const rootNavigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+
+  const handleViewResult = () => {
+    rootNavigation.navigate('Main');
   };
 
   return (
@@ -83,7 +88,7 @@ export function RecommendLoadingPage(_props: Props) {
       </View>
 
       <View style={styles.bottom}>
-        <Button title="결과 보기 (데모)" variant="primary" onPress={handleDemoResult} />
+        <Button title="결과 보기" variant="primary" onPress={handleViewResult} />
       </View>
     </View>
   );

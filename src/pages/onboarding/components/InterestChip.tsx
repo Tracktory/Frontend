@@ -1,6 +1,8 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
+import { colors } from '../../../styles/colors';
+
 interface InterestChipProps {
   label: string;
   selected: boolean;
@@ -33,7 +35,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
   },
   chipSelected: {
-    backgroundColor: '#00C9B1',
+    backgroundColor: colors.primary,
   },
   chipDisabled: {
     opacity: 0.35,

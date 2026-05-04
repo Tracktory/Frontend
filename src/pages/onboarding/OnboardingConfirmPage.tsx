@@ -60,7 +60,7 @@ const cardStyles = StyleSheet.create({
     alignItems: 'center',
   },
   chip: {
-    backgroundColor: '#00C9B1',
+    backgroundColor: colors.primary,
     borderRadius: 100,
     paddingHorizontal: 10,
     paddingVertical: 4,
