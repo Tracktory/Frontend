@@ -11,6 +11,7 @@ import { LlmSynergySection } from './components/LlmSynergySection';
 import { TrackDescriptionSection } from './components/TrackDescriptionSection';
 import { RequiredCoursesSection } from './components/RequiredCoursesSection';
 import { PrerequisiteSection } from './components/PrerequisiteSection';
+import { RoadmapPanel } from './components/RoadmapPanel';
 
 export function RecommendResultPage() {
   const vm = useRecommendResultViewModel();
@@ -69,10 +70,18 @@ export function RecommendResultPage() {
         )}
 
         {vm.activeTab === 'roadmap' && (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>학습 로드맵</Text>
-            <Text style={styles.emptySubText}>데이터 추가 예정입니다</Text>
-          </View>
+          <ScrollView
+            style={styles.scrollArea}
+            contentContainerStyle={styles.roadmapScrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <RoadmapPanel
+              roadmap={vm.roadmap}
+              isLoading={vm.roadmapLoading}
+              isError={vm.roadmapError}
+              onRetry={vm.retryRoadmap}
+            />
+          </ScrollView>
         )}
       </View>
     </SafeAreaView>
@@ -106,6 +115,9 @@ const styles = StyleSheet.create({
   },
   trackScrollContent: {
     paddingBottom: 12,
+  },
+  roadmapScrollContent: {
+    paddingBottom: 24,
   },
   emptyContainer: {
     flex: 1,

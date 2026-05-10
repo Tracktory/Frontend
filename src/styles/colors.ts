@@ -8,4 +8,9 @@ export const colors = {
   textSecondary: '#737373',
   textHint: '#A3A3A3',
   white: '#FFFFFF',
+
+  // 로드맵 단계별 색상
+  stageBasic: '#22C55E',
+  stageCore: '#8B5CF6',
+  stageCap: '#EF4444',
 };
