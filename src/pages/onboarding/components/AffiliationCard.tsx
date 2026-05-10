@@ -34,11 +34,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   defaultCard: {
-    backgroundColor: '#F7F8F9',
+    backgroundColor: colors.selectSurface,
   },
   selectedCard: {
-    backgroundColor: '#F4FFFE',
-    shadowColor: 'rgba(20, 184, 166, 0.80)',
+    backgroundColor: colors.selectSurfaceActive,
+    shadowColor: colors.shadowPrimary,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 4,

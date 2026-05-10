@@ -34,11 +34,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   defaultButton: {
-    backgroundColor: '#F7F8F9',
+    backgroundColor: colors.selectSurface,
   },
   selectedButton: {
-    backgroundColor: '#F4FFFE',
-    shadowColor: 'rgba(20, 184, 166, 0.80)',
+    backgroundColor: colors.selectSurfaceActive,
+    shadowColor: colors.shadowPrimary,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 4,

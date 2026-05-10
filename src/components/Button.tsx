@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   secondary: {
-    backgroundColor: '#F4F4F4',
+    backgroundColor: colors.chipSurface,
   },
   disabled: {
     backgroundColor: colors.border,

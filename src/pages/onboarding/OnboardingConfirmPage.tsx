@@ -42,7 +42,7 @@ function ChipList({ items }: { items: string[] }) {
 
 const cardStyles = StyleSheet.create({
   card: {
-    backgroundColor: '#F4F4F4',
+    backgroundColor: colors.chipSurface,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
@@ -67,7 +67,7 @@ const cardStyles = StyleSheet.create({
   },
   chipText: {
     fontSize: 13,
-    color: '#FFFFFF',
+    color: colors.white,
     fontWeight: '500',
   },
   empty: {

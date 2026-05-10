@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#F0F0F0',
+    borderColor: colors.cardBorder,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
@@ -127,9 +127,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
   },
   cardTrackMuted: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.inputSurface,
     borderWidth: 1,
-    borderColor: '#E8E8E8',
+    borderColor: colors.borderSubtle,
   },
   cardPressed: {
     opacity: 0.94,
@@ -178,14 +178,14 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   collectingBadge: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: colors.warningBackground,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
   collectingText: {
     fontSize: 12,
-    color: '#D97706',
+    color: colors.collectingText,
     fontWeight: '500',
   },
 });
