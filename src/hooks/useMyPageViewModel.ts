@@ -3,6 +3,7 @@ import { Alert } from 'react-native';
 
 import { useOnboardingStore } from '../stores/onboardingStore';
 import {
+  COURSE_CATALOG_FOR_SELECTION,
   MOCK_COMPLETED_COURSES,
   MOCK_RECOMMENDATION_HISTORY,
 } from '../data/mockMyPageData';
@@ -11,6 +12,7 @@ import type { RecommendationHistoryItem } from '../data/mockMyPageData';
 const EMPTY_PLACEHOLDER = '선택 없음';
 const DISPLAY_NAME_FALLBACK = '00';
 const MAJOR_FALLBACK = '한성대 IT융합공학부';
+const MAX_COMPLETED_COURSES = 30;
 
 /** 입학연도 두 자리(YY학번 표기용) */
 function twoDigitAdmissionYear(year: number): string {
@@ -41,9 +43,12 @@ export function useMyPageViewModel() {
   const preferredCompanyTypes = useOnboardingStore((s) => s.preferredCompanyTypes);
   const employmentValues = useOnboardingStore((s) => s.employmentValues);
 
-  const [completedCourses] = useState<string[]>(() => [...MOCK_COMPLETED_COURSES]);
+  const [completedCourses, setCompletedCourses] = useState<string[]>(() => [
+    ...MOCK_COMPLETED_COURSES,
+  ]);
 
   const recommendationHistory: RecommendationHistoryItem[] = MOCK_RECOMMENDATION_HISTORY;
+  const courseCatalog = COURSE_CATALOG_FOR_SELECTION;
 
   const interestsLine =
     interests.length > 0 ? interests.join(', ') : EMPTY_PLACEHOLDER;
@@ -57,9 +62,7 @@ export function useMyPageViewModel() {
   );
 
   const admissionBadge = formatAdmissionBadge(admissionYear);
-  /** 스토어에 이름 없음 — 시안 플레이스홀더 유지 */
   const displayName = DISPLAY_NAME_FALLBACK;
-  /** 아바타 중앙 한 글자 */
   const profileInitial = displayName.slice(-1);
 
   const majorLine = college ?? MAJOR_FALLBACK;
@@ -68,11 +71,29 @@ export function useMyPageViewModel() {
     Alert.alert('알림', '수정 기능은 추후 제공됩니다.');
   };
 
-  const handleAddCourse = () => {
-    Alert.alert(
-      '과목 추가',
-      '직접 과목 선택·추가는 API 연동 후 제공됩니다. (목업 상태)'
-    );
+  const addCompletedCourse = (name: string): boolean => {
+    const trimmed = name.trim();
+    if (!trimmed) {
+      Alert.alert('알림', '과목명을 입력해 주세요.');
+      return false;
+    }
+    if (completedCourses.includes(trimmed)) {
+      Alert.alert('알림', '이미 이수 과목에 추가된 과목입니다.');
+      return false;
+    }
+    if (completedCourses.length >= MAX_COMPLETED_COURSES) {
+      Alert.alert(
+        '알림',
+        `이수 과목은 최대 ${MAX_COMPLETED_COURSES}개까지 추가할 수 있습니다.`
+      );
+      return false;
+    }
+    setCompletedCourses((prev) => [...prev, trimmed]);
+    return true;
+  };
+
+  const removeCompletedCourse = (name: string) => {
+    setCompletedCourses((prev) => prev.filter((c) => c !== name));
   };
 
   const handleHistoryPress = (_item: RecommendationHistoryItem) => {
@@ -88,9 +109,11 @@ export function useMyPageViewModel() {
     developmentLine,
     employmentLine,
     completedCourses,
+    courseCatalog,
     recommendationHistory,
     handleEditSection,
-    handleAddCourse,
+    addCompletedCourse,
+    removeCompletedCourse,
     handleHistoryPress,
   };
 }
