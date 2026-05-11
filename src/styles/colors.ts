@@ -25,19 +25,11 @@ export const colors = {
   textSecondary: '#737373',
   textSubtle: '#888888',
   textHint: '#A3A3A3',
+  white: '#FFFFFF',
 
-  // 경고 (강도 높음: 온보딩 완료 불필요 배너)
-  warningBackground: '#FEF3C7',
-  warningBorder: '#FCD34D',
-  warningText: '#92400E',
-
-  // 경고 (강도 낮음: 트랙 입력 안내)
-  warningInfo: '#FFF8E7',
-  warningInfoText: '#B45309',
-
-  // 그림자
-  shadowPrimary: 'rgba(20, 184, 166, 0.80)',
-
-  // 기타
-  collectingText: '#D97706',
+  // 로드맵 단계별 색상
+  stageBasic: '#22C55E',
+  stageCore: '#8B5CF6',
+  stageApplied: '#2563EB',
+  stageCap: '#EF4444',
 };
