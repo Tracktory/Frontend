@@ -7,6 +7,10 @@ export const colors = {
   // 배경·서피스
   background: '#FFFFFF',
   surface: '#FFFFFF',
+  //마이페이지 프로필 배너 배경 등 
+  profileSurface: '#E8FBF8',
+  // 이수 과목 칩 배경 (민트 계열) 
+  chipMintBg: '#DCFEFA',
   white: '#FFFFFF',
   inputSurface: '#F3F4F6',
   chipSurface: '#F4F4F4',
@@ -25,7 +29,8 @@ export const colors = {
   textSecondary: '#737373',
   textSubtle: '#888888',
   textHint: '#A3A3A3',
-  white: '#FFFFFF',
+
+  shadowPrimary: 'rgba(20, 184, 166, 0.80)',
 
   // 로드맵 단계별 색상
   stageBasic: '#22C55E',
