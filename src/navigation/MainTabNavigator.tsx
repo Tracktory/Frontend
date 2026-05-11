@@ -3,7 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text } from 'react-native';
 
 import { RecommendResultPage } from '../pages/recommendation/RecommendResultPage';
-import { ChatBotPage } from '../pages/stub/ChatBotPage';
+import { ChatBotPage } from '../pages/chat/ChatBotPage';
 import { MyPage } from '../pages/stub/MyPage';
 import { colors } from '../styles/colors';
 
