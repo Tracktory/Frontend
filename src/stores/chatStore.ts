@@ -1,4 +1,4 @@
-/** 챗봇 전역 상태 — 오버레이 UI, 메시지 목록, 순수 액션만 관리 */
+/** 챗봇 대화 메시지 상태 — Zustand 순수 상태 + 원자 액션만 관리 */
 
 import type { create as CreateType } from 'zustand';
 
@@ -64,26 +64,13 @@ export function buildInitialMessages(): ChatMessage[] {
 
 /** 순수 상태 + 원자 액션만 보관 — 응답 생성 로직은 useChatViewModel에서 처리 */
 interface ChatState {
-  overlayOpen: boolean;
-  overlayMinimized: boolean;
   messages: ChatMessage[];
-  openOverlay: () => void;
-  closeOverlay: () => void;
-  toggleMinimize: () => void;
   resetConversation: () => void;
   appendMessage: (m: ChatMessage) => void;
 }
 
 export const useChatStore = create<ChatState>()((set) => ({
-  overlayOpen: false,
-  overlayMinimized: false,
   messages: buildInitialMessages(),
-
-  openOverlay: () => set({ overlayOpen: true, overlayMinimized: false }),
-
-  closeOverlay: () => set({ overlayOpen: false, overlayMinimized: false }),
-
-  toggleMinimize: () => set((s) => ({ overlayMinimized: !s.overlayMinimized })),
 
   resetConversation: () => set({ messages: buildInitialMessages() }),
 

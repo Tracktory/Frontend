@@ -7,6 +7,7 @@ export const colors = {
   // 배경·서피스
   background: '#FFFFFF',
   surface: '#FFFFFF',
+  profileSurface: '#E8FBF8',
   //마이페이지 프로필 배너 배경 등 
   profileSurface: '#E8FBF8',
   // 이수 과목 칩 배경 (민트 계열) 
@@ -29,6 +30,9 @@ export const colors = {
   textSecondary: '#737373',
   textSubtle: '#888888',
   textHint: '#A3A3A3',
+  warningBackground: '#FEF3C7',
+  warningBorder: '#FCD34D',
+  warningText: '#92400E',
 
   shadowPrimary: 'rgba(20, 184, 166, 0.80)',
 
