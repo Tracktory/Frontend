@@ -7,6 +7,7 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 import { Button } from '../../components/Button';
 import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
 import type { RootStackParamList } from '../../navigation/RootNavigator';
+import { colors } from '../../styles/colors';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'RecommendLoading'>;
 
@@ -62,7 +63,7 @@ const dotStyles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.accentBlue,
   },
   dotSpacing: { marginLeft: 10 },
 });
@@ -97,14 +98,14 @@ export function RecommendLoadingPage(_props: Props) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.inputSurface,
     paddingHorizontal: 24,
     paddingTop: 56,
     paddingBottom: 32,
   },
   screenId: {
     fontSize: 12,
-    color: '#A3A3A3',
+    color: colors.textHint,
     fontWeight: '500',
   },
   center: {
@@ -117,19 +118,19 @@ const styles = StyleSheet.create({
     marginTop: 28,
     fontSize: 18,
     fontWeight: '600',
-    color: '#333333',
+    color: colors.textStrong,
   },
   subLine: {
     marginTop: 10,
     fontSize: 14,
-    color: '#888888',
+    color: colors.textSubtle,
     textAlign: 'center',
     lineHeight: 22,
   },
   hint: {
     marginTop: 36,
     fontSize: 12,
-    color: '#AAAAAA',
+    color: colors.textHint,
   },
   bottom: {
     marginTop: 'auto',

@@ -34,9 +34,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   rowDefault: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.inputSurface,
     borderWidth: 1,
-    borderColor: '#E8E8E8',
+    borderColor: colors.borderSubtle,
   },
   rowEmphasized: {
     backgroundColor: colors.white,
