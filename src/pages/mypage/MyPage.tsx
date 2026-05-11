@@ -48,7 +48,9 @@ export function MyPage() {
 
         <MyCompletedCoursesSection
           courses={vm.completedCourses}
-          onAddCourse={vm.handleAddCourse}
+          catalog={vm.courseCatalog}
+          onAddCourse={vm.addCompletedCourse}
+          onRemoveCourse={vm.removeCompletedCourse}
         />
 
         <MyRecommendationHistoryCard
