@@ -144,6 +144,7 @@ export function MyCompletedCoursesSection({
                   keyExtractor={(item) => item}
                   style={styles.list}
                   keyboardShouldPersistTaps="handled"
+                  showsVerticalScrollIndicator={false}
                   renderItem={({ item }) => (
                     <Pressable
                       style={({ pressed }) => [
