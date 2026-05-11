@@ -8,6 +8,9 @@ export const colors = {
   background: '#FFFFFF',
   surface: '#FFFFFF',
   profileSurface: '#E8FBF8',
+  //마이페이지 프로필 배너 배경 등 
+  profileSurface: '#E8FBF8',
+  // 이수 과목 칩 배경 (민트 계열) 
   chipMintBg: '#DCFEFA',
   white: '#FFFFFF',
   inputSurface: '#F3F4F6',

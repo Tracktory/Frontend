@@ -3,8 +3,9 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text } from 'react-native';
 
 import { RecommendResultPage } from '../pages/recommendation/RecommendResultPage';
-import { ChatBotPage } from '../pages/chat/ChatBotPage';
-import { MyPage } from '../pages/stub/MyPage';
+
+import { ChatBotPage } from '../pages/stub/ChatBotPage';
+import { MyPage } from '../pages/mypage/MyPage';
 import { colors } from '../styles/colors';
 
 export type MainTabParamList = {
@@ -66,7 +67,7 @@ export function MainTabNavigator() {
         name="MyPage"
         component={MyPage}
         options={{
-          tabBarLabel: '마이페이지',
+          tabBarLabel: '마이',
           tabBarIcon: ({ focused }) => <TabIcon label="👤" focused={focused} />,
         }}
       />
