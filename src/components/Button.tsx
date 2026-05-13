@@ -26,7 +26,7 @@ export function Button({ title, onPress, variant = 'primary', subtitle }: Button
   };
 
   return (
-    <View>
+    <View style={styles.container}>
       <Pressable
         style={({ pressed }) => [
           styles.base,
@@ -38,12 +38,17 @@ export function Button({ title, onPress, variant = 'primary', subtitle }: Button
       >
         <Text style={[styles.label, labelStyle()]}>{title}</Text>
       </Pressable>
-      {subtitle ? <Text style={styles.subtitleText}>{subtitle}</Text> : null}
+      <View style={styles.subtitleSlot}>
+        {subtitle ? <Text style={styles.subtitleText}>{subtitle}</Text> : null}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    width: '100%',
+  },
   base: {
     width: '100%',
     minHeight: 58,
@@ -76,8 +81,12 @@ const styles = StyleSheet.create({
   disabledLabel: {
     color: colors.white,
   },
-  subtitleText: {
+  subtitleSlot: {
+    minHeight: 18,
     marginTop: 8,
+    justifyContent: 'flex-start',
+  },
+  subtitleText: {
     fontSize: 13,
     color: colors.textHint,
     textAlign: 'center',
