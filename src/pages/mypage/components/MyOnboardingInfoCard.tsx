@@ -19,8 +19,12 @@ function Row({ label, value, showDivider, onEdit }: RowProps) {
           <Text style={styles.label}>{label}</Text>
           <Text style={styles.value}>{value}</Text>
         </View>
-        <Pressable hitSlop={8} onPress={onEdit} style={({ pressed }) => pressed && styles.hitPressed}>
-          <Ionicons name="create-outline" size={22} color={colors.primary} />
+        <Pressable
+          hitSlop={8}
+          onPress={onEdit}
+          style={({ pressed }) => [styles.editButton, pressed && styles.hitPressed]}
+        >
+          <Ionicons name="create-outline" size={18} color={colors.primary} />
         </Pressable>
       </View>
       {showDivider ? <View style={styles.divider} /> : null}
@@ -117,7 +121,17 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     marginRight: 12,
   },
+  editButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 9,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.white,
+  },
   hitPressed: {
-    opacity: 0.55,
+    opacity: 0.6,
   },
 });
