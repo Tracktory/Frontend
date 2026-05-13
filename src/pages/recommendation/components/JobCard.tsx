@@ -40,9 +40,15 @@ export function JobCard({
   const isTrack = mode === 'track';
   const showChips = chipsReady;
   const showCollecting = !chipsReady;
+  const hasDescription = description.trim().length > 0;
+  const hasChipRow = showCollecting || (showChips && chips.length > 0);
 
   const cardStyle = [
     styles.card,
+    isTrack &&
+      !hasChipRow &&
+      !hasDescription &&
+      (emphasized ? styles.cardTrackTitleOnly : styles.cardTrackTitleOnlyMuted),
     isTrack
       ? emphasized
         ? styles.cardTrackEmphasized
@@ -51,18 +57,18 @@ export function JobCard({
   ];
 
   const header = (
-    <View style={styles.header}>
+    <View style={[styles.header, !hasChipRow && styles.headerNoFooter]}>
       <View style={styles.titleRow}>
         <Text style={styles.title}>{title}</Text>
         {titleTrailing != null && titleTrailing !== '' ? (
           <Text style={styles.matchScore}>{titleTrailing}</Text>
         ) : null}
       </View>
-      <Text style={styles.description}>{description}</Text>
+      {hasDescription ? <Text style={styles.description}>{description}</Text> : null}
     </View>
   );
 
-  const footer = (
+  const footer = hasChipRow ? (
     <View style={styles.techRow}>
       {showChips
         ? chips.map((chip) => (
@@ -77,7 +83,7 @@ export function JobCard({
         </View>
       ) : null}
     </View>
-  );
+  ) : null;
 
   // 직무 탭: 탭 선택·터치 피드백을 위해 Pressable 사용
   if (!isTrack && onPress) {
@@ -92,7 +98,7 @@ export function JobCard({
     );
   }
 
-  // 트랙 탭 등: 읽기 전용 정적 카드
+  // 트랙 탭 등: 읽기 전용 정적 카드(Pressable 없음 → 버튼 느낌 완화)
   return (
     <View style={cardStyle}>
       {header}
@@ -115,6 +121,13 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
+  cardTrackTitleOnly: {
+    paddingVertical: 16,
+  },
+  /** 보조 추천 등: 제목만 있는 무디드 트랙 — 세로 패딩만 살짝 타이트 */
+  cardTrackTitleOnlyMuted: {
+    paddingVertical: 12,
+  },
   cardSelected: {
     borderColor: colors.primary,
     backgroundColor: colors.primaryLight,
@@ -136,6 +149,9 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: 14,
+  },
+  headerNoFooter: {
+    marginBottom: 0,
   },
   titleRow: {
     flexDirection: 'row',
@@ -185,7 +201,7 @@ const styles = StyleSheet.create({
   },
   collectingText: {
     fontSize: 12,
-    color: colors.collectingText,
+    color: colors.warningText,
     fontWeight: '500',
   },
 });
