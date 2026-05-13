@@ -83,6 +83,7 @@ export function RecommendResultPage() {
               isLoading={vm.roadmapLoading}
               isError={vm.roadmapError}
               onRetry={vm.retryRoadmap}
+              onPressCourse={(courseId) => navigation.navigate('CourseDetail', { courseId })}
             />
           </ScrollView>
         )}

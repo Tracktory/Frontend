@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '../../../styles/colors';
 import type { RoadmapCourse } from '../../../data/mockRoadmapData';
@@ -8,11 +8,15 @@ interface RoadmapCourseCardProps {
   course: RoadmapCourse;
   /** 단계 색상 — 우선순위 배지 텍스트에 사용 */
   stageColor: string;
+  onPress?: () => void;
 }
 
-export function RoadmapCourseCard({ course, stageColor }: RoadmapCourseCardProps) {
+export function RoadmapCourseCard({ course, stageColor, onPress }: RoadmapCourseCardProps) {
   return (
-    <View style={styles.card}>
+    <Pressable
+      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+      onPress={onPress}
+    >
       <View style={styles.row}>
         {/* 우선순위 배지 */}
         <View style={[styles.badge, { borderColor: stageColor }]}>
@@ -35,7 +39,7 @@ export function RoadmapCourseCard({ course, stageColor }: RoadmapCourseCardProps
           ) : null}
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -52,6 +56,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 3,
     elevation: 1,
+  },
+  cardPressed: {
+    opacity: 0.7,
   },
   row: {
     flexDirection: 'row',
