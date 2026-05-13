@@ -1,14 +1,15 @@
 import { useState } from 'react';
+import type { NavigationProp } from '@react-navigation/native';
 
 import { MOCK_JOB_RECOMMENDATIONS } from '../data/mockRecommendData';
 import { MOCK_TRACK_RECOMMEND } from '../data/mockTrackRecommendData';
 import { MOCK_ROADMAP } from '../data/mockRoadmapData';
 import type { RoadmapPayload } from '../data/mockRoadmapData';
 import type { TabKey } from '../pages/recommendation/components/SegmentTab';
+import type { MainStackParamList } from '../navigation/MainStackNavigator';
 
 export function useRecommendResultViewModel() {
   const [activeTab, setActiveTab] = useState<TabKey>('job');
-  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
 
   const jobs = MOCK_JOB_RECOMMENDATIONS;
   const hasData = jobs.length > 0;
@@ -19,8 +20,8 @@ export function useRecommendResultViewModel() {
   const [roadmapLoading, setRoadmapLoading] = useState(false);
   const [roadmapError, setRoadmapError] = useState(false);
 
-  const handleSelectJob = (id: string) => {
-    setSelectedJobId((prev) => (prev === id ? null : id));
+  const handleSelectJob = (navigation: NavigationProp<MainStackParamList>, id: string) => {
+    navigation.navigate('JobDetail', { jobId: id });
   };
 
   /** 로드맵 데이터 재시도 — API 연동 시 실제 fetch로 교체 */
@@ -37,7 +38,6 @@ export function useRecommendResultViewModel() {
   return {
     activeTab,
     setActiveTab,
-    selectedJobId,
     handleSelectJob,
     jobs,
     hasData,

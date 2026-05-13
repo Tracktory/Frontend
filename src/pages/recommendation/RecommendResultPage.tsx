@@ -1,6 +1,8 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 
 import { colors } from '../../styles/colors';
 import { useRecommendResultViewModel } from '../../hooks/useRecommendResultViewModel';
@@ -12,9 +14,11 @@ import { TrackDescriptionSection } from './components/TrackDescriptionSection';
 import { RequiredCoursesSection } from './components/RequiredCoursesSection';
 import { PrerequisiteSection } from './components/PrerequisiteSection';
 import { RoadmapPanel } from './components/RoadmapPanel';
+import type { MainStackParamList } from '../../navigation/MainStackNavigator';
 
 export function RecommendResultPage() {
   const vm = useRecommendResultViewModel();
+  const navigation = useNavigation<StackNavigationProp<MainStackParamList>>();
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -41,8 +45,7 @@ export function RecommendResultPage() {
                     titleTrailing={`${job.matchScore}%`}
                     chips={job.techStack}
                     chipsReady={job.techStackReady}
-                    selected={vm.selectedJobId === job.id}
-                    onPress={() => vm.handleSelectJob(job.id)}
+                    onPress={() => vm.handleSelectJob(navigation, job.id)}
                   />
                 ))}
               </ScrollView>
