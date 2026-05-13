@@ -3,6 +3,7 @@ import type { StateCreator } from 'zustand';
 export interface InterestSlice {
   interests: string[];
   toggleInterest: (interest: string) => void;
+  setInterests: (interests: string[]) => void;
   clearInterests: () => void;
 }
 
@@ -16,6 +17,10 @@ export const createInterestSlice: StateCreator<InterestSlice> = (set) => ({
       if (state.interests.length >= 5) return state;
       return { interests: [...state.interests, interest] };
     });
+  },
+  setInterests: (interests: string[]) => {
+    const deduped = [...new Set(interests)].slice(0, 5);
+    set({ interests: deduped });
   },
   clearInterests: () => {
     set({ interests: [] });

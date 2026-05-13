@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 
 import { OnboardingNavigator } from './OnboardingNavigator';
-import { MainTabNavigator } from './MainTabNavigator';
+import { MainStackNavigator } from './MainStackNavigator';
 
 export type RootStackParamList = {
   Onboarding: undefined;
@@ -20,7 +20,7 @@ export function RootNavigator() {
         screenOptions={{ headerShown: false }}
       >
         <Stack.Screen name="Onboarding" component={OnboardingNavigator} />
-        <Stack.Screen name="Main" component={MainTabNavigator} />
+        <Stack.Screen name="Main" component={MainStackNavigator} />
       </Stack.Navigator>
     </View>
   );

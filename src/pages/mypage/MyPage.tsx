@@ -1,26 +1,20 @@
 import React from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
 
 import { colors } from '../../styles/colors';
-import type { RootStackParamList } from '../../navigation/RootNavigator';
 import { useMyPageViewModel } from '../../hooks/useMyPageViewModel';
 import { MyProfileSection } from './components/MyProfileSection';
 import { MyOnboardingInfoCard } from './components/MyOnboardingInfoCard';
 import { MyCompletedCoursesSection } from './components/MyCompletedCoursesSection';
 import { MyRecommendationHistoryCard } from './components/MyRecommendationHistoryCard';
-import { MyRedoOnboardingLink } from './components/MyRedoOnboardingLink';
+import { MyInfoEditModal } from './components/MyInfoEditModal';
+
+type EditableSection = 'interests' | 'development' | 'employment';
 
 export function MyPage() {
   const vm = useMyPageViewModel();
-  const navigation = useNavigation();
-
-  const handleRedoOnboarding = () => {
-    const rootNav = navigation.getParent<StackNavigationProp<RootStackParamList>>();
-    rootNav?.reset({ index: 0, routes: [{ name: 'Onboarding' }] });
-  };
+  const [editingSection, setEditingSection] = React.useState<EditableSection | null>(null);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -41,9 +35,9 @@ export function MyPage() {
           interestsLine={vm.interestsLine}
           developmentLine={vm.developmentLine}
           employmentLine={vm.employmentLine}
-          onEditInterests={() => vm.handleEditSection('interests')}
-          onEditDevelopment={() => vm.handleEditSection('development')}
-          onEditEmployment={() => vm.handleEditSection('employment')}
+          onEditInterests={() => setEditingSection('interests')}
+          onEditDevelopment={() => setEditingSection('development')}
+          onEditEmployment={() => setEditingSection('employment')}
         />
 
         <MyCompletedCoursesSection
@@ -57,8 +51,18 @@ export function MyPage() {
           items={vm.recommendationHistory}
           onItemPress={vm.handleHistoryPress}
         />
-
-        <MyRedoOnboardingLink onPress={handleRedoOnboarding} />
+        <MyInfoEditModal
+          visible={editingSection != null}
+          section={editingSection}
+          currentInterests={vm.interests}
+          currentDevelopmentFields={vm.developmentFields}
+          currentPreferredCompanyTypes={vm.preferredCompanyTypes}
+          currentEmploymentValues={vm.employmentValues}
+          onClose={() => setEditingSection(null)}
+          onSaveInterests={vm.updateInterests}
+          onSaveDevelopmentFields={vm.updateDevelopmentFields}
+          onSaveEmployment={vm.updateEmployment}
+        />
       </ScrollView>
     </SafeAreaView>
   );

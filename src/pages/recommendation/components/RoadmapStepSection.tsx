@@ -17,9 +17,10 @@ interface RoadmapStepSectionProps {
   step: RoadmapStep;
   /** 마지막 단계이면 도트 아래 연결선 미표시 */
   isLast?: boolean;
+  onPressCourse?: (courseId: string) => void;
 }
 
-export function RoadmapStepSection({ step, isLast = false }: RoadmapStepSectionProps) {
+export function RoadmapStepSection({ step, isLast = false, onPressCourse }: RoadmapStepSectionProps) {
   const stageColor = STAGE_COLORS[step.stage];
 
   return (
@@ -44,7 +45,12 @@ export function RoadmapStepSection({ step, isLast = false }: RoadmapStepSectionP
           </Text>
 
           {step.courses.map((course) => (
-            <RoadmapCourseCard key={course.id} course={course} stageColor={stageColor} />
+            <RoadmapCourseCard
+              key={course.id}
+              course={course}
+              stageColor={stageColor}
+              onPress={onPressCourse ? () => onPressCourse(course.id) : undefined}
+            />
           ))}
         </View>
       </View>

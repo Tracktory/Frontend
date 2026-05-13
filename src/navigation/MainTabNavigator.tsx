@@ -4,7 +4,7 @@ import { Text } from 'react-native';
 
 import { RecommendResultPage } from '../pages/recommendation/RecommendResultPage';
 
-import { ChatBotPage } from '../pages/stub/ChatBotPage';
+import { ChatBotPage } from '../pages/chat/ChatBotPage';
 import { MyPage } from '../pages/mypage/MyPage';
 import { colors } from '../styles/colors';
 
