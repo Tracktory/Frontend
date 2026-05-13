@@ -38,9 +38,11 @@ export function Button({ title, onPress, variant = 'primary', subtitle }: Button
       >
         <Text style={[styles.label, labelStyle()]}>{title}</Text>
       </Pressable>
-      <View style={styles.subtitleSlot}>
-        {subtitle ? <Text style={styles.subtitleText}>{subtitle}</Text> : null}
-      </View>
+      {subtitle ? (
+        <View style={styles.subtitleSlot}>
+          <Text style={styles.subtitleText}>{subtitle}</Text>
+        </View>
+      ) : null}
     </View>
   );
 }
