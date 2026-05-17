@@ -65,10 +65,26 @@ export function ChatContent({
       <View style={styles.header}>
         <Text style={styles.headerTitle}>AI 학습경로 챗봇</Text>
         <View style={styles.headerIcons}>
-          {/* 대화 초기화 */}
-          <Pressable style={styles.iconBtn} onPress={vm.resetConversation} hitSlop={8}>
+          {/* 이전 대화 보기 */}
+          <Pressable
+            style={styles.iconBtn}
+            onPress={vm.handleLoadHistory}
+            hitSlop={8}
+            accessibilityLabel="이전 대화 보기"
+          >
+            <Ionicons name="time-outline" size={20} color={colors.textSecondary} />
+          </Pressable>
+
+          {/* 새 대화 시작 (확인 팝업 포함) */}
+          <Pressable
+            style={styles.iconBtn}
+            onPress={vm.handleReset}
+            hitSlop={8}
+            accessibilityLabel="새 대화 시작"
+          >
             <Ionicons name="refresh" size={20} color={colors.textSecondary} />
           </Pressable>
+
           {showMinimize && (
             <Pressable style={styles.iconBtn} onPress={onMinimize} hitSlop={8}>
               <Ionicons name="remove" size={22} color={colors.textSecondary} />
@@ -109,6 +125,7 @@ export function ChatContent({
               key={msg.id}
               message={msg}
               onChipPress={onboardingRequired ? undefined : handleChip}
+              onFeedback={onboardingRequired ? undefined : vm.handleFeedback}
             />
           ))}
         </ScrollView>
