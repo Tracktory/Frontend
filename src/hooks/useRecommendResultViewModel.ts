@@ -1,38 +1,63 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { NavigationProp } from '@react-navigation/native';
 
-import { MOCK_JOB_RECOMMENDATIONS } from '../data/mockRecommendData';
-import { MOCK_TRACK_RECOMMEND } from '../data/mockTrackRecommendData';
-import { MOCK_ROADMAP } from '../data/mockRoadmapData';
-import type { RoadmapPayload } from '../data/mockRoadmapData';
+import { fetchRecommendResult } from '../api/recommendApi';
+import type { RecommendResult } from '../api/recommendApi';
 import type { TabKey } from '../pages/recommendation/components/SegmentTab';
 import type { MainStackParamList } from '../navigation/MainStackNavigator';
+  import { useOnboardingStore } from '../stores/onboardingStore';
 
 export function useRecommendResultViewModel() {
   const [activeTab, setActiveTab] = useState<TabKey>('job');
 
-  const jobs = MOCK_JOB_RECOMMENDATIONS;
-  const hasData = jobs.length > 0;
-  const trackRecommend = MOCK_TRACK_RECOMMEND;
+  const [result, setResult] = useState<RecommendResult | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
 
-  // 로드맵 상태 — API 연동 전 목업 데이터로 초기화
-  const [roadmap, setRoadmap] = useState<RoadmapPayload | null>(MOCK_ROADMAP);
-  const [roadmapLoading, setRoadmapLoading] = useState(false);
-  const [roadmapError, setRoadmapError] = useState(false);
+  // onboardingStore 구독 — 변경 감지용
+  const interests = useOnboardingStore((s) => s.interests);
+  const developmentFields = useOnboardingStore((s) => s.developmentFields);
+  const preferredCompanyTypes = useOnboardingStore((s) => s.preferredCompanyTypes);
+  const employmentValues = useOnboardingStore((s) => s.employmentValues);
+
+  const refresh = useCallback(async () => {
+    setIsLoading(true);
+    setIsError(false);
+    try {
+      const data = await fetchRecommendResult();
+      setResult(data);
+    } catch {
+      setIsError(true);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // 최초 마운트 시 데이터 로드
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  // onboardingStore 변경 시 재조회 (초기 마운트 제외)
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    refresh();
+  // refresh는 useCallback으로 안정적이므로 deps에서 제외해도 되나,
+  // eslint가 요구하므로 포함 (무한루프 없음 — refresh 자체는 변하지 않음)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [interests, developmentFields, preferredCompanyTypes, employmentValues]);
+
+  const jobs = result?.jobs ?? [];
+  const hasData = jobs.length > 0;
+  const trackRecommend = result?.trackRecommend ?? null;
+  const roadmap = result?.roadmap ?? null;
 
   const handleSelectJob = (navigation: NavigationProp<MainStackParamList>, id: string) => {
     navigation.navigate('JobDetail', { jobId: id });
-  };
-
-  /** 로드맵 데이터 재시도 — API 연동 시 실제 fetch로 교체 */
-  const retryRoadmap = () => {
-    setRoadmapError(false);
-    setRoadmapLoading(true);
-    // mock: 즉시 성공 시뮬레이션
-    setTimeout(() => {
-      setRoadmap(MOCK_ROADMAP);
-      setRoadmapLoading(false);
-    }, 800);
   };
 
   return {
@@ -43,8 +68,8 @@ export function useRecommendResultViewModel() {
     hasData,
     trackRecommend,
     roadmap,
-    roadmapLoading,
-    roadmapError,
-    retryRoadmap,
+    isLoading,
+    isError,
+    refresh,
   };
 }
