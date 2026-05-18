@@ -8,7 +8,6 @@ interface SecondaryTrackListProps {
   tracks: SecondaryTrack[];
 }
 
-/** 주 트랙과 동일한 카드 레이아웃이지만 강조(프라이머리 테두리) 없이 무디드 스타일로 표시 */
 export function SecondaryTrackList({ tracks }: SecondaryTrackListProps) {
   return (
     <View style={styles.list}>

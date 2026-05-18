@@ -1,11 +1,18 @@
 /** 챗봇 대화 메시지 상태 — Zustand 순수 상태 + 원자 액션만 관리 */
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { create as CreateType } from 'zustand';
+import type {
+  createJSONStorage as CreateJSONStorageType,
+  persist as PersistType,
+} from 'zustand/middleware';
 
 declare const require: (id: string) => unknown;
 
-const { create } = require('zustand') as {
-  create: typeof CreateType;
+const { create } = require('zustand') as { create: typeof CreateType };
+const { createJSONStorage, persist } = require('zustand/middleware') as {
+  createJSONStorage: typeof CreateJSONStorageType;
+  persist: typeof PersistType;
 };
 
 function uid() {
@@ -67,12 +74,30 @@ interface ChatState {
   messages: ChatMessage[];
   resetConversation: () => void;
   appendMessage: (m: ChatMessage) => void;
+  /** 히스토리 불러오기 등 외부에서 메시지 목록 전체 교체 시 사용 */
+  setMessages: (msgs: ChatMessage[]) => void;
 }
 
-export const useChatStore = create<ChatState>()((set) => ({
-  messages: buildInitialMessages(),
+export const useChatStore = create<ChatState>()(
+  persist(
+    (set) => ({
+      messages: buildInitialMessages(),
 
-  resetConversation: () => set({ messages: buildInitialMessages() }),
+      resetConversation: () => set({ messages: buildInitialMessages() }),
 
-  appendMessage: (m) => set((s) => ({ messages: [...s.messages, m] })),
-}));
+      appendMessage: (m) => set((s) => ({ messages: [...s.messages, m] })),
+
+      setMessages: (msgs) => set({ messages: msgs }),
+    }),
+    {
+      name: 'chat-storage',
+      storage: createJSONStorage(() => AsyncStorage),
+      onRehydrateStorage: () => (state) => {
+        // hydration 후 메시지가 없으면 초기 인사 메시지 세팅
+        if (state && state.messages.length === 0) {
+          state.setMessages(buildInitialMessages());
+        }
+      },
+    }
+  )
+);
