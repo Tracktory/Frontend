@@ -39,9 +39,17 @@ export function useMyPageViewModel() {
   const admissionYear = useOnboardingStore((s) => s.admissionYear);
   const college = useOnboardingStore((s) => s.college);
   const interests = useOnboardingStore((s) => s.interests);
+  const toggleInterest = useOnboardingStore((s) => s.toggleInterest);
+  const clearInterests = useOnboardingStore((s) => s.clearInterests);
   const developmentFields = useOnboardingStore((s) => s.developmentFields);
+  const toggleDevelopmentField = useOnboardingStore((s) => s.toggleDevelopmentField);
+  const clearDevelopmentFields = useOnboardingStore((s) => s.clearDevelopmentFields);
   const preferredCompanyTypes = useOnboardingStore((s) => s.preferredCompanyTypes);
+  const togglePreferredCompanyType = useOnboardingStore((s) => s.togglePreferredCompanyType);
+  const clearPreferredCompanyTypes = useOnboardingStore((s) => s.clearPreferredCompanyTypes);
   const employmentValues = useOnboardingStore((s) => s.employmentValues);
+  const toggleEmploymentValue = useOnboardingStore((s) => s.toggleEmploymentValue);
+  const clearEmploymentValues = useOnboardingStore((s) => s.clearEmploymentValues);
 
   const [completedCourses, setCompletedCourses] = useState<string[]>(() => [
     ...MOCK_COMPLETED_COURSES,
@@ -67,8 +75,25 @@ export function useMyPageViewModel() {
 
   const majorLine = college ?? MAJOR_FALLBACK;
 
-  const handleEditSection = (_key: 'interests' | 'development' | 'employment') => {
-    Alert.alert('알림', '수정 기능은 추후 제공됩니다.');
+  const updateInterests = (next: string[]) => {
+    clearInterests();
+    next.slice(0, 5).forEach((item) => toggleInterest(item));
+  };
+
+  const updateDevelopmentFields = (next: string[]) => {
+    clearDevelopmentFields();
+    next.slice(0, 3).forEach((item) => toggleDevelopmentField(item));
+  };
+
+  const updateEmployment = (next: {
+    preferredCompanyTypes: string[];
+    employmentValues: string[];
+  }) => {
+    clearPreferredCompanyTypes();
+    next.preferredCompanyTypes.forEach((item) => togglePreferredCompanyType(item));
+
+    clearEmploymentValues();
+    next.employmentValues.slice(0, 3).forEach((item) => toggleEmploymentValue(item));
   };
 
   const addCompletedCourse = (name: string): boolean => {
@@ -105,13 +130,19 @@ export function useMyPageViewModel() {
     profileInitial,
     majorLine,
     admissionBadge,
+    interests,
+    developmentFields,
+    preferredCompanyTypes,
+    employmentValues,
     interestsLine,
     developmentLine,
     employmentLine,
     completedCourses,
     courseCatalog,
     recommendationHistory,
-    handleEditSection,
+    updateInterests,
+    updateDevelopmentFields,
+    updateEmployment,
     addCompletedCourse,
     removeCompletedCourse,
     handleHistoryPress,

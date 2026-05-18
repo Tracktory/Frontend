@@ -5,7 +5,7 @@ import { fetchRecommendResult } from '../api/recommendApi';
 import type { RecommendResult } from '../api/recommendApi';
 import type { TabKey } from '../pages/recommendation/components/SegmentTab';
 import type { MainStackParamList } from '../navigation/MainStackNavigator';
-import { useOnboardingStore } from '../stores/onboardingStore';
+  import { useOnboardingStore } from '../stores/onboardingStore';
 
 export function useRecommendResultViewModel() {
   const [activeTab, setActiveTab] = useState<TabKey>('job');

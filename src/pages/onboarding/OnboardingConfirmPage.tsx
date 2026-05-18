@@ -91,6 +91,8 @@ export function OnboardingConfirmPage({ navigation }: Props) {
         style={styles.scrollArea}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        nestedScrollEnabled
+        keyboardShouldPersistTaps="handled"
       >
         <ProgressBar progress={1.0} />
 
@@ -181,6 +183,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
+    flexGrow: 1,
     paddingBottom: 16,
   },
   title: {
@@ -207,5 +210,6 @@ const styles = StyleSheet.create({
   },
   bottomArea: {
     paddingTop: 12,
+    paddingBottom: 8,
   },
 });

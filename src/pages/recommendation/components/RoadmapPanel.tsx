@@ -11,9 +11,10 @@ interface RoadmapPanelProps {
   isLoading: boolean;
   isError: boolean;
   onRetry: () => void;
+  onPressCourse?: (courseId: string) => void;
 }
 
-export function RoadmapPanel({ roadmap, isLoading, isError, onRetry }: RoadmapPanelProps) {
+export function RoadmapPanel({ roadmap, isLoading, isError, onRetry, onPressCourse }: RoadmapPanelProps) {
   if (isLoading) {
     return <RoadmapSkeleton />;
   }
@@ -39,6 +40,7 @@ export function RoadmapPanel({ roadmap, isLoading, isError, onRetry }: RoadmapPa
           key={step.stage}
           step={step}
           isLast={index === roadmap.steps.length - 1}
+          onPressCourse={onPressCourse}
         />
       ))}
       <SemesterGuideSection guide={roadmap.semesterGuide} />

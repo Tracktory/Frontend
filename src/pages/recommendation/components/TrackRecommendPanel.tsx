@@ -27,7 +27,7 @@ export function TrackRecommendPanel({ data }: TrackRecommendPanelProps) {
           title={`${MEDAL[track.rank]} ${track.title}`}
           description={track.coreSubjects}
           chips={track.relatedJobs}
-          emphasized={track.emphasized}
+          emphasized
         />
       ))}
 
