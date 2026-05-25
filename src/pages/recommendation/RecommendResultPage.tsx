@@ -1,7 +1,6 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -12,8 +11,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
-import ViewShot from 'react-native-view-shot';
-import * as MediaLibrary from 'expo-media-library';
 
 import { colors } from '../../styles/colors';
 import { useRecommendResultViewModel } from '../../hooks/useRecommendResultViewModel';
@@ -30,22 +27,6 @@ import type { MainStackParamList } from '../../navigation/MainStackNavigator';
 export function RecommendResultPage() {
   const vm = useRecommendResultViewModel();
   const navigation = useNavigation<StackNavigationProp<MainStackParamList>>();
-  const viewShotRef = useRef<ViewShot>(null);
-
-  const handleSaveImage = async () => {
-    const { status } = await MediaLibrary.requestPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('권한 필요', '갤러리 접근 권한이 필요합니다.');
-      return;
-    }
-    try {
-      const uri = await viewShotRef.current!.capture!();
-      await MediaLibrary.saveToLibraryAsync(uri);
-      Alert.alert('저장 완료', '이미지가 갤러리에 저장됐습니다.');
-    } catch {
-      Alert.alert('저장 실패', '저장에 실패했습니다. 다시 시도해주세요.');
-    }
-  };
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -68,19 +49,23 @@ export function RecommendResultPage() {
                 <Ionicons name="refresh" size={20} color={colors.textSecondary} />
               )}
             </Pressable>
-            {/* 이미지 저장 */}
+            {/* PDF 내보내기 */}
             <Pressable
               style={styles.iconBtn}
-              onPress={handleSaveImage}
-              disabled={vm.isLoading || vm.isError}
+              onPress={vm.handleExportPdf}
+              disabled={vm.isLoading || vm.isError || vm.isPdfExporting}
               hitSlop={8}
-              accessibilityLabel="이미지 저장"
+              accessibilityLabel="PDF로 내보내기"
             >
-              <Ionicons
-                name="download-outline"
-                size={20}
-                color={vm.isLoading || vm.isError ? colors.textHint : colors.textSecondary}
-              />
+              {vm.isPdfExporting ? (
+                <ActivityIndicator size="small" color={colors.textSecondary} />
+              ) : (
+                <Ionicons
+                  name="download-outline"
+                  size={20}
+                  color={vm.isLoading || vm.isError ? colors.textHint : colors.textSecondary}
+                />
+              )}
             </Pressable>
           </View>
         </View>
@@ -96,14 +81,9 @@ export function RecommendResultPage() {
           </View>
         )}
 
-        {/* 정상 콘텐츠 — ViewShot으로 감싸 캡처 범위 지정 */}
+        {/* 정상 콘텐츠 */}
         {!vm.isError && (
-          <ViewShot
-            ref={viewShotRef}
-            style={styles.flex}
-            options={{ format: 'png', quality: 1 }}
-            collapsable={false}
-          >
+          <View style={styles.flex}>
             <SegmentTab activeTab={vm.activeTab} onTabChange={vm.setActiveTab} />
 
             {vm.activeTab === 'job' && (
@@ -176,7 +156,7 @@ export function RecommendResultPage() {
                 />
               </ScrollView>
             )}
-          </ViewShot>
+          </View>
         )}
       </View>
     </SafeAreaView>

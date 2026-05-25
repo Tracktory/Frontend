@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Alert } from 'react-native';
 import type { NavigationProp } from '@react-navigation/native';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
 
 import { fetchRecommendResult } from '../api/recommendApi';
 import type { RecommendResult } from '../api/recommendApi';
 import type { TabKey } from '../pages/recommendation/components/SegmentTab';
 import type { MainStackParamList } from '../navigation/MainStackNavigator';
-  import { useOnboardingStore } from '../stores/onboardingStore';
+import { useOnboardingStore } from '../stores/onboardingStore';
+import { buildRecommendPdfHtml } from '../utils/recommendPdfTemplate';
 
 export function useRecommendResultViewModel() {
   const [activeTab, setActiveTab] = useState<TabKey>('job');
@@ -60,6 +64,25 @@ export function useRecommendResultViewModel() {
     navigation.navigate('JobDetail', { jobId: id });
   };
 
+  const [isPdfExporting, setIsPdfExporting] = useState(false);
+
+  const handleExportPdf = async () => {
+    if (!result) return;
+    setIsPdfExporting(true);
+    try {
+      const html = buildRecommendPdfHtml(jobs, trackRecommend, roadmap);
+      const { uri } = await Print.printToFileAsync({ html });
+      await Sharing.shareAsync(uri, {
+        mimeType: 'application/pdf',
+        dialogTitle: '추천 결과 내보내기',
+      });
+    } catch {
+      Alert.alert('오류', 'PDF 생성에 실패했습니다.');
+    } finally {
+      setIsPdfExporting(false);
+    }
+  };
+
   return {
     activeTab,
     setActiveTab,
@@ -71,5 +94,7 @@ export function useRecommendResultViewModel() {
     isLoading,
     isError,
     refresh,
+    isPdfExporting,
+    handleExportPdf,
   };
 }
