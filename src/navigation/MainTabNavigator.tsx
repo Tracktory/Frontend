@@ -1,12 +1,17 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text } from 'react-native';
 
 import { RecommendResultPage } from '../pages/recommendation/RecommendResultPage';
-
 import { ChatBotPage } from '../pages/chat/ChatBotPage';
 import { MyPage } from '../pages/mypage/MyPage';
 import { colors } from '../styles/colors';
+
+import HomeIcon from '../assets/images/Home.svg';
+import HomeActiveIcon from '../assets/images/Home_Active.svg';
+import ChatIcon from '../assets/images/Chat.svg';
+import ChatActiveIcon from '../assets/images/Chat_active.svg';
+import MyPageIcon from '../assets/images/MyPage.svg';
+import MyPageActiveIcon from '../assets/images/MyPage_active.svg';
 
 export type MainTabParamList = {
   Home: undefined;
@@ -15,21 +20,6 @@ export type MainTabParamList = {
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
-
-function TabIcon({ label, focused }: { label: string; focused: boolean }) {
-  return (
-    <Text
-      style={{
-        fontSize: 11,
-        marginTop: 2,
-        color: focused ? colors.primary : colors.textHint,
-        fontWeight: focused ? '600' : '400',
-      }}
-    >
-      {label}
-    </Text>
-  );
-}
 
 export function MainTabNavigator() {
   return (
@@ -52,7 +42,10 @@ export function MainTabNavigator() {
         component={RecommendResultPage}
         options={{
           tabBarLabel: '홈',
-          tabBarIcon: ({ focused }) => <TabIcon label="🏠" focused={focused} />,
+          tabBarIcon: ({ focused }) =>
+            focused
+              ? <HomeActiveIcon width={24} height={24} />
+              : <HomeIcon width={24} height={24} />,
         }}
       />
       <Tab.Screen
@@ -60,7 +53,10 @@ export function MainTabNavigator() {
         component={ChatBotPage}
         options={{
           tabBarLabel: '챗봇',
-          tabBarIcon: ({ focused }) => <TabIcon label="💬" focused={focused} />,
+          tabBarIcon: ({ focused }) =>
+            focused
+              ? <ChatActiveIcon width={24} height={24} />
+              : <ChatIcon width={24} height={24} />,
         }}
       />
       <Tab.Screen
@@ -68,7 +64,10 @@ export function MainTabNavigator() {
         component={MyPage}
         options={{
           tabBarLabel: '마이',
-          tabBarIcon: ({ focused }) => <TabIcon label="👤" focused={focused} />,
+          tabBarIcon: ({ focused }) =>
+            focused
+              ? <MyPageActiveIcon width={24} height={24} />
+              : <MyPageIcon width={24} height={24} />,
         }}
       />
     </Tab.Navigator>
