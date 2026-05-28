@@ -15,10 +15,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors } from '../../../styles/colors';
+import type { HansungCourse } from '../../../data/hansungCourseData';
 
 interface MyCompletedCoursesSectionProps {
   courses: string[];
-  catalog: string[];
+  catalog: HansungCourse[];
   onAddCourse: (name: string) => boolean;
   onRemoveCourse: (name: string) => void;
 }
@@ -32,31 +33,144 @@ export function MyCompletedCoursesSection({
   const insets = useSafeAreaInsets();
   const [modalVisible, setModalVisible] = useState(false);
   const [query, setQuery] = useState('');
+  const [selectedTrack, setSelectedTrack] = useState<string | null>(null);
 
-  const filteredCatalog = useMemo(() => {
-    const q = query.trim().toLowerCase();
+  const uniqueTracks = useMemo(
+    () => [...new Set(catalog.map((c) => c.track))],
+    [catalog]
+  );
+
+  const coursesInTrack = useMemo(() => {
+    if (!selectedTrack) return [];
     return catalog.filter(
-      (name) =>
-        !courses.includes(name) &&
-        (q === '' || name.toLowerCase().includes(q))
+      (c) => c.track === selectedTrack && !courses.includes(c.subject)
+    );
+  }, [catalog, selectedTrack, courses]);
+
+  const searchResults = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return [];
+    return catalog.filter(
+      (c) => !courses.includes(c.subject) && c.subject.toLowerCase().includes(q)
     );
   }, [catalog, courses, query]);
 
   const openModal = () => {
     setQuery('');
+    setSelectedTrack(null);
     setModalVisible(true);
   };
 
   const closeModal = () => {
     setModalVisible(false);
     setQuery('');
+    setSelectedTrack(null);
   };
 
-  const handlePickCourse = (name: string) => {
-    const ok = onAddCourse(name);
+  const handlePickCourse = (course: HansungCourse) => {
+    const ok = onAddCourse(course.subject);
     if (ok) {
       closeModal();
     }
+  };
+
+  const renderBody = () => {
+    if (query.trim() !== '') {
+      if (searchResults.length === 0) {
+        return (
+          <View style={styles.emptyList}>
+            <Text style={styles.emptyText}>검색 결과가 없습니다.</Text>
+          </View>
+        );
+      }
+      return (
+        <FlatList
+          data={searchResults}
+          keyExtractor={(item) => `${item.track}-${item.subject}`}
+          style={styles.list}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          renderItem={({ item }) => (
+            <Pressable
+              style={({ pressed }) => [styles.listRow, pressed && styles.listRowPressed]}
+              onPress={() => handlePickCourse(item)}
+            >
+              <Text style={styles.listRowText} numberOfLines={1}>
+                {item.subject}
+              </Text>
+              <View style={styles.listRowRight}>
+                <Text style={styles.creditText}>{item.credit}학점</Text>
+                <Ionicons name="chevron-forward" size={18} color={colors.textHint} />
+              </View>
+            </Pressable>
+          )}
+        />
+      );
+    }
+
+    if (selectedTrack !== null) {
+      return (
+        <>
+          <Pressable
+            style={({ pressed }) => [styles.backRow, pressed && styles.listRowPressed]}
+            onPress={() => setSelectedTrack(null)}
+          >
+            <Ionicons name="chevron-back" size={20} color={colors.primary} />
+            <Text style={styles.backRowText} numberOfLines={1}>
+              {selectedTrack}
+            </Text>
+          </Pressable>
+          {coursesInTrack.length === 0 ? (
+            <View style={styles.emptyList}>
+              <Text style={styles.emptyText}>추가할 수 있는 과목이 없습니다.</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={coursesInTrack}
+              keyExtractor={(item) => `${item.track}-${item.subject}`}
+              style={styles.list}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+              renderItem={({ item }) => (
+                <Pressable
+                  style={({ pressed }) => [styles.listRow, pressed && styles.listRowPressed]}
+                  onPress={() => handlePickCourse(item)}
+                >
+                  <Text style={styles.listRowText} numberOfLines={1}>
+                    {item.subject}
+                  </Text>
+                  <View style={styles.listRowRight}>
+                    <Text style={styles.creditText}>{item.credit}학점</Text>
+                    <Ionicons name="chevron-forward" size={18} color={colors.textHint} />
+                  </View>
+                </Pressable>
+              )}
+            />
+          )}
+        </>
+      );
+    }
+
+    return (
+      <FlatList
+        data={uniqueTracks}
+        keyExtractor={(item) => item}
+        style={styles.list}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        renderItem={({ item }) => (
+          <Pressable
+            style={({ pressed }) => [styles.listRow, pressed && styles.listRowPressed]}
+            onPress={() => setSelectedTrack(item)}
+          >
+            <Text style={styles.listRowText} numberOfLines={1}>
+              {item}
+            </Text>
+            <Ionicons name="chevron-forward" size={18} color={colors.textHint} />
+          </Pressable>
+        )}
+      />
+    );
   };
 
   return (
@@ -125,40 +239,17 @@ export function MyCompletedCoursesSection({
                 placeholder="과목명 검색"
                 placeholderTextColor={colors.textHint}
                 value={query}
-                onChangeText={setQuery}
+                onChangeText={(text) => {
+                  setQuery(text);
+                  if (text.trim() !== '' && selectedTrack !== null) {
+                    setSelectedTrack(null);
+                  }
+                }}
                 autoCorrect={false}
                 autoCapitalize="none"
               />
 
-              {filteredCatalog.length === 0 ? (
-                <View style={styles.emptyList}>
-                  <Text style={styles.emptyText}>
-                    {query.trim()
-                      ? '검색 결과가 없습니다.'
-                      : '추가할 수 있는 과목이 없습니다.'}
-                  </Text>
-                </View>
-              ) : (
-                <FlatList
-                  data={filteredCatalog}
-                  keyExtractor={(item) => item}
-                  style={styles.list}
-                  keyboardShouldPersistTaps="handled"
-                  showsVerticalScrollIndicator={false}
-                  renderItem={({ item }) => (
-                    <Pressable
-                      style={({ pressed }) => [
-                        styles.listRow,
-                        pressed && styles.listRowPressed,
-                      ]}
-                      onPress={() => handlePickCourse(item)}
-                    >
-                      <Text style={styles.listRowText}>{item}</Text>
-                      <Ionicons name="chevron-forward" size={18} color={colors.textHint} />
-                    </Pressable>
-                  )}
-                />
-              )}
+              {renderBody()}
             </View>
           </KeyboardAvoidingView>
         </View>
@@ -290,9 +381,34 @@ const styles = StyleSheet.create({
     backgroundColor: colors.inputSurface,
   },
   listRowText: {
-    fontSize: 16,
+    flex: 1,
+    fontSize: 15,
     color: colors.textPrimary,
     fontWeight: '500',
+    marginRight: 8,
+  },
+  listRowRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  creditText: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    fontWeight: '500',
+  },
+  backRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    marginBottom: 4,
+    gap: 4,
+  },
+  backRowText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.primary,
+    flex: 1,
   },
   emptyList: {
     paddingVertical: 32,
