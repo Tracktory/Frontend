@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '../../../styles/colors';
 import type { RoadmapPayload } from '../../../data/mockRoadmapData';
-import { RoadmapStepSection } from './RoadmapStepSection';
+import { useOnboardingStore } from '../../../stores/onboardingStore';
+import { RoadmapConnectionCard } from './RoadmapConnectionCard';
+import { RoadmapSemesterCard } from './RoadmapSemesterCard';
+import { CourseDetailModal } from './CourseDetailModal';
 import { SemesterGuideSection } from './SemesterGuideSection';
 
 interface RoadmapPanelProps {
@@ -11,10 +14,27 @@ interface RoadmapPanelProps {
   isLoading: boolean;
   isError: boolean;
   onRetry: () => void;
-  onPressCourse?: (courseId: string) => void;
 }
 
-export function RoadmapPanel({ roadmap, isLoading, isError, onRetry, onPressCourse }: RoadmapPanelProps) {
+export function RoadmapPanel({ roadmap, isLoading, isError, onRetry }: RoadmapPanelProps) {
+  const completedCourses = useOnboardingStore((s) => s.completedCourses);
+  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
+
+  const hasCompletedCourses = completedCourses.length > 0;
+
+  const { remainingSemesters, semesterRange } = useMemo(() => {
+    if (!roadmap) return { remainingSemesters: 0, semesterRange: '' };
+    const steps = roadmap.semesterSteps;
+    const incompleteSteps = steps.filter((step) =>
+      step.courses.some((c) => !completedCourses.includes(c.name))
+    );
+    const count = incompleteSteps.length;
+    const first = steps[0];
+    const last = steps[steps.length - 1];
+    const range = `${first.year}학년 ${first.semester}학기 ~ ${last.year}학년 ${last.semester}학기`;
+    return { remainingSemesters: count, semesterRange: range };
+  }, [roadmap, completedCourses]);
+
   if (isLoading) {
     return <RoadmapSkeleton />;
   }
@@ -35,29 +55,46 @@ export function RoadmapPanel({ roadmap, isLoading, isError, onRetry, onPressCour
 
   return (
     <View>
-      {roadmap.steps.map((step, index) => (
-        <RoadmapStepSection
-          key={step.stage}
+      {/* 상단 연결 메시지 카드 */}
+      <RoadmapConnectionCard
+        connectionMessage={roadmap.connectionMessage}
+        hasCompletedCourses={hasCompletedCourses}
+        remainingSemesters={remainingSemesters}
+        semesterRange={semesterRange}
+      />
+
+      {/* 학기별 카드 */}
+      {roadmap.semesterSteps.map((step) => (
+        <RoadmapSemesterCard
+          key={`${step.year}-${step.semester}`}
           step={step}
-          isLast={index === roadmap.steps.length - 1}
-          onPressCourse={onPressCourse}
+          completedCourses={completedCourses}
+          onPressCourse={setSelectedCourseId}
         />
       ))}
+
+      {/* 학기별 수강 가이드 */}
       <SemesterGuideSection guide={roadmap.semesterGuide} />
+
+      {/* 과목 상세 모달 */}
+      <CourseDetailModal
+        courseId={selectedCourseId}
+        onClose={() => setSelectedCourseId(null)}
+      />
     </View>
   );
 }
 
-/** 로딩 중 스켈레톤 — 단계 헤더 + 카드 2장 x 4단계 모양 */
 function RoadmapSkeleton() {
   return (
     <View style={styles.skeleton}>
       <ActivityIndicator size="large" color={colors.primary} style={styles.skeletonSpinner} />
-      {[1, 2, 3, 4].map((stage) => (
-        <View key={stage} style={styles.skeletonStage}>
+      {[1, 2, 3, 4].map((i) => (
+        <View key={i} style={styles.skeletonCard}>
           <View style={styles.skeletonHeader} />
-          <View style={[styles.skeletonCard, { width: '95%' }]} />
-          <View style={[styles.skeletonCard, { width: '80%' }]} />
+          <View style={[styles.skeletonRow, { width: '85%' }]} />
+          <View style={[styles.skeletonRow, { width: '70%' }]} />
+          <View style={[styles.skeletonRow, { width: '90%' }]} />
         </View>
       ))}
     </View>
@@ -95,28 +132,27 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
   },
-
-  // 스켈레톤
   skeleton: {
     gap: 12,
   },
   skeletonSpinner: {
     marginBottom: 4,
   },
-  skeletonStage: {
-    gap: 8,
-    marginBottom: 8,
+  skeletonCard: {
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    padding: 16,
+    gap: 10,
   },
   skeletonHeader: {
     height: 20,
-    width: '50%',
+    width: '55%',
     backgroundColor: '#ECECEC',
     borderRadius: 6,
   },
-  skeletonCard: {
-    height: 72,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
-    marginLeft: 28,
+  skeletonRow: {
+    height: 14,
+    backgroundColor: '#ECECEC',
+    borderRadius: 6,
   },
 });

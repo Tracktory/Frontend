@@ -1,10 +1,8 @@
-import { useState } from 'react';
 import { Alert } from 'react-native';
 
 import { useOnboardingStore } from '../stores/onboardingStore';
 import {
   COURSE_CATALOG_FOR_SELECTION,
-  MOCK_COMPLETED_COURSES,
   MOCK_RECOMMENDATION_HISTORY,
 } from '../data/mockMyPageData';
 import type { RecommendationHistoryItem } from '../data/mockMyPageData';
@@ -51,9 +49,10 @@ export function useMyPageViewModel() {
   const toggleEmploymentValue = useOnboardingStore((s) => s.toggleEmploymentValue);
   const clearEmploymentValues = useOnboardingStore((s) => s.clearEmploymentValues);
 
-  const [completedCourses, setCompletedCourses] = useState<string[]>(() => [
-    ...MOCK_COMPLETED_COURSES,
-  ]);
+  // completedCourses는 Zustand store에서 관리 (로드맵 탭에서도 참조 가능)
+  const completedCourses = useOnboardingStore((s) => s.completedCourses);
+  const storeAddCompletedCourse = useOnboardingStore((s) => s.addCompletedCourse);
+  const storeRemoveCompletedCourse = useOnboardingStore((s) => s.removeCompletedCourse);
 
   const recommendationHistory: RecommendationHistoryItem[] = MOCK_RECOMMENDATION_HISTORY;
   const courseCatalog = COURSE_CATALOG_FOR_SELECTION;
@@ -113,12 +112,11 @@ export function useMyPageViewModel() {
       );
       return false;
     }
-    setCompletedCourses((prev) => [...prev, trimmed]);
-    return true;
+    return storeAddCompletedCourse(trimmed);
   };
 
   const removeCompletedCourse = (name: string) => {
-    setCompletedCourses((prev) => prev.filter((c) => c !== name));
+    storeRemoveCompletedCourse(name);
   };
 
   const handleHistoryPress = (_item: RecommendationHistoryItem) => {

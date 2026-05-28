@@ -37,6 +37,6 @@ export const colors = {
   // 로드맵 단계별 색상
   stageBasic: '#22C55E',
   stageCore: '#8B5CF6',
-  stageApplied: '#2563EB',
+  stageApplied: '#F97316',
   stageCap: '#EF4444',
 };
