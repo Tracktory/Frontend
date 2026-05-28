@@ -172,7 +172,6 @@ export function RecommendResultPage() {
                   isLoading={vm.isLoading}
                   isError={vm.isError}
                   onRetry={vm.refresh}
-                  onPressCourse={(courseId) => navigation.navigate('CourseDetail', { courseId })}
                 />
               </ScrollView>
             )}

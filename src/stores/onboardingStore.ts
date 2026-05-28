@@ -7,6 +7,7 @@ import type {
 
 import { createAdmissionSlice } from './slices/admissionSlice';
 import { createCollegeSlice } from './slices/collegeSlice';
+import { createCompletedCoursesSlice } from './slices/completedCoursesSlice';
 import { createDevelopmentSlice } from './slices/developmentSlice';
 import { createEmploymentSlice } from './slices/employmentSlice';
 import { createExperienceSlice } from './slices/experienceSlice';
@@ -14,6 +15,7 @@ import { createInterestSlice } from './slices/interestSlice';
 import { createTrackSlice } from './slices/trackSlice';
 import type { AdmissionSlice } from './slices/admissionSlice';
 import type { CollegeSlice } from './slices/collegeSlice';
+import type { CompletedCoursesSlice } from './slices/completedCoursesSlice';
 import type { DevelopmentSlice } from './slices/developmentSlice';
 import type { EmploymentSlice } from './slices/employmentSlice';
 import type { ExperienceSlice } from './slices/experienceSlice';
@@ -34,6 +36,7 @@ export type { AffiliationType } from './slices/admissionSlice';
 
 export type OnboardingState = AdmissionSlice &
   CollegeSlice &
+  CompletedCoursesSlice &
   TrackSlice &
   InterestSlice &
   DevelopmentSlice &
@@ -45,6 +48,7 @@ export const useOnboardingStore = create<OnboardingState>()(
     (...a) => ({
       ...createAdmissionSlice(...a),
       ...createCollegeSlice(...a),
+      ...createCompletedCoursesSlice(...a),
       ...createTrackSlice(...a),
       ...createInterestSlice(...a),
       ...createDevelopmentSlice(...a),
