@@ -1,4 +1,10 @@
-export const hansungCourseData = [
+﻿export interface HansungCourse {
+  track: string;
+  subject: string;
+  credit: number;
+}
+
+export const hansungCourseData: HansungCourse[] = [
   { track: "영미문화콘텐츠트랙", subject: "영화로 읽는 영미문화콘텐츠", credit: 3 },
   { track: "영미문화콘텐츠트랙", subject: "그리스로마문화와 성서이야기", credit: 3 },
   { track: "영미문화콘텐츠트랙", subject: "English Conversation Ⅰ", credit: 3 },
