@@ -150,7 +150,7 @@ export function OnboardingConfirmPage({ navigation }: Props) {
       </ScrollView>
 
       <View style={styles.bottomArea}>
-        <SaveAndRecommendButton onPress={vm.handleSave} />
+        <SaveAndRecommendButton onPress={vm.handleSave} isLoading={vm.isSubmitting} />
       </View>
     </View>
   );
