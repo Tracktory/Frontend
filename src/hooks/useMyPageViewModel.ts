@@ -2,10 +2,11 @@ import { Alert } from 'react-native';
 
 import { useOnboardingStore } from '../stores/onboardingStore';
 import {
-  COURSE_CATALOG_FOR_SELECTION,
   MOCK_RECOMMENDATION_HISTORY,
 } from '../data/mockMyPageData';
 import type { RecommendationHistoryItem } from '../data/mockMyPageData';
+import { hansungCourseData } from '../data/hansungCourseData';
+import type { HansungCourse } from '../data/hansungCourseData';
 
 const EMPTY_PLACEHOLDER = '선택 없음';
 const DISPLAY_NAME_FALLBACK = '00';
@@ -55,7 +56,7 @@ export function useMyPageViewModel() {
   const storeRemoveCompletedCourse = useOnboardingStore((s) => s.removeCompletedCourse);
 
   const recommendationHistory: RecommendationHistoryItem[] = MOCK_RECOMMENDATION_HISTORY;
-  const courseCatalog = COURSE_CATALOG_FOR_SELECTION;
+  const courseCatalog: HansungCourse[] = hansungCourseData;
 
   const interestsLine =
     interests.length > 0 ? interests.join(', ') : EMPTY_PLACEHOLDER;
