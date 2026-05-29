@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 
-function validateName(value: string): string {
-  if (!value.trim()) return '이름을 입력해주세요.';
-  return '';
-}
+import { signUp, AuthApiError } from '../api/authApi';
+import { useAuthStore } from '../stores/authStore';
+import type { RootStackParamList } from '../navigation/RootNavigator';
 
 function validateEmail(value: string): string {
   if (!value.trim()) return '이메일을 입력해주세요.';
@@ -13,7 +15,9 @@ function validateEmail(value: string): string {
 
 function validatePassword(value: string): string {
   if (!value.trim()) return '비밀번호를 입력해주세요.';
-  if (value.length < 8) return '비밀번호는 8자 이상이어야 합니다.';
+  const strongPw = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,64}$/;
+  if (!strongPw.test(value))
+    return '8~64자, 영문·숫자·특수문자를 각 1개 이상 포함해야 합니다.';
   return '';
 }
 
@@ -24,57 +28,78 @@ function validateConfirmPassword(password: string, confirm: string): string {
 }
 
 export function useSignUpViewModel() {
-  const [name, setName] = useState('');
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const setAuth = useAuthStore((s) => s.setAuth);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const [nameError, setNameError] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const isValid =
-    name.trim().length > 0 &&
     email.trim().length > 0 &&
     password.trim().length > 0 &&
     confirmPassword.trim().length > 0;
 
-  const handleNameBlur = () => setNameError(validateName(name));
   const handleEmailBlur = () => setEmailError(validateEmail(email));
   const handlePasswordBlur = () => setPasswordError(validatePassword(password));
   const handleConfirmPasswordBlur = () =>
     setConfirmPasswordError(validateConfirmPassword(password, confirmPassword));
 
-  const handleSignUp = () => {
-    const nErr = validateName(name);
+  const handleSignUp = async () => {
     const eErr = validateEmail(email);
     const pErr = validatePassword(password);
     const cErr = validateConfirmPassword(password, confirmPassword);
-    setNameError(nErr);
     setEmailError(eErr);
     setPasswordError(pErr);
     setConfirmPasswordError(cErr);
-    if (nErr || eErr || pErr || cErr) return;
+    if (eErr || pErr || cErr) return;
 
-    // TODO: API 연동 시 여기에 회원가입 요청 추가
+    setIsSubmitting(true);
+    try {
+      const data = await signUp(email, password);
+      setAuth(data);
+      navigation.reset({ index: 0, routes: [{ name: 'Onboarding' }] });
+    } catch (err) {
+      if (err instanceof AuthApiError) {
+        switch (err.code) {
+          case 'EMAIL_INVALID':
+            setEmailError('이메일 형식이 올바르지 않습니다.');
+            break;
+          case 'PASSWORD_WEAK':
+            setPasswordError('8~64자, 영문·숫자·특수문자를 각 1개 이상 포함해야 합니다.');
+            break;
+          case 'AUTH_EMAIL_DUPLICATE':
+            setEmailError('이미 등록된 이메일입니다.');
+            break;
+          default:
+            Alert.alert('오류', err.message);
+        }
+      } else {
+        Alert.alert('네트워크 오류', '잠시 후 다시 시도해주세요.');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return {
-    name,
-    setName,
     email,
     setEmail,
     password,
     setPassword,
     confirmPassword,
     setConfirmPassword,
-    nameError,
     emailError,
     passwordError,
     confirmPasswordError,
     isValid,
-    handleNameBlur,
+    isSubmitting,
     handleEmailBlur,
     handlePasswordBlur,
     handleConfirmPasswordBlur,
