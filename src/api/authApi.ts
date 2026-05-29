@@ -8,6 +8,7 @@ interface ApiEnvelope<T> {
 
 export interface SignUpResponseData {
   userId: number;
+  userName: string;
   email: string;
   accessToken: string;
   refreshToken: string;
@@ -27,6 +28,7 @@ export class AuthApiError extends Error {
 }
 
 export async function signUp(
+  userName: string,
   email: string,
   password: string
 ): Promise<SignUpResponseData> {
@@ -35,7 +37,7 @@ export async function signUp(
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ userName, email, password }),
   });
 
   const envelope: ApiEnvelope<SignUpResponseData> = await res.json();

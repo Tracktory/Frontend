@@ -7,6 +7,11 @@ import { signUp, AuthApiError } from '../api/authApi';
 import { useAuthStore } from '../stores/authStore';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 
+function validateUserName(value: string): string {
+  if (!value.trim()) return '이름을 입력해주세요.';
+  return '';
+}
+
 function validateEmail(value: string): string {
   if (!value.trim()) return '이메일을 입력해주세요.';
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return '올바른 이메일 형식이 아닙니다.';
@@ -31,10 +36,12 @@ export function useSignUpViewModel() {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const setAuth = useAuthStore((s) => s.setAuth);
 
+  const [userName, setUserName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  const [userNameError, setUserNameError] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
@@ -42,27 +49,31 @@ export function useSignUpViewModel() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isValid =
+    userName.trim().length > 0 &&
     email.trim().length > 0 &&
     password.trim().length > 0 &&
     confirmPassword.trim().length > 0;
 
+  const handleUserNameBlur = () => setUserNameError(validateUserName(userName));
   const handleEmailBlur = () => setEmailError(validateEmail(email));
   const handlePasswordBlur = () => setPasswordError(validatePassword(password));
   const handleConfirmPasswordBlur = () =>
     setConfirmPasswordError(validateConfirmPassword(password, confirmPassword));
 
   const handleSignUp = async () => {
+    const uErr = validateUserName(userName);
     const eErr = validateEmail(email);
     const pErr = validatePassword(password);
     const cErr = validateConfirmPassword(password, confirmPassword);
+    setUserNameError(uErr);
     setEmailError(eErr);
     setPasswordError(pErr);
     setConfirmPasswordError(cErr);
-    if (eErr || pErr || cErr) return;
+    if (uErr || eErr || pErr || cErr) return;
 
     setIsSubmitting(true);
     try {
-      const data = await signUp(email, password);
+      const data = await signUp(userName, email, password);
       setAuth(data);
       navigation.reset({ index: 0, routes: [{ name: 'Onboarding' }] });
     } catch (err) {
@@ -89,17 +100,21 @@ export function useSignUpViewModel() {
   };
 
   return {
+    userName,
+    setUserName,
     email,
     setEmail,
     password,
     setPassword,
     confirmPassword,
     setConfirmPassword,
+    userNameError,
     emailError,
     passwordError,
     confirmPasswordError,
     isValid,
     isSubmitting,
+    handleUserNameBlur,
     handleEmailBlur,
     handlePasswordBlur,
     handleConfirmPasswordBlur,

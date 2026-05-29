@@ -21,6 +21,7 @@ interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
   userId: number | null;
+  userName: string | null;
   expiresIn: number | null;
   setAuth: (data: SignUpResponseData) => void;
   clearAuth: () => void;
@@ -32,12 +33,14 @@ export const useAuthStore = create<AuthState>()(
       accessToken: null,
       refreshToken: null,
       userId: null,
+      userName: null,
       expiresIn: null,
       setAuth: (data: SignUpResponseData) =>
         set({
           accessToken: data.accessToken,
           refreshToken: data.refreshToken,
           userId: data.userId,
+          userName: data.userName,
           expiresIn: data.expiresIn,
         }),
       clearAuth: () =>
@@ -45,6 +48,7 @@ export const useAuthStore = create<AuthState>()(
           accessToken: null,
           refreshToken: null,
           userId: null,
+          userName: null,
           expiresIn: null,
         }),
     }),
