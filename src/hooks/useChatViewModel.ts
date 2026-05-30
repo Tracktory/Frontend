@@ -1,88 +1,103 @@
 import { useState } from 'react';
 import { Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 
 import { useChatStore, createMessage } from '../stores/chatStore';
-import { saveChatHistory, sendFeedback } from '../api/chatApi';
-import type { CourseSuggestion } from '../stores/chatStore';
+import { sendChatMessage, sendFeedback } from '../api/chatApi';
+import { AuthApiError } from '../api/authApi';
+import { useAuthStore } from '../stores/authStore';
+import type { RootStackParamList } from '../navigation/RootNavigator';
+
+function generateUUID(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+  });
+}
 
 const HISTORY_LIMIT = 30;
 
-/** 칩 ID별 mock 봇 응답 정의 */
-const CHIP_RESPONSES: Record<
-  string,
-  { type: 'text' | 'courses'; text: string; courses?: CourseSuggestion[] }
-> = {
-  'track-intro': {
-    type: 'text',
-    text: '트랙은 전공 커리큘럼을 따라 역량을 쌓는 단위입니다. 단과대·학과 안내와 졸업 요건을 함께 확인해 보세요.',
-  },
-  'next-courses': {
-    type: 'courses',
-    text: '이수 현황과 관심사를 분석한 결과, 다음 과목을 추천드려요:',
-    courses: [
-      { title: '데이터베이스', description: '백엔드·데이터 엔지니어 공통 필수', prereqMet: false },
-      { title: '알고리즘', description: '기술면접 핵심 과목', prereqMet: true },
-      { title: '빅데이터개론', description: '트랙 진입 필수', prereqMet: false },
-    ],
-  },
-};
-
-/** 알려지지 않은 칩에 대한 기본 응답 */
-const FALLBACK_RESPONSE = '말씀 주신 내용을 바탕으로 준비 중입니다. AI 연동 후 상세 답변을 드릴 예정입니다.';
-
 export function useChatViewModel() {
+  const rootNavigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+
   const messages = useChatStore((s) => s.messages);
+  const threadId = useChatStore((s) => s.threadId);
   const resetConversation = useChatStore((s) => s.resetConversation);
   const appendMessage = useChatStore((s) => s.appendMessage);
   const setMessages = useChatStore((s) => s.setMessages);
+  const setThreadId = useChatStore((s) => s.setThreadId);
+
+  const accessToken = useAuthStore((s) => s.accessToken);
 
   const [inputText, setInputText] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
 
-  /** 메시지 전송 후 서버에 히스토리 조용히 저장 (API-017, silent fail) */
-  const saveHistorySilently = (updatedMessages: ReturnType<typeof useChatStore.getState>['messages']) => {
-    saveChatHistory(updatedMessages);
+  const callApi = async (currentThreadId: string, text: string) => {
+    if (!accessToken) {
+      rootNavigation.reset({ index: 0, routes: [{ name: 'Auth' }] });
+      return;
+    }
+
+    setIsTyping(true);
+    try {
+      const data = await sendChatMessage(currentThreadId, text, accessToken);
+      const chips = data.choices.map((label, i) => ({ id: `choice-${i}`, label }));
+      const botMsg =
+        chips.length > 0
+          ? createMessage('assistant', 'quickReply', data.message, { chips })
+          : createMessage('assistant', 'text', data.message);
+      appendMessage(botMsg);
+    } catch (err) {
+      if (err instanceof AuthApiError) {
+        switch (err.code) {
+          case 'AUTH_REQUIRED':
+            rootNavigation.reset({ index: 0, routes: [{ name: 'Auth' }] });
+            break;
+          case 'VALIDATION_FAILED':
+            Alert.alert('입력 오류', '메시지가 너무 길거나 형식이 올바르지 않습니다.');
+            break;
+          case 'INTERNAL_SERVER_ERROR':
+            Alert.alert('서비스 오류', 'AI 서비스가 일시적으로 응답하지 않습니다. 잠시 후 다시 시도해주세요.');
+            break;
+          default:
+            Alert.alert('오류', err.message);
+        }
+      } else {
+        Alert.alert('연결 오류', '잠시 후 다시 시도해주세요.');
+      }
+    } finally {
+      setIsTyping(false);
+    }
   };
 
-  /** 텍스트 전송. 빈 입력이면 false 반환 (View에서 경고 표시용) */
-  const handleSend = (): boolean => {
+  const handleSend = async (): Promise<boolean> => {
     const trimmed = inputText.trim();
-    if (!trimmed) return false;
+    if (!trimmed || isTyping) return false;
 
     const userMsg = createMessage('user', 'text', trimmed);
     appendMessage(userMsg);
     setInputText('');
 
-    // mock 봇 응답 (AI 연동 전 임시)
-    setTimeout(() => {
-      const botMsg = createMessage('assistant', 'text', FALLBACK_RESPONSE);
-      appendMessage(botMsg);
-      // 봇 응답까지 추가된 후 저장 — 스토어에서 최신 상태를 직접 읽음
-      saveHistorySilently(useChatStore.getState().messages);
-    }, 350);
+    const currentThreadId = threadId ?? generateUUID();
+    if (!threadId) setThreadId(currentThreadId);
 
+    await callApi(currentThreadId, trimmed);
     return true;
   };
 
-  /** 선택지 칩 탭 시 호출 */
-  const handleChip = (chipId: string, label: string) => {
+  const handleChip = async (chipId: string, label: string) => {
+    if (isTyping) return;
+
     const userMsg = createMessage('user', 'text', label);
     appendMessage(userMsg);
 
-    const response = CHIP_RESPONSES[chipId];
-    const delay = 250;
+    const currentThreadId = threadId ?? generateUUID();
+    if (!threadId) setThreadId(currentThreadId);
 
-    setTimeout(() => {
-      const botMsg = response
-        ? createMessage('assistant', response.type, response.text, { courses: response.courses })
-        : createMessage('assistant', 'text', FALLBACK_RESPONSE);
-      appendMessage(botMsg);
-      saveHistorySilently(useChatStore.getState().messages);
-    }, delay);
+    await callApi(currentThreadId, label);
   };
 
-  /**
-   * 새 대화 시작: 1회 확인 팝업 후 초기화
-   */
   const handleReset = () => {
     Alert.alert(
       '새 대화 시작',
@@ -101,19 +116,12 @@ export function useChatViewModel() {
     );
   };
 
-  /**
-   * 이전 대화 보기: persist에 저장된 최근 30개 메시지 표시
-   * - 로컬 스토어에 이미 messages가 있으면 최근 30개로 슬라이스
-   * - 메시지가 없으면 안내 메시지 append
-   */
   const handleLoadHistory = () => {
     const current = useChatStore.getState().messages;
     const nonInitial = current.filter((m) => m.role === 'user' || m.type === 'text');
 
     if (nonInitial.length === 0) {
-      appendMessage(
-        createMessage('assistant', 'text', '불러올 이전 대화가 없어요.')
-      );
+      appendMessage(createMessage('assistant', 'text', '불러올 이전 대화가 없어요.'));
       return;
     }
 
@@ -121,9 +129,6 @@ export function useChatViewModel() {
     setMessages(recent);
   };
 
-  /**
-   * 피드백 전송 (API-018, silent fail)
-   */
   const handleFeedback = (messageId: string, type: 'like' | 'dislike') => {
     sendFeedback(messageId, type);
   };
@@ -132,6 +137,7 @@ export function useChatViewModel() {
     messages,
     inputText,
     setInputText,
+    isTyping,
     handleSend,
     handleChip,
     handleReset,

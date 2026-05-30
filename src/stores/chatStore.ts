@@ -72,6 +72,9 @@ export function buildInitialMessages(): ChatMessage[] {
 /** 순수 상태 + 원자 액션만 보관 — 응답 생성 로직은 useChatViewModel에서 처리 */
 interface ChatState {
   messages: ChatMessage[];
+  /** 현재 대화 세션 ID. null이면 다음 전송 시 신규 발급 */
+  threadId: string | null;
+  setThreadId: (id: string | null) => void;
   resetConversation: () => void;
   appendMessage: (m: ChatMessage) => void;
   /** 히스토리 불러오기 등 외부에서 메시지 목록 전체 교체 시 사용 */
@@ -82,8 +85,11 @@ export const useChatStore = create<ChatState>()(
   persist(
     (set) => ({
       messages: buildInitialMessages(),
+      threadId: null,
 
-      resetConversation: () => set({ messages: buildInitialMessages() }),
+      setThreadId: (id) => set({ threadId: id }),
+
+      resetConversation: () => set({ messages: buildInitialMessages(), threadId: null }),
 
       appendMessage: (m) => set((s) => ({ messages: [...s.messages, m] })),
 

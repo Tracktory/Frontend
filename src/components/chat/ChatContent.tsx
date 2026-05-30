@@ -140,13 +140,13 @@ export function ChatContent({
             onChangeText={vm.setInputText}
             onSubmitEditing={handleSend}
             returnKeyType="send"
-            editable={!onboardingRequired}
+            editable={!onboardingRequired && !vm.isTyping}
             multiline={false}
           />
           <Pressable
             style={[styles.sendBtn, onboardingRequired && styles.sendBtnDisabled]}
             onPress={handleSend}
-            disabled={onboardingRequired}
+            disabled={onboardingRequired || vm.isTyping}
           >
             <Ionicons
               name="send"
