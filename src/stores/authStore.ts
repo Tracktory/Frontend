@@ -24,6 +24,7 @@ interface AuthState {
   userName: string | null;
   expiresIn: number | null;
   setAuth: (data: SignUpResponseData) => void;
+  setUserName: (userName: string) => void;
   clearAuth: () => void;
 }
 
@@ -43,6 +44,7 @@ export const useAuthStore = create<AuthState>()(
           userName: data.userName,
           expiresIn: data.expiresIn,
         }),
+      setUserName: (userName: string) => set({ userName }),
       clearAuth: () =>
         set({
           accessToken: null,

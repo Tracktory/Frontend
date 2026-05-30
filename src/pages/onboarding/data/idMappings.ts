@@ -98,3 +98,15 @@ export const TRACK_ID_MAP: Record<string, number> = {
   '산업공학트랙': 9,
   '응용산업데이터공학트랙': 10,
 };
+
+function invertMap(map: Record<string, number>): Record<number, string> {
+  return Object.fromEntries(
+    Object.entries(map).map(([label, id]) => [id, label])
+  ) as Record<number, string>;
+}
+
+export const ID_TO_INTEREST_LABEL = invertMap(INTEREST_ID_MAP);
+export const ID_TO_DEV_FIELD_LABEL = invertMap(DEV_FIELD_ID_MAP);
+export const ID_TO_COMPANY_TYPE_LABEL = invertMap(COMPANY_TYPE_ID_MAP);
+export const ID_TO_WORK_VALUE_LABEL = invertMap(WORK_VALUE_ID_MAP);
+export const ID_TO_DEPARTMENT_LABEL = invertMap(DEPARTMENT_ID_MAP);

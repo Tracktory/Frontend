@@ -1,6 +1,8 @@
 import { Alert } from 'react-native';
 
 import { useOnboardingStore } from '../stores/onboardingStore';
+import { useProfileStore } from '../stores/profileStore';
+import { useAuthStore } from '../stores/authStore';
 import {
   COURSE_CATALOG_FOR_SELECTION,
   MOCK_RECOMMENDATION_HISTORY,
@@ -8,8 +10,7 @@ import {
 import type { RecommendationHistoryItem } from '../data/mockMyPageData';
 
 const EMPTY_PLACEHOLDER = '선택 없음';
-const DISPLAY_NAME_FALLBACK = '00';
-const MAJOR_FALLBACK = '한성대 IT융합공학부';
+const MAJOR_FALLBACK = 'IT공과대학';
 const MAX_COMPLETED_COURSES = 30;
 
 /** 입학연도 두 자리(YY학번 표기용) */
@@ -34,6 +35,9 @@ function formatEmployment(
 }
 
 export function useMyPageViewModel() {
+  const profile = useProfileStore((s) => s.profile);
+  const userName = useAuthStore((s) => s.userName);
+
   const admissionYear = useOnboardingStore((s) => s.admissionYear);
   const college = useOnboardingStore((s) => s.college);
   const interests = useOnboardingStore((s) => s.interests);
@@ -69,10 +73,17 @@ export function useMyPageViewModel() {
   );
 
   const admissionBadge = formatAdmissionBadge(admissionYear);
-  const displayName = DISPLAY_NAME_FALLBACK;
-  const profileInitial = displayName.slice(-1);
 
-  const majorLine = college ?? MAJOR_FALLBACK;
+  const displayName = profile?.profile.name ?? userName ?? '-';
+  const profileInitial = displayName.length > 0 ? displayName.slice(-1) : '-';
+
+  const sortedTracks = profile?.tracks
+    ? [...profile.tracks].sort((a, b) => a.trackOrder - b.trackOrder)
+    : [];
+  const majorLine =
+    sortedTracks.length > 0
+      ? sortedTracks.map((t) => t.name).join(' · ')
+      : (college ?? MAJOR_FALLBACK);
 
   const updateInterests = (next: string[]) => {
     clearInterests();
