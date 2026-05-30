@@ -45,6 +45,7 @@ export function MyPage() {
           catalog={vm.courseCatalog}
           defaultYear={vm.defaultCompletedYear}
           isAddingCourse={vm.isAddingCourse}
+          removingCourseName={vm.removingCourseName}
           onAddCourse={vm.addCompletedCourse}
           onRemoveCourse={vm.removeCompletedCourse}
         />

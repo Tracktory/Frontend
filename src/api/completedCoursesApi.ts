@@ -48,3 +48,35 @@ export async function addCompletedCourse(
 
   return envelope.data;
 }
+
+export interface DeleteCompletedCourseResponseData {
+  deletedSubjectId: number;
+}
+
+export async function deleteCompletedCourse(
+  accessToken: string,
+  subjectId: number
+): Promise<DeleteCompletedCourseResponseData> {
+  const res = await fetch(`${BASE_URL}/api/v1/subjects/completed-courses`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ subjectId }),
+  });
+
+  const envelope: ApiEnvelope<DeleteCompletedCourseResponseData> = await res.json();
+
+  if (!envelope.success) {
+    const code = envelope.error?.code ?? 'UNKNOWN';
+    const message = envelope.error?.message ?? '알 수 없는 오류가 발생했습니다.';
+    throw new AuthApiError(code, message);
+  }
+
+  if (!envelope.data) {
+    throw new Error('응답 데이터가 없습니다.');
+  }
+
+  return envelope.data;
+}

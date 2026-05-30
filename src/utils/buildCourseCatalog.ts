@@ -30,3 +30,15 @@ export function buildCourseCatalog(
     .map(([subjectId, name]) => ({ subjectId, name }))
     .sort((a, b) => a.name.localeCompare(b.name, 'ko'));
 }
+
+/** 과목명 → subjectId (프로필 이수 목록 우선, 없으면 카탈로그) */
+export function resolveSubjectId(
+  name: string,
+  profile: ProfileData | null,
+  catalog: CourseCatalogItem[]
+): number | null {
+  const fromProfile = profile?.completedSubjects.find((s) => s.name === name)?.subjectId;
+  if (fromProfile != null) return fromProfile;
+  const fromCatalog = catalog.find((c) => c.name === name)?.subjectId;
+  return fromCatalog ?? null;
+}

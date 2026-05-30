@@ -23,12 +23,13 @@ interface MyCompletedCoursesSectionProps {
   catalog: CourseCatalogItem[];
   defaultYear: number;
   isAddingCourse?: boolean;
+  removingCourseName?: string | null;
   onAddCourse: (
     item: CourseCatalogItem,
     year: number,
     semester: 1 | 2
   ) => Promise<boolean>;
-  onRemoveCourse: (name: string) => void;
+  onRemoveCourse: (name: string) => void | Promise<void>;
 }
 
 const YEAR_OPTIONS = [1, 2, 3, 4] as const;
@@ -39,6 +40,7 @@ export function MyCompletedCoursesSection({
   catalog,
   defaultYear,
   isAddingCourse = false,
+  removingCourseName = null,
   onAddCourse,
   onRemoveCourse,
 }: MyCompletedCoursesSectionProps) {
@@ -107,10 +109,18 @@ export function MyCompletedCoursesSection({
             <Pressable
               hitSlop={6}
               onPress={() => onRemoveCourse(name)}
-              style={({ pressed }) => [styles.chipRemove, pressed && styles.chipRemovePressed]}
+              disabled={removingCourseName != null}
+              style={({ pressed }) => [
+                styles.chipRemove,
+                (pressed || removingCourseName === name) && styles.chipRemovePressed,
+              ]}
               accessibilityLabel={`${name} 삭제`}
             >
-              <Ionicons name="close-circle" size={18} color={colors.primary} />
+              {removingCourseName === name ? (
+                <ActivityIndicator size="small" color={colors.primary} />
+              ) : (
+                <Ionicons name="close-circle" size={18} color={colors.primary} />
+              )}
             </Pressable>
           </View>
         ))}

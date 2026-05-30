@@ -4,7 +4,10 @@ import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 
 import { AuthApiError } from '../api/authApi';
-import { addCompletedCourse as addCompletedCourseApi } from '../api/completedCoursesApi';
+import {
+  addCompletedCourse as addCompletedCourseApi,
+  deleteCompletedCourse as deleteCompletedCourseApi,
+} from '../api/completedCoursesApi';
 import { useOnboardingStore } from '../stores/onboardingStore';
 import { useProfileStore } from '../stores/profileStore';
 import { useRecommendStore } from '../stores/recommendStore';
@@ -17,7 +20,7 @@ import {
   COMPANY_TYPE_ID_MAP,
   WORK_VALUE_ID_MAP,
 } from '../pages/onboarding/data/idMappings';
-import { buildCourseCatalog } from '../utils/buildCourseCatalog';
+import { buildCourseCatalog, resolveSubjectId } from '../utils/buildCourseCatalog';
 import type { CourseCatalogItem } from '../utils/buildCourseCatalog';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 
@@ -62,6 +65,7 @@ export function useMyPageViewModel() {
 
   const [isSaving, setIsSaving] = useState(false);
   const [isAddingCourse, setIsAddingCourse] = useState(false);
+  const [removingCourseName, setRemovingCourseName] = useState<string | null>(null);
 
   const admissionYear = useOnboardingStore((s) => s.admissionYear);
   const grade = useOnboardingStore((s) => s.grade);
@@ -72,7 +76,6 @@ export function useMyPageViewModel() {
   const employmentValues = useOnboardingStore((s) => s.employmentValues);
 
   const completedCourses = useOnboardingStore((s) => s.completedCourses);
-  const storeRemoveCompletedCourse = useOnboardingStore((s) => s.removeCompletedCourse);
 
   const recommendationHistory: RecommendationHistoryItem[] = MOCK_RECOMMENDATION_HISTORY;
 
@@ -107,7 +110,30 @@ export function useMyPageViewModel() {
       ? sortedTracks.map((t) => t.name).join(' · ')
       : (college ?? MAJOR_FALLBACK);
 
-  const handleApiError = (err: unknown): void => {
+  const handleCourseApiError = (err: unknown): void => {
+    if (err instanceof AuthApiError) {
+      switch (err.code) {
+        case 'AUTH_REQUIRED':
+          rootNavigation.reset({ index: 0, routes: [{ name: 'Auth' }] });
+          break;
+        case 'RESOURCE_NOT_FOUND':
+          Alert.alert('알림', '해당 이수 과목이 존재하지 않습니다.');
+          break;
+        case 'SUBJECT_ALREADY_COMPLETED':
+          Alert.alert('알림', '이미 이수 처리된 과목입니다.');
+          break;
+        case 'VALIDATION_FAILED':
+          Alert.alert('입력 오류', '입력 내용을 다시 확인해주세요.');
+          break;
+        default:
+          Alert.alert('오류', err.message);
+      }
+    } else {
+      Alert.alert('네트워크 오류', '잠시 후 다시 시도해주세요.');
+    }
+  };
+
+  const handlePatchError = (err: unknown): void => {
     if (err instanceof AuthApiError) {
       switch (err.code) {
         case 'AUTH_REQUIRED':
@@ -143,7 +169,7 @@ export function useMyPageViewModel() {
       await patchProfile(accessToken, body, rootNavigation);
       return true;
     } catch (err) {
-      handleApiError(err);
+      handlePatchError(err);
       return false;
     } finally {
       setIsSaving(false);
@@ -203,15 +229,33 @@ export function useMyPageViewModel() {
       await loadProfile(accessToken, rootNavigation);
       return true;
     } catch (err) {
-      handleApiError(err);
+      handleCourseApiError(err);
       return false;
     } finally {
       setIsAddingCourse(false);
     }
   };
 
-  const removeCompletedCourse = (name: string) => {
-    storeRemoveCompletedCourse(name);
+  const removeCompletedCourse = async (name: string): Promise<void> => {
+    const subjectId = resolveSubjectId(name, profile, courseCatalog);
+    if (subjectId == null) {
+      Alert.alert('알림', '과목 정보를 찾을 수 없습니다.');
+      return;
+    }
+    if (!accessToken) {
+      rootNavigation.reset({ index: 0, routes: [{ name: 'Auth' }] });
+      return;
+    }
+
+    setRemovingCourseName(name);
+    try {
+      await deleteCompletedCourseApi(accessToken, subjectId);
+      await loadProfile(accessToken, rootNavigation);
+    } catch (err) {
+      handleCourseApiError(err);
+    } finally {
+      setRemovingCourseName(null);
+    }
   };
 
   const handleHistoryPress = (_item: RecommendationHistoryItem) => {
@@ -236,6 +280,7 @@ export function useMyPageViewModel() {
     recommendationHistory,
     isSaving,
     isAddingCourse,
+    removingCourseName,
     updateInterests,
     updateDevelopmentFields,
     updateEmployment,
