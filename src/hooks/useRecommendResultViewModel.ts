@@ -7,6 +7,7 @@ import type { RecommendResult } from '../api/recommendApi';
 import { AuthApiError } from '../api/authApi';
 import { useAuthStore } from '../stores/authStore';
 import { useOnboardingStore } from '../stores/onboardingStore';
+import { useRecommendStore } from '../stores/recommendStore';
 import type { TabKey } from '../pages/recommendation/components/SegmentTab';
 import type { MainStackParamList } from '../navigation/MainStackNavigator';
 import type { RootStackParamList } from '../navigation/RootNavigator';
@@ -21,6 +22,7 @@ export function useRecommendResultViewModel() {
   const [isError, setIsError] = useState(false);
 
   const accessToken = useAuthStore((s) => s.accessToken);
+  const setRecommendResult = useRecommendStore((s) => s.setRecommendResult);
 
   // onboardingStore 구독 — 변경 감지용
   const interests = useOnboardingStore((s) => s.interests);
@@ -38,6 +40,7 @@ export function useRecommendResultViewModel() {
     try {
       const data = await fetchRecommendResult(accessToken);
       setResult(data);
+      setRecommendResult(data);
     } catch (err) {
       if (err instanceof AuthApiError) {
         switch (err.code) {
