@@ -1,48 +1,57 @@
+// code: MANAGEMENT_OFFICE | TRADE_DISTRIBUTION | SALES_CUSTOMER | SERVICE | MARKETING_AD_PR
+//       IT_INTERNET | DESIGN | RND_ENGINEERING | PRODUCTION_MANUFACTURING | EDUCATION
+//       MEDICAL | MEDIA | SPECIALIZED | CONSTRUCTION
 export const INTEREST_OPTIONS = [
-  '프론트엔드',
-  '백엔드',
-  '데이터분석',
-  'AI/ML',
-  '모바일앱',
-  '게임개발',
-  '클라우드/인프라',
-  '보안',
-  'UI/UX디자인',
-  '블록체인',
-  'IoT/임베디드',
-  'AR/VR',
-  'DevOps',
-  '로봇공학',
+  '경영/사무',
+  '무역/유통',
+  '영업/고객상담',
+  '서비스',
+  '마케팅/광고/홍보',
+  'IT/인터넷',
+  '디자인',
+  '연구개발/설계',
+  '생산/제조',
+  '교육',
+  '의료',
+  '미디어',
+  '전문/특수직',
+  '건설',
 ];
 
-export const DEVELOPMENT_FIELD_OPTIONS = ['앱개발', '웹개발', '데이터분석', '게임개발', 'AI/머신러닝', '보안'];
+// code: APP | WEB | DATA | GAME | AI | SECURITY
+export const DEVELOPMENT_FIELD_OPTIONS = ['앱', '웹', '데이터', '게임', 'AI', '보안'];
 
-export const COMPANY_TYPE_OPTIONS = ['대기업', '스타트업', 'IT기업', '공공기관', '외국계', '프리랜서'];
+// code: LARGE_CORP | MID_CORP | SMALL_CORP | PUBLIC | STARTUP | FREELANCE | ANY
+export const COMPANY_TYPE_OPTIONS = [
+  '대기업',
+  '중견기업',
+  '중소기업',
+  '공기업',
+  '스타트업',
+  '프리랜서',
+  '상관없음',
+];
 
-export const EMPLOYMENT_VALUE_OPTIONS = ['연봉', '워라밸', '성장가능성', '안정성', '기술스택', '사내문화'];
+// code: MONEY | WORK_LIFE_BALANCE | WELFARE | HONOR | STABILITY | GROWTH
+export const EMPLOYMENT_VALUE_OPTIONS = ['돈', '워라벨', '복지', '명예', '안정성', '성장성'];
 
+// post-MVP: 공부해본 분야 기술 태그 (ON-011-1)
 export const TECH_TAG_OPTIONS = ['Python', 'Java', 'JavaScript', 'C/C++', 'SQL', 'React', 'Spring', 'Flutter'];
 
+// MVP: IT공과대학 단일. 학기 후반·다른 학부 추가 시 endpoint 승격 가능.
+// college code: IT_ENG | department code: COMPUTER_ENG
 export const COLLEGE_TRACK_MAP: Record<string, string[]> = {
-  '크리에이티브인문예술대학': [
-    '영미문화콘텐츠트랙', '영미언어정보트랙', '한국어교육트랙',
-    '역사문화큐레이션트랙', '역사콘텐츠트랙', '지식정보문화트랙', '디지털인문정보학트랙',
-    '동양화전공', '서양화전공', '한국무용전공', '현대무용전공', '발레전공',
-  ],
-  '미래융합사회과학대학': [
-    '공공행정트랙', '법&정책트랙', '국제무역트랙', '글로벌비즈니스트랙',
-    '기업경영트랙', '비즈니스애널리틱스트랙', '회계·재무경영트랙',
-    '기업·경제분석트랙', '경제금융투자트랙', '부동산트랙', '스마트도시·교통계획트랙',
-  ],
-  '디자인대학': [
-    '패션마케팅트랙', '패션디자인트랙', '패션크리에이티브디렉션트랙',
-    '시각디자인트랙', '미디어디자인트랙', '영상·애니메이션디자인트랙',
-    'UX/UI디자인트랙', '인테리어디자인트랙', 'VMD·전시디자인트랙', '게임그래픽디자인트랙',
-  ],
   'IT공과대학': [
-    '모바일소프트웨어트랙', '빅데이터트랙', '디지털콘텐츠·가상현실트랙', '웹공학트랙',
-    '전자트랙', '시스템반도체트랙', '기계시스템디자인트랙', 'AI로봇융합트랙',
-    '산업공학트랙', '응용산업데이터공학트랙',
+    '모바일소프트웨어트랙',
+    '빅데이터트랙',
+    '디지털콘텐츠·가상현실트랙',
+    '웹공학트랙',
+    '전자트랙',
+    '시스템반도체트랙',
+    '기계시스템디자인트랙',
+    'AI로봇융합트랙',
+    '산업공학트랙',
+    '응용산업데이터공학트랙',
   ],
 };
 
