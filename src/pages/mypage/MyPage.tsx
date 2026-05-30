@@ -43,6 +43,8 @@ export function MyPage() {
         <MyCompletedCoursesSection
           courses={vm.completedCourses}
           catalog={vm.courseCatalog}
+          defaultYear={vm.defaultCompletedYear}
+          isAddingCourse={vm.isAddingCourse}
           onAddCourse={vm.addCompletedCourse}
           onRemoveCourse={vm.removeCompletedCourse}
         />

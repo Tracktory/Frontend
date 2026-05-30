@@ -1,16 +1,15 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 
 import { AuthApiError } from '../api/authApi';
+import { addCompletedCourse as addCompletedCourseApi } from '../api/completedCoursesApi';
 import { useOnboardingStore } from '../stores/onboardingStore';
 import { useProfileStore } from '../stores/profileStore';
+import { useRecommendStore } from '../stores/recommendStore';
 import { useAuthStore } from '../stores/authStore';
-import {
-  COURSE_CATALOG_FOR_SELECTION,
-  MOCK_RECOMMENDATION_HISTORY,
-} from '../data/mockMyPageData';
+import { MOCK_RECOMMENDATION_HISTORY } from '../data/mockMyPageData';
 import type { RecommendationHistoryItem } from '../data/mockMyPageData';
 import {
   INTEREST_ID_MAP,
@@ -18,6 +17,8 @@ import {
   COMPANY_TYPE_ID_MAP,
   WORK_VALUE_ID_MAP,
 } from '../pages/onboarding/data/idMappings';
+import { buildCourseCatalog } from '../utils/buildCourseCatalog';
+import type { CourseCatalogItem } from '../utils/buildCourseCatalog';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 
 const EMPTY_PLACEHOLDER = '선택 없음';
@@ -53,13 +54,17 @@ export function useMyPageViewModel() {
   const rootNavigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   const profile = useProfileStore((s) => s.profile);
+  const loadProfile = useProfileStore((s) => s.loadProfile);
   const patchProfile = useProfileStore((s) => s.patchProfile);
+  const recommendResult = useRecommendStore((s) => s.result);
   const userName = useAuthStore((s) => s.userName);
   const accessToken = useAuthStore((s) => s.accessToken);
 
   const [isSaving, setIsSaving] = useState(false);
+  const [isAddingCourse, setIsAddingCourse] = useState(false);
 
   const admissionYear = useOnboardingStore((s) => s.admissionYear);
+  const grade = useOnboardingStore((s) => s.grade);
   const college = useOnboardingStore((s) => s.college);
   const interests = useOnboardingStore((s) => s.interests);
   const developmentFields = useOnboardingStore((s) => s.developmentFields);
@@ -67,11 +72,16 @@ export function useMyPageViewModel() {
   const employmentValues = useOnboardingStore((s) => s.employmentValues);
 
   const completedCourses = useOnboardingStore((s) => s.completedCourses);
-  const storeAddCompletedCourse = useOnboardingStore((s) => s.addCompletedCourse);
   const storeRemoveCompletedCourse = useOnboardingStore((s) => s.removeCompletedCourse);
 
   const recommendationHistory: RecommendationHistoryItem[] = MOCK_RECOMMENDATION_HISTORY;
-  const courseCatalog = COURSE_CATALOG_FOR_SELECTION;
+
+  const courseCatalog = useMemo(
+    () => buildCourseCatalog(recommendResult, profile),
+    [recommendResult, profile]
+  );
+
+  const defaultCompletedYear = profile?.profile.currentYear ?? grade ?? 1;
 
   const interestsLine =
     interests.length > 0 ? interests.join(', ') : EMPTY_PLACEHOLDER;
@@ -97,7 +107,7 @@ export function useMyPageViewModel() {
       ? sortedTracks.map((t) => t.name).join(' · ')
       : (college ?? MAJOR_FALLBACK);
 
-  const handlePatchError = (err: unknown): void => {
+  const handleApiError = (err: unknown): void => {
     if (err instanceof AuthApiError) {
       switch (err.code) {
         case 'AUTH_REQUIRED':
@@ -105,6 +115,9 @@ export function useMyPageViewModel() {
           break;
         case 'RESOURCE_NOT_FOUND':
           rootNavigation.reset({ index: 0, routes: [{ name: 'Onboarding' }] });
+          break;
+        case 'SUBJECT_ALREADY_COMPLETED':
+          Alert.alert('알림', '이미 이수 처리된 과목입니다.');
           break;
         case 'VALIDATION_FAILED':
           Alert.alert('입력 오류', '입력 내용을 다시 확인해주세요.');
@@ -130,7 +143,7 @@ export function useMyPageViewModel() {
       await patchProfile(accessToken, body, rootNavigation);
       return true;
     } catch (err) {
-      handlePatchError(err);
+      handleApiError(err);
       return false;
     } finally {
       setIsSaving(false);
@@ -159,13 +172,12 @@ export function useMyPageViewModel() {
     });
   };
 
-  const addCompletedCourse = (name: string): boolean => {
-    const trimmed = name.trim();
-    if (!trimmed) {
-      Alert.alert('알림', '과목명을 입력해 주세요.');
-      return false;
-    }
-    if (completedCourses.includes(trimmed)) {
+  const addCompletedCourse = async (
+    item: CourseCatalogItem,
+    year: number,
+    semester: 1 | 2
+  ): Promise<boolean> => {
+    if (completedCourses.includes(item.name)) {
       Alert.alert('알림', '이미 이수 과목에 추가된 과목입니다.');
       return false;
     }
@@ -176,7 +188,26 @@ export function useMyPageViewModel() {
       );
       return false;
     }
-    return storeAddCompletedCourse(trimmed);
+    if (!accessToken) {
+      rootNavigation.reset({ index: 0, routes: [{ name: 'Auth' }] });
+      return false;
+    }
+
+    setIsAddingCourse(true);
+    try {
+      await addCompletedCourseApi(accessToken, {
+        subjectId: item.subjectId,
+        year,
+        semester,
+      });
+      await loadProfile(accessToken, rootNavigation);
+      return true;
+    } catch (err) {
+      handleApiError(err);
+      return false;
+    } finally {
+      setIsAddingCourse(false);
+    }
   };
 
   const removeCompletedCourse = (name: string) => {
@@ -201,8 +232,10 @@ export function useMyPageViewModel() {
     employmentLine,
     completedCourses,
     courseCatalog,
+    defaultCompletedYear,
     recommendationHistory,
     isSaving,
+    isAddingCourse,
     updateInterests,
     updateDevelopmentFields,
     updateEmployment,
