@@ -54,6 +54,7 @@ export function MyPage() {
         <MyInfoEditModal
           visible={editingSection != null}
           section={editingSection}
+          isSaving={vm.isSaving}
           currentInterests={vm.interests}
           currentDevelopmentFields={vm.developmentFields}
           currentPreferredCompanyTypes={vm.preferredCompanyTypes}

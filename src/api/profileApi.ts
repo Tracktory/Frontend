@@ -49,3 +49,51 @@ export async function fetchProfile(accessToken: string): Promise<ProfileData> {
 
   return envelope.data;
 }
+
+export interface PatchProfileRequestBody {
+  profile?: {
+    studentId?: string;
+    currentYear?: number;
+    name?: string;
+    departmentId?: number;
+  };
+  tracks?: { trackId: number; trackOrder: 1 | 2 }[];
+  interestIds?: number[];
+  devFieldIds?: number[];
+  companyTypeIds?: number[];
+  workValueIds?: number[];
+  techStackIds?: number[];
+  techStackCustoms?: string[];
+}
+
+export interface PatchProfileResponseData {
+  updatedFields: string[];
+}
+
+export async function patchProfile(
+  accessToken: string,
+  body: PatchProfileRequestBody
+): Promise<PatchProfileResponseData> {
+  const res = await fetch(`${BASE_URL}/api/v1/me/profile`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  const envelope: ApiEnvelope<PatchProfileResponseData> = await res.json();
+
+  if (!envelope.success) {
+    const code = envelope.error?.code ?? 'UNKNOWN';
+    const message = envelope.error?.message ?? '알 수 없는 오류가 발생했습니다.';
+    throw new AuthApiError(code, message);
+  }
+
+  if (!envelope.data) {
+    throw new Error('응답 데이터가 없습니다.');
+  }
+
+  return envelope.data;
+}

@@ -1,8 +1,8 @@
 import type { create as CreateType } from 'zustand';
 import type { StackNavigationProp } from '@react-navigation/stack';
 
-import { fetchProfile } from '../api/profileApi';
-import type { ProfileData } from '../api/profileApi';
+import { fetchProfile, patchProfile as patchProfileApi } from '../api/profileApi';
+import type { PatchProfileRequestBody, ProfileData } from '../api/profileApi';
 import { AuthApiError } from '../api/authApi';
 import { useAuthStore } from './authStore';
 import { useOnboardingStore } from './onboardingStore';
@@ -19,6 +19,11 @@ interface ProfileState {
   isLoading: boolean;
   isError: boolean;
   loadProfile: (accessToken: string, navigation: RootNavigation) => Promise<void>;
+  patchProfile: (
+    accessToken: string,
+    body: PatchProfileRequestBody,
+    navigation: RootNavigation
+  ) => Promise<void>;
   clearProfile: () => void;
 }
 
@@ -53,6 +58,16 @@ export const useProfileStore = create<ProfileState>()((set) => ({
       } else {
         set({ isLoading: false, isError: true });
       }
+    }
+  },
+
+  patchProfile: async (accessToken, body, navigation) => {
+    await patchProfileApi(accessToken, body);
+    const data = await fetchProfile(accessToken);
+    set({ profile: data, isError: false });
+    useOnboardingStore.getState().hydrateFromProfile(data);
+    if (data.profile.name) {
+      useAuthStore.getState().setUserName(data.profile.name);
     }
   },
 

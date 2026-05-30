@@ -1,5 +1,9 @@
+import { useState } from 'react';
 import { Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 
+import { AuthApiError } from '../api/authApi';
 import { useOnboardingStore } from '../stores/onboardingStore';
 import { useProfileStore } from '../stores/profileStore';
 import { useAuthStore } from '../stores/authStore';
@@ -8,10 +12,21 @@ import {
   MOCK_RECOMMENDATION_HISTORY,
 } from '../data/mockMyPageData';
 import type { RecommendationHistoryItem } from '../data/mockMyPageData';
+import {
+  INTEREST_ID_MAP,
+  DEV_FIELD_ID_MAP,
+  COMPANY_TYPE_ID_MAP,
+  WORK_VALUE_ID_MAP,
+} from '../pages/onboarding/data/idMappings';
+import type { RootStackParamList } from '../navigation/RootNavigator';
 
 const EMPTY_PLACEHOLDER = '선택 없음';
 const MAJOR_FALLBACK = 'IT공과대학';
 const MAX_COMPLETED_COURSES = 30;
+
+function toIds(labels: string[], map: Record<string, number>): number[] {
+  return labels.map((l) => map[l]).filter((id): id is number => id !== undefined);
+}
 
 /** 입학연도 두 자리(YY학번 표기용) */
 function twoDigitAdmissionYear(year: number): string {
@@ -35,25 +50,22 @@ function formatEmployment(
 }
 
 export function useMyPageViewModel() {
+  const rootNavigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+
   const profile = useProfileStore((s) => s.profile);
+  const patchProfile = useProfileStore((s) => s.patchProfile);
   const userName = useAuthStore((s) => s.userName);
+  const accessToken = useAuthStore((s) => s.accessToken);
+
+  const [isSaving, setIsSaving] = useState(false);
 
   const admissionYear = useOnboardingStore((s) => s.admissionYear);
   const college = useOnboardingStore((s) => s.college);
   const interests = useOnboardingStore((s) => s.interests);
-  const toggleInterest = useOnboardingStore((s) => s.toggleInterest);
-  const clearInterests = useOnboardingStore((s) => s.clearInterests);
   const developmentFields = useOnboardingStore((s) => s.developmentFields);
-  const toggleDevelopmentField = useOnboardingStore((s) => s.toggleDevelopmentField);
-  const clearDevelopmentFields = useOnboardingStore((s) => s.clearDevelopmentFields);
   const preferredCompanyTypes = useOnboardingStore((s) => s.preferredCompanyTypes);
-  const togglePreferredCompanyType = useOnboardingStore((s) => s.togglePreferredCompanyType);
-  const clearPreferredCompanyTypes = useOnboardingStore((s) => s.clearPreferredCompanyTypes);
   const employmentValues = useOnboardingStore((s) => s.employmentValues);
-  const toggleEmploymentValue = useOnboardingStore((s) => s.toggleEmploymentValue);
-  const clearEmploymentValues = useOnboardingStore((s) => s.clearEmploymentValues);
 
-  // completedCourses는 Zustand store에서 관리 (로드맵 탭에서도 참조 가능)
   const completedCourses = useOnboardingStore((s) => s.completedCourses);
   const storeAddCompletedCourse = useOnboardingStore((s) => s.addCompletedCourse);
   const storeRemoveCompletedCourse = useOnboardingStore((s) => s.removeCompletedCourse);
@@ -85,25 +97,66 @@ export function useMyPageViewModel() {
       ? sortedTracks.map((t) => t.name).join(' · ')
       : (college ?? MAJOR_FALLBACK);
 
-  const updateInterests = (next: string[]) => {
-    clearInterests();
-    next.slice(0, 5).forEach((item) => toggleInterest(item));
+  const handlePatchError = (err: unknown): void => {
+    if (err instanceof AuthApiError) {
+      switch (err.code) {
+        case 'AUTH_REQUIRED':
+          rootNavigation.reset({ index: 0, routes: [{ name: 'Auth' }] });
+          break;
+        case 'RESOURCE_NOT_FOUND':
+          rootNavigation.reset({ index: 0, routes: [{ name: 'Onboarding' }] });
+          break;
+        case 'VALIDATION_FAILED':
+          Alert.alert('입력 오류', '입력 내용을 다시 확인해주세요.');
+          break;
+        default:
+          Alert.alert('오류', err.message);
+      }
+    } else {
+      Alert.alert('네트워크 오류', '잠시 후 다시 시도해주세요.');
+    }
   };
 
-  const updateDevelopmentFields = (next: string[]) => {
-    clearDevelopmentFields();
-    next.slice(0, 3).forEach((item) => toggleDevelopmentField(item));
+  const runPatch = async (
+    body: Parameters<typeof patchProfile>[1]
+  ): Promise<boolean> => {
+    if (!accessToken) {
+      rootNavigation.reset({ index: 0, routes: [{ name: 'Auth' }] });
+      return false;
+    }
+
+    setIsSaving(true);
+    try {
+      await patchProfile(accessToken, body, rootNavigation);
+      return true;
+    } catch (err) {
+      handlePatchError(err);
+      return false;
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const updateEmployment = (next: {
+  const updateInterests = async (next: string[]): Promise<boolean> => {
+    return runPatch({
+      interestIds: toIds(next.slice(0, 5), INTEREST_ID_MAP),
+    });
+  };
+
+  const updateDevelopmentFields = async (next: string[]): Promise<boolean> => {
+    return runPatch({
+      devFieldIds: toIds(next.slice(0, 3), DEV_FIELD_ID_MAP),
+    });
+  };
+
+  const updateEmployment = async (next: {
     preferredCompanyTypes: string[];
     employmentValues: string[];
-  }) => {
-    clearPreferredCompanyTypes();
-    next.preferredCompanyTypes.forEach((item) => togglePreferredCompanyType(item));
-
-    clearEmploymentValues();
-    next.employmentValues.slice(0, 3).forEach((item) => toggleEmploymentValue(item));
+  }): Promise<boolean> => {
+    return runPatch({
+      companyTypeIds: toIds(next.preferredCompanyTypes, COMPANY_TYPE_ID_MAP),
+      workValueIds: toIds(next.employmentValues.slice(0, 3), WORK_VALUE_ID_MAP),
+    });
   };
 
   const addCompletedCourse = (name: string): boolean => {
@@ -149,6 +202,7 @@ export function useMyPageViewModel() {
     completedCourses,
     courseCatalog,
     recommendationHistory,
+    isSaving,
     updateInterests,
     updateDevelopmentFields,
     updateEmployment,
