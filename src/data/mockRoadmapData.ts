@@ -31,6 +31,10 @@ export interface SemesterCourse {
   description: string;
   /** 학점 */
   credits: number;
+  /** AI 추천 점수 (0~1). API 연동 시 채워짐, mock에서는 undefined */
+  score?: number;
+  /** 선수과목 목록. API 연동 시 채워짐, mock에서는 undefined */
+  prerequisites?: { name: string; completed: boolean; strength: string }[];
 }
 
 /** 학기별 단계 (새 UI용) */

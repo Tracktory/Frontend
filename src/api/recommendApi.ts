@@ -150,6 +150,12 @@ function mapRoadmap(roadmap: ApiRoadmapPayload, flow: ApiFlow): RoadmapPayload {
       name: item.name,
       description: item.description,
       credits: item.credit,
+      score: item.score,
+      prerequisites: item.prerequisites.map((p) => ({
+        name: p.name,
+        completed: p.completed,
+        strength: p.strength,
+      })),
     }));
 
     return {
