@@ -1,7 +1,8 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -12,11 +13,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
-import ViewShot from 'react-native-view-shot';
-import * as MediaLibrary from 'expo-media-library';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system';
 
 import { colors } from '../../styles/colors';
 import { useRecommendResultViewModel } from '../../hooks/useRecommendResultViewModel';
+import { useOnboardingStore } from '../../stores/onboardingStore';
 import { SegmentTab } from './components/SegmentTab';
 import { JobCard } from './components/JobCard';
 import { TrackRecommendPanel } from './components/TrackRecommendPanel';
@@ -25,25 +28,50 @@ import { TrackDescriptionSection } from './components/TrackDescriptionSection';
 import { RequiredCoursesSection } from './components/RequiredCoursesSection';
 import { PrerequisiteSection } from './components/PrerequisiteSection';
 import { RoadmapPanel } from './components/RoadmapPanel';
+import { generateRecommendPdf } from '../../utils/generateRecommendPdf';
 import type { MainStackParamList } from '../../navigation/MainStackNavigator';
 
 export function RecommendResultPage() {
   const vm = useRecommendResultViewModel();
   const navigation = useNavigation<StackNavigationProp<MainStackParamList>>();
-  const viewShotRef = useRef<ViewShot>(null);
+  const completedCourses = useOnboardingStore((s) => s.completedCourses);
 
-  const handleSaveImage = async () => {
-    const { status } = await MediaLibrary.requestPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('권한 필요', '갤러리 접근 권한이 필요합니다.');
-      return;
-    }
+  const handleSavePdf = async () => {
     try {
-      const uri = await viewShotRef.current!.capture!();
-      await MediaLibrary.saveToLibraryAsync(uri);
-      Alert.alert('저장 완료', '이미지가 갤러리에 저장됐습니다.');
+      const html = generateRecommendPdf({
+        jobs: vm.jobs,
+        trackRecommend: vm.trackRecommend,
+        roadmap: vm.roadmap,
+        completedCourses,
+      });
+
+      const { uri } = await Print.printToFileAsync({ html });
+
+      if (Platform.OS === 'android') {
+        const perms =
+          await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+        if (!perms.granted) return;
+        const base64 = await FileSystem.readAsStringAsync(uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        const dest = await FileSystem.StorageAccessFramework.createFileAsync(
+          perms.directoryUri,
+          'tracktory_recommendation.pdf',
+          'application/pdf'
+        );
+        await FileSystem.writeAsStringAsync(dest, base64, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        Alert.alert('저장 완료', '선택한 폴더에 PDF가 저장되었습니다.');
+      } else {
+        // iOS: 공유 시트 → "파일에 저장" 으로 기기 저장
+        await Sharing.shareAsync(uri, {
+          mimeType: 'application/pdf',
+          dialogTitle: '추천 결과 PDF 저장',
+        });
+      }
     } catch {
-      Alert.alert('저장 실패', '저장에 실패했습니다. 다시 시도해주세요.');
+      Alert.alert('저장 실패', '다시 시도해주세요.');
     }
   };
 
@@ -68,13 +96,13 @@ export function RecommendResultPage() {
                 <Ionicons name="refresh" size={20} color={colors.textSecondary} />
               )}
             </Pressable>
-            {/* 이미지 저장 */}
+            {/* PDF 저장 */}
             <Pressable
               style={styles.iconBtn}
-              onPress={handleSaveImage}
+              onPress={handleSavePdf}
               disabled={vm.isLoading || vm.isError}
               hitSlop={8}
-              accessibilityLabel="이미지 저장"
+              accessibilityLabel="PDF 저장"
             >
               <Ionicons
                 name="download-outline"
@@ -96,14 +124,9 @@ export function RecommendResultPage() {
           </View>
         )}
 
-        {/* 정상 콘텐츠 — ViewShot으로 감싸 캡처 범위 지정 */}
+        {/* 정상 콘텐츠 */}
         {!vm.isError && (
-          <ViewShot
-            ref={viewShotRef}
-            style={styles.flex}
-            options={{ format: 'png', quality: 1 }}
-            collapsable={false}
-          >
+          <View style={styles.flex}>
             <SegmentTab activeTab={vm.activeTab} onTabChange={vm.setActiveTab} />
 
             {vm.activeTab === 'job' && (
@@ -175,7 +198,7 @@ export function RecommendResultPage() {
                 />
               </ScrollView>
             )}
-          </ViewShot>
+          </View>
         )}
       </View>
     </SafeAreaView>

@@ -16,20 +16,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors } from '../../../styles/colors';
-import type { CourseCatalogItem } from '../../../utils/buildCourseCatalog';
+import type { HansungCourse } from '../../../data/hansungCourseData';
 
 interface MyCompletedCoursesSectionProps {
   courses: string[];
-  catalog: CourseCatalogItem[];
-  defaultYear: number;
-  isAddingCourse?: boolean;
-  removingCourseName?: string | null;
-  onAddCourse: (
-    item: CourseCatalogItem,
-    year: number,
-    semester: 1 | 2
-  ) => Promise<boolean>;
-  onRemoveCourse: (name: string) => void | Promise<void>;
+  catalog: HansungCourse[];
+  onAddCourse: (name: string) => boolean;
+  onRemoveCourse: (name: string) => void;
 }
 
 const YEAR_OPTIONS = [1, 2, 3, 4] as const;
@@ -47,29 +40,31 @@ export function MyCompletedCoursesSection({
   const insets = useSafeAreaInsets();
   const [modalVisible, setModalVisible] = useState(false);
   const [query, setQuery] = useState('');
-  const [selectedCourse, setSelectedCourse] = useState<CourseCatalogItem | null>(null);
-  const [selectedYear, setSelectedYear] = useState<number>(defaultYear);
-  const [selectedSemester, setSelectedSemester] = useState<1 | 2>(1);
+  const [selectedTrack, setSelectedTrack] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (modalVisible) {
-      setSelectedYear(defaultYear);
-      setSelectedSemester(1);
-    }
-  }, [modalVisible, defaultYear]);
+  const uniqueTracks = useMemo(
+    () => [...new Set(catalog.map((c) => c.track))],
+    [catalog]
+  );
 
-  const filteredCatalog = useMemo(() => {
-    const q = query.trim().toLowerCase();
+  const coursesInTrack = useMemo(() => {
+    if (!selectedTrack) return [];
     return catalog.filter(
-      (item) =>
-        !courses.includes(item.name) &&
-        (q === '' || item.name.toLowerCase().includes(q))
+      (c) => c.track === selectedTrack && !courses.includes(c.subject)
+    );
+  }, [catalog, selectedTrack, courses]);
+
+  const searchResults = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return [];
+    return catalog.filter(
+      (c) => !courses.includes(c.subject) && c.subject.toLowerCase().includes(q)
     );
   }, [catalog, courses, query]);
 
   const openModal = () => {
     setQuery('');
-    setSelectedCourse(null);
+    setSelectedTrack(null);
     setModalVisible(true);
   };
 
@@ -77,21 +72,113 @@ export function MyCompletedCoursesSection({
     if (isAddingCourse) return;
     setModalVisible(false);
     setQuery('');
-    setSelectedCourse(null);
+    setSelectedTrack(null);
   };
 
-  const handlePickCourse = (item: CourseCatalogItem) => {
-    setSelectedCourse(item);
-    setSelectedYear(defaultYear);
-    setSelectedSemester(1);
-  };
-
-  const handleConfirmAdd = async () => {
-    if (!selectedCourse || isAddingCourse) return;
-    const ok = await onAddCourse(selectedCourse, selectedYear, selectedSemester);
+  const handlePickCourse = (course: HansungCourse) => {
+    const ok = onAddCourse(course.subject);
     if (ok) {
       closeModal();
     }
+  };
+
+  const renderBody = () => {
+    if (query.trim() !== '') {
+      if (searchResults.length === 0) {
+        return (
+          <View style={styles.emptyList}>
+            <Text style={styles.emptyText}>검색 결과가 없습니다.</Text>
+          </View>
+        );
+      }
+      return (
+        <FlatList
+          data={searchResults}
+          keyExtractor={(item) => `${item.track}-${item.subject}`}
+          style={styles.list}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          renderItem={({ item }) => (
+            <Pressable
+              style={({ pressed }) => [styles.listRow, pressed && styles.listRowPressed]}
+              onPress={() => handlePickCourse(item)}
+            >
+              <Text style={styles.listRowText} numberOfLines={1}>
+                {item.subject}
+              </Text>
+              <View style={styles.listRowRight}>
+                <Text style={styles.creditText}>{item.credit}학점</Text>
+                <Ionicons name="chevron-forward" size={18} color={colors.textHint} />
+              </View>
+            </Pressable>
+          )}
+        />
+      );
+    }
+
+    if (selectedTrack !== null) {
+      return (
+        <>
+          <Pressable
+            style={({ pressed }) => [styles.backRow, pressed && styles.listRowPressed]}
+            onPress={() => setSelectedTrack(null)}
+          >
+            <Ionicons name="chevron-back" size={20} color={colors.primary} />
+            <Text style={styles.backRowText} numberOfLines={1}>
+              {selectedTrack}
+            </Text>
+          </Pressable>
+          {coursesInTrack.length === 0 ? (
+            <View style={styles.emptyList}>
+              <Text style={styles.emptyText}>추가할 수 있는 과목이 없습니다.</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={coursesInTrack}
+              keyExtractor={(item) => `${item.track}-${item.subject}`}
+              style={styles.list}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+              renderItem={({ item }) => (
+                <Pressable
+                  style={({ pressed }) => [styles.listRow, pressed && styles.listRowPressed]}
+                  onPress={() => handlePickCourse(item)}
+                >
+                  <Text style={styles.listRowText} numberOfLines={1}>
+                    {item.subject}
+                  </Text>
+                  <View style={styles.listRowRight}>
+                    <Text style={styles.creditText}>{item.credit}학점</Text>
+                    <Ionicons name="chevron-forward" size={18} color={colors.textHint} />
+                  </View>
+                </Pressable>
+              )}
+            />
+          )}
+        </>
+      );
+    }
+
+    return (
+      <FlatList
+        data={uniqueTracks}
+        keyExtractor={(item) => item}
+        style={styles.list}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        renderItem={({ item }) => (
+          <Pressable
+            style={({ pressed }) => [styles.listRow, pressed && styles.listRowPressed]}
+            onPress={() => setSelectedTrack(item)}
+          >
+            <Text style={styles.listRowText} numberOfLines={1}>
+              {item}
+            </Text>
+            <Ionicons name="chevron-forward" size={18} color={colors.textHint} />
+          </Pressable>
+        )}
+      />
+    );
   };
 
   return (
@@ -165,124 +252,22 @@ export function MyCompletedCoursesSection({
                 </Pressable>
               </View>
 
-              {selectedCourse ? (
-                <>
-                  <Text style={styles.selectedCourseName}>{selectedCourse.name}</Text>
+              <TextInput
+                style={styles.search}
+                placeholder="과목명 검색"
+                placeholderTextColor={colors.textHint}
+                value={query}
+                onChangeText={(text) => {
+                  setQuery(text);
+                  if (text.trim() !== '' && selectedTrack !== null) {
+                    setSelectedTrack(null);
+                  }
+                }}
+                autoCorrect={false}
+                autoCapitalize="none"
+              />
 
-                  <Text style={styles.fieldLabel}>이수 학년</Text>
-                  <View style={styles.optionRow}>
-                    {YEAR_OPTIONS.map((year) => (
-                      <Pressable
-                        key={year}
-                        disabled={isAddingCourse}
-                        onPress={() => setSelectedYear(year)}
-                        style={[
-                          styles.optionChip,
-                          selectedYear === year && styles.optionChipActive,
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.optionChipText,
-                            selectedYear === year && styles.optionChipTextActive,
-                          ]}
-                        >
-                          {year}학년
-                        </Text>
-                      </Pressable>
-                    ))}
-                  </View>
-
-                  <Text style={styles.fieldLabel}>이수 학기</Text>
-                  <View style={styles.optionRow}>
-                    {SEMESTER_OPTIONS.map((semester) => (
-                      <Pressable
-                        key={semester}
-                        disabled={isAddingCourse}
-                        onPress={() => setSelectedSemester(semester)}
-                        style={[
-                          styles.optionChip,
-                          selectedSemester === semester && styles.optionChipActive,
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.optionChipText,
-                            selectedSemester === semester && styles.optionChipTextActive,
-                          ]}
-                        >
-                          {semester}학기
-                        </Text>
-                      </Pressable>
-                    ))}
-                  </View>
-
-                  <View style={styles.confirmRow}>
-                    <Pressable
-                      style={[styles.backButton, isAddingCourse && styles.buttonDisabled]}
-                      onPress={() => setSelectedCourse(null)}
-                      disabled={isAddingCourse}
-                    >
-                      <Text style={styles.backButtonText}>뒤로</Text>
-                    </Pressable>
-                    <Pressable
-                      style={[styles.confirmButton, isAddingCourse && styles.buttonDisabled]}
-                      onPress={handleConfirmAdd}
-                      disabled={isAddingCourse}
-                    >
-                      {isAddingCourse ? (
-                        <ActivityIndicator color={colors.white} size="small" />
-                      ) : (
-                        <Text style={styles.confirmButtonText}>추가</Text>
-                      )}
-                    </Pressable>
-                  </View>
-                </>
-              ) : (
-                <>
-                  <TextInput
-                    style={styles.search}
-                    placeholder="과목명 검색"
-                    placeholderTextColor={colors.textHint}
-                    value={query}
-                    onChangeText={setQuery}
-                    autoCorrect={false}
-                    autoCapitalize="none"
-                  />
-
-                  {filteredCatalog.length === 0 ? (
-                    <View style={styles.emptyList}>
-                      <Text style={styles.emptyText}>
-                        {query.trim()
-                          ? '검색 결과가 없습니다.'
-                          : catalog.length === 0
-                            ? '추천 결과를 불러온 후 과목을 추가할 수 있습니다.'
-                            : '추가할 수 있는 과목이 없습니다.'}
-                      </Text>
-                    </View>
-                  ) : (
-                    <FlatList
-                      data={filteredCatalog}
-                      keyExtractor={(item) => String(item.subjectId)}
-                      style={styles.list}
-                      keyboardShouldPersistTaps="handled"
-                      showsVerticalScrollIndicator={false}
-                      renderItem={({ item }) => (
-                        <Pressable
-                          style={({ pressed }) => [
-                            styles.listRow,
-                            pressed && styles.listRowPressed,
-                          ]}
-                          onPress={() => handlePickCourse(item)}
-                        >
-                          <Text style={styles.listRowText}>{item.name}</Text>
-                          <Ionicons name="chevron-forward" size={18} color={colors.textHint} />
-                        </Pressable>
-                      )}
-                    />
-                  )}
-                </>
-              )}
+              {renderBody()}
             </View>
           </KeyboardAvoidingView>
         </View>
@@ -487,9 +472,34 @@ const styles = StyleSheet.create({
     backgroundColor: colors.inputSurface,
   },
   listRowText: {
-    fontSize: 16,
+    flex: 1,
+    fontSize: 15,
     color: colors.textPrimary,
     fontWeight: '500',
+    marginRight: 8,
+  },
+  listRowRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  creditText: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    fontWeight: '500',
+  },
+  backRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    marginBottom: 4,
+    gap: 4,
+  },
+  backRowText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.primary,
+    flex: 1,
   },
   emptyList: {
     paddingVertical: 32,

@@ -5,24 +5,11 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 
 import { AuthApiError } from '../api/authApi';
 import {
-  addCompletedCourse as addCompletedCourseApi,
-  deleteCompletedCourse as deleteCompletedCourseApi,
-} from '../api/completedCoursesApi';
-import { useOnboardingStore } from '../stores/onboardingStore';
-import { useProfileStore } from '../stores/profileStore';
-import { useRecommendStore } from '../stores/recommendStore';
-import { useAuthStore } from '../stores/authStore';
-import { MOCK_RECOMMENDATION_HISTORY } from '../data/mockMyPageData';
+  MOCK_RECOMMENDATION_HISTORY,
+} from '../data/mockMyPageData';
 import type { RecommendationHistoryItem } from '../data/mockMyPageData';
-import {
-  INTEREST_ID_MAP,
-  DEV_FIELD_ID_MAP,
-  COMPANY_TYPE_ID_MAP,
-  WORK_VALUE_ID_MAP,
-} from '../pages/onboarding/data/idMappings';
-import { buildCourseCatalog, resolveSubjectId } from '../utils/buildCourseCatalog';
-import type { CourseCatalogItem } from '../utils/buildCourseCatalog';
-import type { RootStackParamList } from '../navigation/RootNavigator';
+import { hansungCourseData } from '../data/hansungCourseData';
+import type { HansungCourse } from '../data/hansungCourseData';
 
 const EMPTY_PLACEHOLDER = '선택 없음';
 const MAJOR_FALLBACK = 'IT공과대학';
@@ -78,13 +65,7 @@ export function useMyPageViewModel() {
   const completedCourses = useOnboardingStore((s) => s.completedCourses);
 
   const recommendationHistory: RecommendationHistoryItem[] = MOCK_RECOMMENDATION_HISTORY;
-
-  const courseCatalog = useMemo(
-    () => buildCourseCatalog(recommendResult, profile),
-    [recommendResult, profile]
-  );
-
-  const defaultCompletedYear = profile?.profile.currentYear ?? grade ?? 1;
+  const courseCatalog: HansungCourse[] = hansungCourseData;
 
   const interestsLine =
     interests.length > 0 ? interests.join(', ') : EMPTY_PLACEHOLDER;
