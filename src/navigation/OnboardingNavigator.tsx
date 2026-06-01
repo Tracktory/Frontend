@@ -11,7 +11,6 @@ import { ExperiencedFieldPage } from '@/src/pages/onboarding/ExperiencedFieldPag
 import { InterestSelectPage } from '@/src/pages/onboarding/InterestSelectPage';
 import { OnboardingConfirmPage } from '@/src/pages/onboarding/OnboardingConfirmPage';
 import { TrackInputPage } from '@/src/pages/onboarding/TrackInputPage';
-import { RecommendLoadingPage } from '@/src/pages/recommendation/RecommendLoadingPage';
 
 export type OnboardingStackParamList = {
   Name: undefined;
@@ -24,7 +23,6 @@ export type OnboardingStackParamList = {
   EmploymentPreference: undefined;
   GoalSelect: undefined;
   OnboardingConfirm: undefined;
-  RecommendLoading: undefined;
 };
 
 const Stack = createStackNavigator<OnboardingStackParamList>();
@@ -47,7 +45,6 @@ export function OnboardingNavigator() {
       <Stack.Screen name="EmploymentPreference" component={EmploymentPreferencePage} />
       <Stack.Screen name="GoalSelect" component={ExperiencedFieldPage} />
       <Stack.Screen name="OnboardingConfirm" component={OnboardingConfirmPage} />
-      <Stack.Screen name="RecommendLoading" component={RecommendLoadingPage} />
     </Stack.Navigator>
   );
 }

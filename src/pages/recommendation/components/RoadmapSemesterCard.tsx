@@ -82,23 +82,41 @@ export function RoadmapSemesterCard({ step, completedCourses, onPressCourse }: R
               onPress={() => onPressCourse(course.id)}
               accessibilityLabel={`${course.name} 상세 보기`}
             >
-              <View style={[styles.dot, { backgroundColor: completed ? colors.textHint : stageColor }]} />
+              <View
+                style={[
+                  styles.dot,
+                  { backgroundColor: completed ? colors.textHint : stageColor },
+                ]}
+              />
               <View style={styles.courseNameWrap}>
-                <Text style={[styles.courseName, completed && styles.courseNameCompleted]}>
+                <Text
+                  style={[styles.courseName, completed && styles.courseNameCompleted]}
+                  numberOfLines={2}
+                >
                   {course.name}
                 </Text>
-                {unmetPrereq && (
-                  <Text style={styles.prereqWarning}>△ 선수과목 미이수</Text>
-                )}
+                <View style={styles.prereqSlot}>
+                  <Text
+                    style={[
+                      styles.prereqStatus,
+                      unmetPrereq ? styles.prereqWarning : styles.prereqStatusHidden,
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {unmetPrereq ? '△ 선수과목 미이수' : '\u00a0'}
+                  </Text>
+                </View>
               </View>
-              <Text style={[styles.courseCredits, completed && styles.textMuted]}>
-                {course.credits}학점
-              </Text>
-              <Ionicons
-                name="chevron-forward"
-                size={14}
-                color={completed ? colors.textHint : colors.textSecondary}
-              />
+              <View style={styles.courseMeta}>
+                <Text style={[styles.courseCredits, completed && styles.textMuted]}>
+                  {course.credits}학점
+                </Text>
+                <Ionicons
+                  name="chevron-forward"
+                  size={14}
+                  color={completed ? colors.textHint : colors.textSecondary}
+                />
+              </View>
             </Pressable>
           );
         })}
@@ -108,6 +126,8 @@ export function RoadmapSemesterCard({ step, completedCourses, onPressCourse }: R
 }
 
 const DOT_SIZE = 8;
+const PREREQ_LINE_HEIGHT = 16;
+const COURSE_ROW_MIN_HEIGHT = 56;
 
 const styles = StyleSheet.create({
   card: {
@@ -175,9 +195,10 @@ const styles = StyleSheet.create({
   },
   courseRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 10,
     paddingVertical: 11,
+    minHeight: COURSE_ROW_MIN_HEIGHT,
   },
   courseRowBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -190,12 +211,15 @@ const styles = StyleSheet.create({
     width: DOT_SIZE,
     height: DOT_SIZE,
     borderRadius: DOT_SIZE / 2,
+    marginTop: 5,
   },
   courseNameWrap: {
     flex: 1,
+    minHeight: 20 + 2 + PREREQ_LINE_HEIGHT,
   },
   courseName: {
     fontSize: 14,
+    lineHeight: 20,
     fontWeight: '500',
     color: colors.textPrimary,
   },
@@ -203,11 +227,27 @@ const styles = StyleSheet.create({
     color: colors.textHint,
     textDecorationLine: 'line-through',
   },
-  prereqWarning: {
+  prereqSlot: {
+    height: PREREQ_LINE_HEIGHT,
     marginTop: 2,
+    justifyContent: 'center',
+  },
+  prereqStatus: {
     fontSize: 11,
+    lineHeight: PREREQ_LINE_HEIGHT,
+  },
+  prereqWarning: {
     color: colors.warningText,
     fontWeight: '500',
+  },
+  prereqStatusHidden: {
+    opacity: 0,
+  },
+  courseMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 3,
   },
   courseCredits: {
     fontSize: 13,

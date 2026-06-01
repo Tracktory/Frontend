@@ -19,6 +19,7 @@ import {
 } from '../pages/onboarding/data/idMappings';
 import type { OnboardingStackParamList } from '../navigation/OnboardingNavigator';
 import type { RootStackParamList } from '../navigation/RootNavigator';
+import { resetToRecommendLoading } from '../utils/navigateToRecommendLoading';
 
 type Navigation = StackNavigationProp<OnboardingStackParamList, 'OnboardingConfirm'>;
 
@@ -113,7 +114,7 @@ export function useOnboardingConfirmViewModel(navigation: Navigation) {
     try {
       await submitOnboarding(body, accessToken);
       setUserName(name.trim());
-      navigation.navigate('RecommendLoading');
+      resetToRecommendLoading(rootNavigation);
     } catch (err) {
       if (err instanceof AuthApiError) {
         switch (err.code) {
@@ -122,7 +123,7 @@ export function useOnboardingConfirmViewModel(navigation: Navigation) {
             rootNavigation.reset({ index: 0, routes: [{ name: 'Auth' }] });
             break;
           case 'ONBOARDING_ALREADY_COMPLETED':
-            navigation.navigate('RecommendLoading');
+            resetToRecommendLoading(rootNavigation);
             break;
           case 'VALIDATION_FAILED':
             Alert.alert('입력 오류', '입력 내용을 다시 확인해주세요.');

@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  ActivityIndicator,
   Alert,
   Platform,
   Pressable,
@@ -82,28 +81,23 @@ export function RecommendResultPage() {
             <Pressable
               style={styles.iconBtn}
               onPress={vm.refresh}
-              disabled={vm.isLoading}
               hitSlop={8}
               accessibilityLabel="새로고침"
             >
-              {vm.isLoading ? (
-                <ActivityIndicator size="small" color={colors.textSecondary} />
-              ) : (
-                <Ionicons name="refresh" size={20} color={colors.textSecondary} />
-              )}
+              <Ionicons name="refresh" size={20} color={colors.textSecondary} />
             </Pressable>
             {/* PDF 저장 */}
             <Pressable
               style={styles.iconBtn}
               onPress={handleSavePdf}
-              disabled={vm.isLoading || vm.isError}
+              disabled={vm.isError}
               hitSlop={8}
               accessibilityLabel="PDF 저장"
             >
               <Ionicons
                 name="download-outline"
                 size={20}
-                color={vm.isLoading || vm.isError ? colors.textHint : colors.textSecondary}
+                color={vm.isError ? colors.textHint : colors.textSecondary}
               />
             </Pressable>
           </View>
@@ -127,11 +121,7 @@ export function RecommendResultPage() {
 
             {vm.activeTab === 'job' && (
               <>
-                {vm.isLoading ? (
-                  <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color={colors.primary} />
-                  </View>
-                ) : vm.hasJobData ? (
+                {vm.hasJobData ? (
                   <ScrollView
                     style={styles.scrollArea}
                     contentContainerStyle={styles.listContent}
@@ -161,11 +151,7 @@ export function RecommendResultPage() {
 
             {vm.activeTab === 'track' && (
               <>
-                {vm.isLoading ? (
-                  <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color={colors.primary} />
-                  </View>
-                ) : vm.trackRecommend ? (
+                {vm.trackRecommend ? (
                   <ScrollView
                     style={styles.scrollArea}
                     contentContainerStyle={styles.trackScrollContent}
@@ -185,7 +171,7 @@ export function RecommendResultPage() {
               >
                 <RoadmapPanel
                   roadmap={vm.roadmap}
-                  isLoading={vm.isLoading}
+                  isLoading={false}
                   isError={vm.isError}
                   onRetry={vm.refresh}
                 />
@@ -254,11 +240,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: colors.white,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   scrollArea: {
     flex: 1,

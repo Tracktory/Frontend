@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../styles/colors';
 import { useChatViewModel } from '../../hooks/useChatViewModel';
 import { ChatMessageBubble } from './ChatMessageBubble';
+import { ChatTypingBubble } from './ChatTypingBubble';
 
 interface ChatContentProps {
   /** 온보딩 미완료 상태이면 true — 입력/칩 차단 */
@@ -39,12 +40,12 @@ export function ChatContent({
   const vm = useChatViewModel();
   const scrollRef = useRef<ScrollView>(null);
 
-  // 메시지 추가될 때마다 맨 아래로 스크롤
+  // 메시지·로딩 말풍선 추가 시 맨 아래로 스크롤
   useEffect(() => {
     setTimeout(() => {
       scrollRef.current?.scrollToEnd({ animated: true });
     }, 50);
-  }, [vm.messages]);
+  }, [vm.messages, vm.isTyping]);
 
   const handleSend = () => {
     if (onboardingRequired) return;
@@ -128,6 +129,7 @@ export function ChatContent({
               onFeedback={onboardingRequired ? undefined : vm.handleFeedback}
             />
           ))}
+          {vm.isTyping && <ChatTypingBubble />}
         </ScrollView>
 
         {/* 입력 영역 */}
