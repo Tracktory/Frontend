@@ -14,8 +14,8 @@ import {
   WORK_VALUE_ID_MAP,
   TECH_STACK_ID_MAP,
   DEPARTMENT_ID_MAP,
-  TRACK_ID_MAP,
-  TRACK_TO_DEPARTMENT_ID_MAP,
+  resolveDepartmentIdForTrack,
+  resolveTrackId,
 } from '../pages/onboarding/data/idMappings';
 import type { OnboardingStackParamList } from '../navigation/OnboardingNavigator';
 import type { RootStackParamList } from '../navigation/RootNavigator';
@@ -30,6 +30,7 @@ export function useOnboardingConfirmViewModel(navigation: Navigation) {
   const rootNavigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   const admissionYear = useOnboardingStore((s) => s.admissionYear);
+  const name = useOnboardingStore((s) => s.name);
   const grade = useOnboardingStore((s) => s.grade);
   const affiliation = useOnboardingStore((s) => s.affiliation);
   const college = useOnboardingStore((s) => s.college);
@@ -43,7 +44,7 @@ export function useOnboardingConfirmViewModel(navigation: Navigation) {
   const experiencedFieldInput = useOnboardingStore((s) => s.experiencedFieldInput);
 
   const accessToken = useAuthStore((s) => s.accessToken);
-  const userName = useAuthStore((s) => s.userName);
+  const setUserName = useAuthStore((s) => s.setUserName);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -67,17 +68,22 @@ export function useOnboardingConfirmViewModel(navigation: Navigation) {
       return;
     }
 
+    if (!name.trim()) {
+      Alert.alert('입력 오류', '이름을 입력해주세요.');
+      return;
+    }
+
     const tracks: { trackId: number; trackOrder: 1 | 2 }[] = [];
     if (affiliation === '1학년' && college) {
       const deptId = DEPARTMENT_ID_MAP[college];
       if (deptId) tracks.push({ trackId: deptId, trackOrder: 1 });
     } else {
       if (track1) {
-        const id = TRACK_ID_MAP[track1];
+        const id = resolveTrackId(track1);
         if (id) tracks.push({ trackId: id, trackOrder: 1 });
       }
       if (track2) {
-        const id = TRACK_ID_MAP[track2];
+        const id = resolveTrackId(track2);
         if (id) tracks.push({ trackId: id, trackOrder: 2 });
       }
     }
@@ -85,12 +91,12 @@ export function useOnboardingConfirmViewModel(navigation: Navigation) {
     const departmentId =
       affiliation === '1학년'
         ? (college ? (DEPARTMENT_ID_MAP[college] ?? 0) : 0)
-        : (track1 ? (TRACK_TO_DEPARTMENT_ID_MAP[track1] ?? 0) : 0);
+        : (track1 ? (resolveDepartmentIdForTrack(track1) ?? 0) : 0);
 
     const body = {
       profile: {
         currentYear: grade ?? 1,
-        name: userName ?? '',
+        name: name.trim(),
         departmentId,
       },
       tracks,
@@ -106,6 +112,7 @@ export function useOnboardingConfirmViewModel(navigation: Navigation) {
     setIsSubmitting(true);
     try {
       await submitOnboarding(body, accessToken);
+      setUserName(name.trim());
       navigation.navigate('RecommendLoading');
     } catch (err) {
       if (err instanceof AuthApiError) {
@@ -132,6 +139,7 @@ export function useOnboardingConfirmViewModel(navigation: Navigation) {
   };
 
   return {
+    name,
     admissionYearLabel,
     affiliation,
     college,

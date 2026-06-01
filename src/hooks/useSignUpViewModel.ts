@@ -7,11 +7,6 @@ import type { AuthStackParamList } from '../navigation/AuthNavigator';
 
 type AuthNavigation = StackNavigationProp<AuthStackParamList, 'SignUp'>;
 
-function validateUserName(value: string): string {
-  if (!value.trim()) return '이름을 입력해주세요.';
-  return '';
-}
-
 function validateEmail(value: string): string {
   if (!value.trim()) return '이메일을 입력해주세요.';
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return '올바른 이메일 형식이 아닙니다.';
@@ -33,12 +28,10 @@ function validateConfirmPassword(password: string, confirm: string): string {
 }
 
 export function useSignUpViewModel(navigation: AuthNavigation) {
-  const [userName, setUserName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const [userNameError, setUserNameError] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
@@ -46,31 +39,27 @@ export function useSignUpViewModel(navigation: AuthNavigation) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isValid =
-    userName.trim().length > 0 &&
     email.trim().length > 0 &&
     password.trim().length > 0 &&
     confirmPassword.trim().length > 0;
 
-  const handleUserNameBlur = () => setUserNameError(validateUserName(userName));
   const handleEmailBlur = () => setEmailError(validateEmail(email));
   const handlePasswordBlur = () => setPasswordError(validatePassword(password));
   const handleConfirmPasswordBlur = () =>
     setConfirmPasswordError(validateConfirmPassword(password, confirmPassword));
 
   const handleSignUp = async () => {
-    const uErr = validateUserName(userName);
     const eErr = validateEmail(email);
     const pErr = validatePassword(password);
     const cErr = validateConfirmPassword(password, confirmPassword);
-    setUserNameError(uErr);
     setEmailError(eErr);
     setPasswordError(pErr);
     setConfirmPasswordError(cErr);
-    if (uErr || eErr || pErr || cErr) return;
+    if (eErr || pErr || cErr) return;
 
     setIsSubmitting(true);
     try {
-      await signUp(userName, email, password);
+      await signUp(email, password);
       Alert.alert('회원가입 완료', '로그인 후 온보딩을 진행해주세요.', [
         {
           text: '확인',
@@ -102,24 +91,21 @@ export function useSignUpViewModel(navigation: AuthNavigation) {
   };
 
   return {
-    userName,
-    setUserName,
     email,
     setEmail,
     password,
     setPassword,
     confirmPassword,
     setConfirmPassword,
-    userNameError,
     emailError,
     passwordError,
     confirmPasswordError,
     isValid,
     isSubmitting,
-    handleUserNameBlur,
     handleEmailBlur,
     handlePasswordBlur,
     handleConfirmPasswordBlur,
     handleSignUp,
   };
 }
+

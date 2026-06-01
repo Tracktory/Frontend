@@ -42,27 +42,6 @@ export function SignUpPage({ navigation }: Props) {
         >
           {/* 입력 영역 */}
           <View style={styles.formArea}>
-            {/* 이름 */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>이름</Text>
-              <TextInput
-                style={[styles.input, vm.userNameError ? styles.inputError : null]}
-                placeholder="이름을 입력하세요"
-                placeholderTextColor={colors.textHint}
-                value={vm.userName}
-                onChangeText={vm.setUserName}
-                onBlur={vm.handleUserNameBlur}
-                autoCapitalize="none"
-                autoCorrect={false}
-                editable={!vm.isSubmitting}
-              />
-              <View style={styles.errorSlot}>
-                {vm.userNameError ? (
-                  <Text style={styles.errorText}>{vm.userNameError}</Text>
-                ) : null}
-              </View>
-            </View>
-
             {/* 이메일 */}
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>이메일</Text>

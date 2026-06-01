@@ -9,6 +9,7 @@ import {
 } from '../pages/onboarding/data/idMappings';
 
 export interface OnboardingHydrationPayload {
+  name: string;
   interests: string[];
   developmentFields: string[];
   preferredCompanyTypes: string[];
@@ -52,6 +53,7 @@ export function mapProfileToOnboarding(data: ProfileData): OnboardingHydrationPa
     currentYear === 1 ? '1학년' : currentYear > 1 ? '2학년이상' : null;
 
   return {
+    name: data.profile.name,
     interests: mapIdsToLabels(data.interests, ID_TO_INTEREST_LABEL),
     developmentFields: mapIdsToLabels(data.devFields, ID_TO_DEV_FIELD_LABEL),
     preferredCompanyTypes: mapIdsToLabels(data.companyTypes, ID_TO_COMPANY_TYPE_LABEL),

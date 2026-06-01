@@ -57,7 +57,6 @@ export async function login(
 }
 
 export async function signUp(
-  userName: string,
   email: string,
   password: string
 ): Promise<SignUpResponseData> {
@@ -66,7 +65,7 @@ export async function signUp(
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ userName, email, password }),
+    body: JSON.stringify({ email, password }),
   });
 
   const envelope: ApiEnvelope<SignUpResponseData> = await res.json();
