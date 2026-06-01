@@ -63,10 +63,6 @@ export function CourseDetailModal({ courseId, onClose }: CourseDetailModalProps)
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        {/* dim 배경 — 탭으로 닫기 */}
-        <Pressable style={styles.dim} onPress={onClose} accessibilityLabel="닫기" />
-
-        {/* Bottom sheet */}
         <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 20) }]}>
           {/* 핸들 */}
           <View style={styles.handle} />
@@ -157,10 +153,7 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     justifyContent: 'flex-end',
-  },
-  dim: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.35)',
+    backgroundColor: 'transparent',
   },
   sheet: {
     backgroundColor: colors.white,
