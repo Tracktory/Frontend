@@ -57,14 +57,15 @@ export async function deleteCompletedCourse(
   accessToken: string,
   subjectId: number
 ): Promise<DeleteCompletedCourseResponseData> {
-  const res = await fetch(`${BASE_URL}/api/v1/subjects/completed-courses`, {
-    method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-    },
-    body: JSON.stringify({ subjectId }),
-  });
+  const res = await fetch(
+    `${BASE_URL}/api/v1/subjects/completed-courses/${subjectId}`,
+    {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
 
   const envelope: ApiEnvelope<DeleteCompletedCourseResponseData> = await res.json();
 

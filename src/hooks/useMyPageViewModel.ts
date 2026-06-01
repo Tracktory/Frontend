@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
@@ -10,7 +10,6 @@ import {
 } from '../api/completedCoursesApi';
 import { useOnboardingStore } from '../stores/onboardingStore';
 import { useProfileStore } from '../stores/profileStore';
-import { useRecommendStore } from '../stores/recommendStore';
 import { useAuthStore } from '../stores/authStore';
 import { MOCK_RECOMMENDATION_HISTORY } from '../data/mockMyPageData';
 import type { RecommendationHistoryItem } from '../data/mockMyPageData';
@@ -25,7 +24,6 @@ import {
   resolveTrackId,
 } from '../pages/onboarding/data/idMappings';
 import { TECH_TAG_OPTIONS } from '../pages/onboarding/data/onboardingOptions';
-import { buildCourseCatalog, resolveSubjectId } from '../utils/buildCourseCatalog';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 
 const EMPTY_PLACEHOLDER = '선택 없음';
@@ -63,7 +61,6 @@ export function useMyPageViewModel() {
   const profile = useProfileStore((s) => s.profile);
   const loadProfile = useProfileStore((s) => s.loadProfile);
   const patchProfile = useProfileStore((s) => s.patchProfile);
-  const recommendResult = useRecommendStore((s) => s.result);
   const userName = useAuthStore((s) => s.userName);
   const accessToken = useAuthStore((s) => s.accessToken);
 
@@ -86,11 +83,6 @@ export function useMyPageViewModel() {
 
   const recommendationHistory: RecommendationHistoryItem[] = MOCK_RECOMMENDATION_HISTORY;
   const courseCatalog: HansungCourse[] = hansungCourseData;
-
-  const subjectIdCatalog = useMemo(
-    () => buildCourseCatalog(recommendResult, profile),
-    [recommendResult, profile]
-  );
 
   const defaultCompletedYear = profile?.profile.currentYear ?? grade ?? 1;
 
@@ -283,7 +275,7 @@ export function useMyPageViewModel() {
   };
 
   const removeCompletedCourse = async (name: string): Promise<void> => {
-    const subjectId = resolveSubjectId(name, profile, subjectIdCatalog);
+    const subjectId = profile?.completedSubjects.find((s) => s.name === name)?.subjectId;
     if (subjectId == null) {
       Alert.alert('알림', '과목 정보를 찾을 수 없습니다.');
       return;
