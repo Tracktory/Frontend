@@ -6,30 +6,38 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 
 import {
+  ALL_TRACK_OPTIONS,
   COMPANY_TYPE_OPTIONS,
   DEVELOPMENT_FIELD_OPTIONS,
   EMPLOYMENT_VALUE_OPTIONS,
   INTEREST_OPTIONS,
+  TECH_TAG_OPTIONS,
 } from '../../onboarding/data/onboardingOptions';
 import { colors } from '../../../styles/colors';
 
-type EditableSection = 'interests' | 'development' | 'employment';
+type EditableSection = 'tracks' | 'interests' | 'development' | 'experience' | 'employment';
 
 interface MyInfoEditModalProps {
   visible: boolean;
   section: EditableSection | null;
   isSaving?: boolean;
+  currentTrack1: string;
+  currentTrack2: string;
   currentInterests: string[];
   currentDevelopmentFields: string[];
+  currentExperiencedFields: string[];
   currentPreferredCompanyTypes: string[];
   currentEmploymentValues: string[];
   onClose: () => void;
+  onSaveTracks: (next: { track1: string; track2: string }) => Promise<boolean>;
   onSaveInterests: (next: string[]) => Promise<boolean>;
   onSaveDevelopmentFields: (next: string[]) => Promise<boolean>;
+  onSaveExperience: (next: string[]) => Promise<boolean>;
   onSaveEmployment: (next: {
     preferredCompanyTypes: string[];
     employmentValues: string[];
@@ -50,53 +58,117 @@ function toggleWithLimit(
   return [...prev, value];
 }
 
+function TrackPicker({
+  label,
+  value,
+  disabled,
+  onSelect,
+}: {
+  label: string;
+  value: string;
+  disabled: boolean;
+  onSelect: (track: string) => void;
+}) {
+  return (
+    <>
+      <Text style={styles.groupTitle}>{label}</Text>
+      <View style={styles.chipWrap}>
+        {ALL_TRACK_OPTIONS.map((option) => (
+          <Pressable
+            key={`${label}-${option}`}
+            disabled={disabled}
+            onPress={() => onSelect(value === option ? '' : option)}
+            style={[styles.chip, value === option && styles.chipActive]}
+          >
+            <Text style={[styles.chipText, value === option && styles.chipTextActive]}>
+              {option}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+    </>
+  );
+}
+
 export function MyInfoEditModal({
   visible,
   section,
   isSaving = false,
+  currentTrack1,
+  currentTrack2,
   currentInterests,
   currentDevelopmentFields,
+  currentExperiencedFields,
   currentPreferredCompanyTypes,
   currentEmploymentValues,
   onClose,
+  onSaveTracks,
   onSaveInterests,
   onSaveDevelopmentFields,
+  onSaveExperience,
   onSaveEmployment,
 }: MyInfoEditModalProps) {
+  const [draftTrack1, setDraftTrack1] = useState('');
+  const [draftTrack2, setDraftTrack2] = useState('');
   const [draftInterests, setDraftInterests] = useState<string[]>([]);
   const [draftDevelopmentFields, setDraftDevelopmentFields] = useState<string[]>([]);
+  const [draftExperienceInput, setDraftExperienceInput] = useState('');
+  const [draftExperienceTags, setDraftExperienceTags] = useState<string[]>([]);
   const [draftCompanyTypes, setDraftCompanyTypes] = useState<string[]>([]);
   const [draftEmploymentValues, setDraftEmploymentValues] = useState<string[]>([]);
 
   useEffect(() => {
     if (!visible) return;
+    setDraftTrack1(currentTrack1);
+    setDraftTrack2(currentTrack2);
     setDraftInterests(currentInterests);
     setDraftDevelopmentFields(currentDevelopmentFields);
+    setDraftExperienceTags(currentExperiencedFields);
+    setDraftExperienceInput('');
     setDraftCompanyTypes(currentPreferredCompanyTypes);
     setDraftEmploymentValues(currentEmploymentValues);
   }, [
     visible,
+    currentTrack1,
+    currentTrack2,
     currentInterests,
     currentDevelopmentFields,
+    currentExperiencedFields,
     currentPreferredCompanyTypes,
     currentEmploymentValues,
   ]);
 
   const sectionTitle = useMemo(() => {
+    if (section === 'tracks') return '트랙 정보 수정';
     if (section === 'interests') return '관심사 수정';
     if (section === 'development') return '흥미 개발 분야 수정';
+    if (section === 'experience') return '공부해본 분야 수정';
     if (section === 'employment') return '취업 선호도 수정';
     return '';
   }, [section]);
+
+  const draftExperienceAll = useMemo(() => {
+    const inputTags = draftExperienceInput
+      ? draftExperienceInput
+          .split(/[,，]/)
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : [];
+    return [...new Set([...draftExperienceTags, ...inputTags])];
+  }, [draftExperienceTags, draftExperienceInput]);
 
   const handleSave = async () => {
     if (isSaving) return;
 
     let ok = true;
-    if (section === 'interests') {
+    if (section === 'tracks') {
+      ok = await onSaveTracks({ track1: draftTrack1, track2: draftTrack2 });
+    } else if (section === 'interests') {
       ok = await onSaveInterests(draftInterests);
     } else if (section === 'development') {
       ok = await onSaveDevelopmentFields(draftDevelopmentFields);
+    } else if (section === 'experience') {
+      ok = await onSaveExperience(draftExperienceAll);
     } else if (section === 'employment') {
       ok = await onSaveEmployment({
         preferredCompanyTypes: draftCompanyTypes,
@@ -120,6 +192,25 @@ export function MyInfoEditModal({
           <Text style={styles.title}>{sectionTitle}</Text>
 
           <ScrollView showsVerticalScrollIndicator={false}>
+            {section === 'tracks' ? (
+              <>
+                <Text style={styles.helper}>1트랙은 필수, 2트랙은 선택입니다.</Text>
+                <TrackPicker
+                  label="1트랙 (주전공)"
+                  value={draftTrack1}
+                  disabled={isSaving}
+                  onSelect={setDraftTrack1}
+                />
+                <View style={styles.groupGap} />
+                <TrackPicker
+                  label="2트랙 (선택)"
+                  value={draftTrack2}
+                  disabled={isSaving}
+                  onSelect={setDraftTrack2}
+                />
+              </>
+            ) : null}
+
             {section === 'interests' ? (
               <>
                 <Text style={styles.helper}>최대 5개까지 선택할 수 있어요.</Text>
@@ -172,6 +263,44 @@ export function MyInfoEditModal({
                         style={[
                           styles.chipText,
                           draftDevelopmentFields.includes(option) && styles.chipTextActive,
+                        ]}
+                      >
+                        {option}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </>
+            ) : null}
+
+            {section === 'experience' ? (
+              <>
+                <Text style={styles.helper}>선택사항 · 자유 입력 또는 태그 선택</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="EX) Python, React, TypeScript"
+                  placeholderTextColor={colors.textHint}
+                  value={draftExperienceInput}
+                  onChangeText={setDraftExperienceInput}
+                  editable={!isSaving}
+                />
+                <View style={styles.chipWrap}>
+                  {TECH_TAG_OPTIONS.map((option) => (
+                    <Pressable
+                      key={option}
+                      disabled={isSaving}
+                      onPress={() =>
+                        setDraftExperienceTags((prev) => toggleWithLimit(prev, option))
+                      }
+                      style={[
+                        styles.chip,
+                        draftExperienceTags.includes(option) && styles.chipActive,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.chipText,
+                          draftExperienceTags.includes(option) && styles.chipTextActive,
                         ]}
                       >
                         {option}
@@ -306,6 +435,17 @@ const styles = StyleSheet.create({
   },
   groupGap: {
     marginTop: 14,
+  },
+  textInput: {
+    backgroundColor: colors.white,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 14,
+    color: colors.textPrimary,
+    marginBottom: 12,
   },
   chipWrap: {
     flexDirection: 'row',

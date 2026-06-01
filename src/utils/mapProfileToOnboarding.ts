@@ -35,8 +35,8 @@ function mapIdsToLabels(
 }
 
 /** studentId 앞 2자리 → 입학연도 (예: "19" → 2019) */
-export function admissionYearFromStudentId(studentId: string): number | null {
-  if (studentId.length < 2) return null;
+export function admissionYearFromStudentId(studentId: string | undefined): number | null {
+  if (!studentId || studentId.length < 2) return null;
   const yy = parseInt(studentId.slice(0, 2), 10);
   if (Number.isNaN(yy)) return null;
   return 2000 + yy;

@@ -38,7 +38,7 @@ export function useRecommendResultViewModel() {
     setIsLoading(true);
     setIsError(false);
     try {
-      const data = await fetchRecommendResult(accessToken);
+      const data = await fetchRecommendResult(accessToken, true);
       setResult(data);
       setRecommendResult(data);
     } catch (err) {

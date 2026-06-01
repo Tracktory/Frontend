@@ -10,7 +10,7 @@ import { MyCompletedCoursesSection } from './components/MyCompletedCoursesSectio
 import { MyRecommendationHistoryCard } from './components/MyRecommendationHistoryCard';
 import { MyInfoEditModal } from './components/MyInfoEditModal';
 
-type EditableSection = 'interests' | 'development' | 'employment';
+type EditableSection = 'tracks' | 'interests' | 'development' | 'experience' | 'employment';
 
 export function MyPage() {
   const vm = useMyPageViewModel();
@@ -32,11 +32,15 @@ export function MyPage() {
         />
 
         <MyOnboardingInfoCard
+          tracksLine={vm.tracksLine}
           interestsLine={vm.interestsLine}
           developmentLine={vm.developmentLine}
+          experiencedLine={vm.experiencedLine}
           employmentLine={vm.employmentLine}
+          onEditTracks={() => setEditingSection('tracks')}
           onEditInterests={() => setEditingSection('interests')}
           onEditDevelopment={() => setEditingSection('development')}
+          onEditExperience={() => setEditingSection('experience')}
           onEditEmployment={() => setEditingSection('employment')}
         />
 
@@ -58,13 +62,18 @@ export function MyPage() {
           visible={editingSection != null}
           section={editingSection}
           isSaving={vm.isSaving}
+          currentTrack1={vm.track1}
+          currentTrack2={vm.track2}
           currentInterests={vm.interests}
           currentDevelopmentFields={vm.developmentFields}
+          currentExperiencedFields={vm.experiencedFields}
           currentPreferredCompanyTypes={vm.preferredCompanyTypes}
           currentEmploymentValues={vm.employmentValues}
           onClose={() => setEditingSection(null)}
+          onSaveTracks={vm.updateTracks}
           onSaveInterests={vm.updateInterests}
           onSaveDevelopmentFields={vm.updateDevelopmentFields}
+          onSaveExperience={vm.updateExperience}
           onSaveEmployment={vm.updateEmployment}
         />
       </ScrollView>

@@ -21,7 +21,10 @@ import {
   DEV_FIELD_ID_MAP,
   COMPANY_TYPE_ID_MAP,
   WORK_VALUE_ID_MAP,
+  TECH_STACK_ID_MAP,
+  resolveTrackId,
 } from '../pages/onboarding/data/idMappings';
+import { TECH_TAG_OPTIONS } from '../pages/onboarding/data/onboardingOptions';
 import { buildCourseCatalog, resolveSubjectId } from '../utils/buildCourseCatalog';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 
@@ -75,6 +78,9 @@ export function useMyPageViewModel() {
   const developmentFields = useOnboardingStore((s) => s.developmentFields);
   const preferredCompanyTypes = useOnboardingStore((s) => s.preferredCompanyTypes);
   const employmentValues = useOnboardingStore((s) => s.employmentValues);
+  const track1 = useOnboardingStore((s) => s.track1);
+  const track2 = useOnboardingStore((s) => s.track2);
+  const experiencedFields = useOnboardingStore((s) => s.experiencedFields);
 
   const completedCourses = useOnboardingStore((s) => s.completedCourses);
 
@@ -88,6 +94,10 @@ export function useMyPageViewModel() {
 
   const defaultCompletedYear = profile?.profile.currentYear ?? grade ?? 1;
 
+  const sortedTracks = profile?.tracks
+    ? [...profile.tracks].sort((a, b) => a.trackOrder - b.trackOrder)
+    : [];
+
   const interestsLine =
     interests.length > 0 ? interests.join(', ') : EMPTY_PLACEHOLDER;
   const developmentLine =
@@ -99,14 +109,21 @@ export function useMyPageViewModel() {
     employmentValues
   );
 
+  const tracksLine =
+    sortedTracks.length > 0
+      ? sortedTracks.map((t) => t.name).join(' · ')
+      : [track1, track2].filter(Boolean).join(' · ') || EMPTY_PLACEHOLDER;
+
+  const experiencedLine =
+    experiencedFields.length > 0
+      ? experiencedFields.join(', ')
+      : EMPTY_PLACEHOLDER;
+
   const admissionBadge = formatAdmissionBadge(admissionYear);
 
   const displayName = profile?.profile.name ?? userName ?? '-';
   const profileInitial = displayName.length > 0 ? displayName.slice(-1) : '-';
 
-  const sortedTracks = profile?.tracks
-    ? [...profile.tracks].sort((a, b) => a.trackOrder - b.trackOrder)
-    : [];
   const majorLine =
     sortedTracks.length > 0
       ? sortedTracks.map((t) => t.name).join(' · ')
@@ -200,6 +217,36 @@ export function useMyPageViewModel() {
     });
   };
 
+  const updateTracks = async (next: {
+    track1: string;
+    track2: string;
+  }): Promise<boolean> => {
+    const tracks: { trackId: number; trackOrder: 1 | 2 }[] = [];
+    const id1 = resolveTrackId(next.track1.trim());
+    if (id1) tracks.push({ trackId: id1, trackOrder: 1 });
+    const id2 = resolveTrackId(next.track2.trim());
+    if (id2) tracks.push({ trackId: id2, trackOrder: 2 });
+    if (tracks.length === 0) {
+      Alert.alert('입력 오류', '1트랙을 선택해주세요.');
+      return false;
+    }
+    return runPatch({ tracks });
+  };
+
+  const updateExperience = async (next: string[]): Promise<boolean> => {
+    const unique = [...new Set(next.map((s) => s.trim()).filter(Boolean))];
+    const catalogTags = unique.filter((t) =>
+      (TECH_TAG_OPTIONS as readonly string[]).includes(t)
+    );
+    const customTags = unique.filter(
+      (t) => !(TECH_TAG_OPTIONS as readonly string[]).includes(t)
+    );
+    return runPatch({
+      techStackIds: toIds(catalogTags, TECH_STACK_ID_MAP),
+      techStackCustoms: customTags,
+    });
+  };
+
   const addCompletedCourse = async (
     course: HansungCourse,
     year: number,
@@ -273,12 +320,17 @@ export function useMyPageViewModel() {
     profileInitial,
     majorLine,
     admissionBadge,
+    track1,
+    track2,
     interests,
     developmentFields,
     preferredCompanyTypes,
     employmentValues,
+    experiencedFields,
+    tracksLine,
     interestsLine,
     developmentLine,
+    experiencedLine,
     employmentLine,
     completedCourses,
     courseCatalog,
@@ -287,8 +339,10 @@ export function useMyPageViewModel() {
     isSaving,
     isAddingCourse,
     removingCourseName,
+    updateTracks,
     updateInterests,
     updateDevelopmentFields,
+    updateExperience,
     updateEmployment,
     addCompletedCourse,
     removeCompletedCourse,

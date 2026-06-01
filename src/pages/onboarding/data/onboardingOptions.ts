@@ -132,6 +132,10 @@ export const COLLEGE_TRACK_MAP: Record<string, string[]> = {
 
 export const COLLEGE_OPTIONS = Object.keys(COLLEGE_TRACK_MAP);
 
+export const ALL_TRACK_OPTIONS = [
+  ...new Set(Object.values(COLLEGE_TRACK_MAP).flat()),
+].sort((a, b) => a.localeCompare(b, 'ko'));
+
 /** · / ㆍ 등 표기 차이 통일 — hansungCourseData 와 ID 조회 시 사용 */
 export function normalizeTrackName(name: string): string {
   return name.replace(/·/g, 'ㆍ').replace(/VMD·/g, 'VMDㆍ');
