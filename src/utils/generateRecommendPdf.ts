@@ -98,7 +98,7 @@ function buildTrackPage(track: TrackRecommendPayload): string {
       <div class="card card-muted">
         <div class="card-header">
           <span class="card-title">${escapeHtml(t.name)}</span>
-          ${t.score != null ? `<span class="match-score">${t.score}</span>` : ''}
+          ${t.score != null ? `<span class="match-score">시너지 ${t.score}</span>` : ''}
         </div>
         ${t.reasoning ? `<p class="card-desc">${escapeHtml(t.reasoning)}</p>` : ''}
       </div>`

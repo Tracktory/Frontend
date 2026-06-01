@@ -16,7 +16,7 @@ export function SecondaryTrackCard({ track }: SecondaryTrackCardProps) {
     <View style={styles.card}>
       <View style={styles.headerRow}>
         <Text style={styles.title}>{track.name}</Text>
-        {hasScore ? <Text style={styles.score}>{track.score}</Text> : null}
+        {hasScore ? <Text style={styles.score}>시너지 {track.score}</Text> : null}
       </View>
       {hasReasoning ? (
         <Text style={styles.reasoning}>{track.reasoning}</Text>
