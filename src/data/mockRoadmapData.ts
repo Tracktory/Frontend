@@ -24,6 +24,8 @@ export interface SemesterGuide {
   afterNextSemester: string[];
 }
 
+export type SemesterTiming = 'past' | 'current' | 'future';
+
 /** 학기별 과목 (새 UI용) */
 export interface SemesterCourse {
   id: string;
@@ -33,6 +35,9 @@ export interface SemesterCourse {
   credits: number;
   /** AI 추천 점수 (0~1). API 연동 시 채워짐, mock에서는 undefined */
   score?: number;
+  /** 이수 여부 (API items[].completed) */
+  completed?: boolean;
+  timing?: SemesterTiming;
   /** 선수과목 목록. API 연동 시 채워짐, mock에서는 undefined */
   prerequisites?: { name: string; completed: boolean; strength: string }[];
 }
@@ -41,6 +46,8 @@ export interface SemesterCourse {
 export interface SemesterStep {
   year: 1 | 2 | 3 | 4;
   semester: 1 | 2;
+  /** past / current / future */
+  timing: SemesterTiming;
   /** '기초' | '핵심' | '응용' | '산학' */
   stageLabel: string;
   /** STAGE_COLORS 매핑용 (1=기초, 2=핵심, 3=응용, 4=산학) */
@@ -68,10 +75,10 @@ export const MOCK_ROADMAP: RoadmapPayload = {
   connectionMessage: 'IT/인터넷·AI/데이터 → 백엔드 개발자 → 데이터사이언스·정보보안 트랙',
   semesterSteps: [
     {
-      year: 1, semester: 1, stageLabel: '기초', stageNumber: 1, totalCredits: 18,
+      year: 1, semester: 1, timing: 'past', stageLabel: '기초', stageNumber: 1, totalCredits: 18,
       courses: [
-        { id: 's1-1', name: '자료구조개론', description: '자료구조의 기초 개념을 학습합니다', credits: 3 },
-        { id: 's1-2', name: 'C프로그래밍', description: 'C언어를 통한 시스템 프로그래밍 기초', credits: 3 },
+        { id: 's1-1', name: '자료구조개론', description: '자료구조의 기초 개념을 학습합니다', credits: 3, completed: true },
+        { id: 's1-2', name: 'C프로그래밍', description: 'C언어를 통한 시스템 프로그래밍 기초', credits: 3, completed: true },
         { id: 's1-3', name: '컴퓨터입문', description: '컴퓨터 과학의 기본 개념을 이해합니다', credits: 3 },
         { id: 's1-4', name: '미적분학', description: '데이터 분석과 머신러닝의 수학적 기초', credits: 3 },
         { id: 's1-5', name: '프로그래밍기초', description: '프로그래밍의 핵심 개념을 학습합니다', credits: 3 },
@@ -79,7 +86,7 @@ export const MOCK_ROADMAP: RoadmapPayload = {
       ],
     },
     {
-      year: 1, semester: 2, stageLabel: '기초', stageNumber: 1, totalCredits: 18,
+      year: 1, semester: 2, timing: 'past', stageLabel: '기초', stageNumber: 1, totalCredits: 18,
       courses: [
         { id: 's2-1', name: '이산수학', description: '컴퓨터 과학의 수학적 기반을 다집니다', credits: 3 },
         { id: 's2-2', name: '객체지향프로그래밍', description: 'OOP 패러다임과 설계 원칙 학습', credits: 3 },
@@ -90,7 +97,7 @@ export const MOCK_ROADMAP: RoadmapPayload = {
       ],
     },
     {
-      year: 2, semester: 1, stageLabel: '핵심', stageNumber: 2, totalCredits: 18,
+      year: 2, semester: 1, timing: 'current', stageLabel: '핵심', stageNumber: 2, totalCredits: 18,
       courses: [
         { id: 's3-1', name: '자료구조', description: '배열, 트리, 그래프 등 핵심 자료구조', credits: 3 },
         { id: 's3-2', name: '알고리즘', description: '정렬·탐색·동적프로그래밍 설계 기법', credits: 3 },
@@ -101,7 +108,7 @@ export const MOCK_ROADMAP: RoadmapPayload = {
       ],
     },
     {
-      year: 2, semester: 2, stageLabel: '핵심', stageNumber: 2, totalCredits: 18,
+      year: 2, semester: 2, timing: 'future', stageLabel: '핵심', stageNumber: 2, totalCredits: 18,
       courses: [
         { id: 's4-1', name: '운영체제', description: '프로세스, 스레드, 메모리 관리 심화', credits: 3 },
         { id: 's4-2', name: '데이터베이스설계', description: '정규화, 트랜잭션, 쿼리 최적화', credits: 3 },
@@ -112,7 +119,7 @@ export const MOCK_ROADMAP: RoadmapPayload = {
       ],
     },
     {
-      year: 3, semester: 1, stageLabel: '응용', stageNumber: 3, totalCredits: 18,
+      year: 3, semester: 1, timing: 'future', stageLabel: '응용', stageNumber: 3, totalCredits: 18,
       courses: [
         { id: 's5-1', name: '머신러닝', description: 'ML 알고리즘 설계와 모델 평가', credits: 3 },
         { id: 's5-2', name: '빅데이터개론', description: '대규모 데이터 처리 기술과 도구', credits: 3 },
@@ -123,7 +130,7 @@ export const MOCK_ROADMAP: RoadmapPayload = {
       ],
     },
     {
-      year: 3, semester: 2, stageLabel: '응용', stageNumber: 3, totalCredits: 18,
+      year: 3, semester: 2, timing: 'future', stageLabel: '응용', stageNumber: 3, totalCredits: 18,
       courses: [
         { id: 's6-1', name: '데이터분석', description: '실제 데이터셋 분석 파이프라인 구현', credits: 3 },
         { id: 's6-2', name: '시스템보안', description: '침해 대응, 취약점 분석 실무 기법', credits: 3 },
@@ -134,7 +141,7 @@ export const MOCK_ROADMAP: RoadmapPayload = {
       ],
     },
     {
-      year: 4, semester: 1, stageLabel: '산학', stageNumber: 4, totalCredits: 18,
+      year: 4, semester: 1, timing: 'future', stageLabel: '산학', stageNumber: 4, totalCredits: 18,
       courses: [
         { id: 's7-1', name: '종합설계', description: '기업 협력 프로젝트 설계 및 구현', credits: 3 },
         { id: 's7-2', name: '산학협력프로젝트', description: '실무 문제 해결형 캡스톤 프로젝트', credits: 3 },
@@ -145,7 +152,7 @@ export const MOCK_ROADMAP: RoadmapPayload = {
       ],
     },
     {
-      year: 4, semester: 2, stageLabel: '산학', stageNumber: 4, totalCredits: 18,
+      year: 4, semester: 2, timing: 'future', stageLabel: '산학', stageNumber: 4, totalCredits: 18,
       courses: [
         { id: 's8-1', name: '졸업프로젝트', description: '4년간 역량을 집결한 최종 졸업 작품', credits: 6 },
         { id: 's8-2', name: '인턴십', description: '기업 현장 실습을 통한 실무 경험', credits: 6 },

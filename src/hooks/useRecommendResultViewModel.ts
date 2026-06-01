@@ -80,9 +80,13 @@ export function useRecommendResultViewModel() {
   }, [interests, developmentFields, preferredCompanyTypes, employmentValues]);
 
   const jobs = result?.jobs ?? [];
-  const hasData = jobs.length > 0;
   const trackRecommend = result?.trackRecommend ?? null;
   const roadmap = result?.roadmap ?? null;
+
+  const hasJobData = jobs.length > 0;
+  const hasTrackData = (trackRecommend?.primary.length ?? 0) > 0;
+  const hasRoadmapData = (roadmap?.semesterSteps.length ?? 0) > 0;
+  const hasData = hasJobData || hasTrackData || hasRoadmapData;
 
   const handleSelectJob = (navigation: NavigationProp<MainStackParamList>, id: string) => {
     navigation.navigate('JobDetail', { jobId: id });
@@ -94,6 +98,7 @@ export function useRecommendResultViewModel() {
     handleSelectJob,
     jobs,
     hasData,
+    hasJobData,
     trackRecommend,
     roadmap,
     isLoading,

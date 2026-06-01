@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { colors } from '../../../styles/colors';
-import type { SemesterStep } from '../../../data/mockRoadmapData';
+import type { SemesterCourse, SemesterStep } from '../../../data/mockRoadmapData';
 
 const STAGE_COLORS: Record<1 | 2 | 3 | 4, string> = {
   1: colors.stageBasic,
@@ -11,6 +11,16 @@ const STAGE_COLORS: Record<1 | 2 | 3 | 4, string> = {
   3: colors.stageApplied,
   4: colors.stageCap,
 };
+
+function isCourseCompleted(course: SemesterCourse, completedCourses: string[]): boolean {
+  if (course.completed === true) return true;
+  if (course.completed === false) return false;
+  return completedCourses.includes(course.name);
+}
+
+function hasUnmetPrerequisite(course: SemesterCourse): boolean {
+  return (course.prerequisites ?? []).some((p) => !p.completed);
+}
 
 interface RoadmapSemesterCardProps {
   step: SemesterStep;
@@ -20,42 +30,47 @@ interface RoadmapSemesterCardProps {
 
 export function RoadmapSemesterCard({ step, completedCourses, onPressCourse }: RoadmapSemesterCardProps) {
   const stageColor = STAGE_COLORS[step.stageNumber];
+  const isPastSemester = step.timing === 'past';
 
-  const courseCompletions = step.courses.map((c) => completedCourses.includes(c.name));
+  const courseCompletions = step.courses.map((c) => isCourseCompleted(c, completedCourses));
   const earnedCredits = step.courses.reduce(
     (sum, c, i) => sum + (courseCompletions[i] ? c.credits : 0),
     0
   );
-  const allCompleted = courseCompletions.every(Boolean);
+  const allCompleted = step.courses.length > 0 && courseCompletions.every(Boolean);
+  const semesterMuted = isPastSemester || allCompleted;
 
   return (
-    <View style={[styles.card, allCompleted && styles.cardCompleted]}>
-      {/* 카드 헤더 */}
+    <View style={[styles.card, semesterMuted && styles.cardCompleted]}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text style={[styles.semesterTitle, allCompleted && styles.textMuted]}>
+          <Text style={[styles.semesterTitle, semesterMuted && styles.textMuted]}>
             {step.year}학년 {step.semester}학기
           </Text>
-          <View style={[styles.stageBadge, { backgroundColor: allCompleted ? '#E5E7EB' : `${stageColor}22` }]}>
-            <Text style={[styles.stageBadgeText, { color: allCompleted ? colors.textHint : stageColor }]}>
+          <View style={[styles.stageBadge, { backgroundColor: semesterMuted ? '#E5E7EB' : `${stageColor}22` }]}>
+            <Text style={[styles.stageBadgeText, { color: semesterMuted ? colors.textHint : stageColor }]}>
               {step.stageLabel}
             </Text>
           </View>
+          {isPastSemester && (
+            <View style={styles.pastBadge}>
+              <Text style={styles.pastBadgeText}>이수</Text>
+            </View>
+          )}
         </View>
-        <Text style={[styles.credits, allCompleted && styles.textMuted]}>
+        <Text style={[styles.credits, semesterMuted && styles.textMuted]}>
           {earnedCredits} / {step.totalCredits} 학점
         </Text>
       </View>
 
-      {/* 단계 설명 */}
-      <Text style={[styles.stageDesc, allCompleted && styles.textMuted]}>
+      <Text style={[styles.stageDesc, semesterMuted && styles.textMuted]}>
         이번 학기는 트랙 {step.stageLabel} 단계입니다
       </Text>
 
-      {/* 과목 목록 */}
       <View style={styles.courseList}>
         {step.courses.map((course, i) => {
           const completed = courseCompletions[i];
+          const unmetPrereq = hasUnmetPrerequisite(course);
           return (
             <Pressable
               key={course.id}
@@ -68,9 +83,14 @@ export function RoadmapSemesterCard({ step, completedCourses, onPressCourse }: R
               accessibilityLabel={`${course.name} 상세 보기`}
             >
               <View style={[styles.dot, { backgroundColor: completed ? colors.textHint : stageColor }]} />
-              <Text style={[styles.courseName, completed && styles.courseNameCompleted]}>
-                {course.name}
-              </Text>
+              <View style={styles.courseNameWrap}>
+                <Text style={[styles.courseName, completed && styles.courseNameCompleted]}>
+                  {course.name}
+                </Text>
+                {unmetPrereq && (
+                  <Text style={styles.prereqWarning}>△ 선수과목 미이수</Text>
+                )}
+              </View>
               <Text style={[styles.courseCredits, completed && styles.textMuted]}>
                 {course.credits}학점
               </Text>
@@ -112,6 +132,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    flex: 1,
+    flexWrap: 'wrap',
   },
   semesterTitle: {
     fontSize: 16,
@@ -126,6 +148,17 @@ const styles = StyleSheet.create({
   stageBadgeText: {
     fontSize: 12,
     fontWeight: '700',
+  },
+  pastBadge: {
+    borderRadius: 100,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    backgroundColor: '#E5E7EB',
+  },
+  pastBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.textHint,
   },
   credits: {
     fontSize: 13,
@@ -158,14 +191,23 @@ const styles = StyleSheet.create({
     height: DOT_SIZE,
     borderRadius: DOT_SIZE / 2,
   },
-  courseName: {
+  courseNameWrap: {
     flex: 1,
+  },
+  courseName: {
     fontSize: 14,
     fontWeight: '500',
     color: colors.textPrimary,
   },
   courseNameCompleted: {
     color: colors.textHint,
+    textDecorationLine: 'line-through',
+  },
+  prereqWarning: {
+    marginTop: 2,
+    fontSize: 11,
+    color: colors.warningText,
+    fontWeight: '500',
   },
   courseCredits: {
     fontSize: 13,

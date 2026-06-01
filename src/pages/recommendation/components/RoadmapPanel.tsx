@@ -22,16 +22,27 @@ export function RoadmapPanel({ roadmap, isLoading, isError, onRetry }: RoadmapPa
 
   const hasCompletedCourses = completedCourses.length > 0;
 
+  const isCourseIncomplete = (course: { name: string; completed?: boolean }) => {
+    if (course.completed === true) return false;
+    if (course.completed === false) return true;
+    return !completedCourses.includes(course.name);
+  };
+
   const { remainingSemesters, semesterRange } = useMemo(() => {
     if (!roadmap) return { remainingSemesters: 0, semesterRange: '' };
     const steps = roadmap.semesterSteps;
-    const incompleteSteps = steps.filter((step) =>
-      step.courses.some((c) => !completedCourses.includes(c.name))
+    const incompleteSteps = steps.filter(
+      (step) =>
+        step.timing !== 'past' &&
+        step.courses.some((c) => isCourseIncomplete(c))
     );
     const count = incompleteSteps.length;
     const first = steps[0];
     const last = steps[steps.length - 1];
-    const range = `${first.year}학년 ${first.semester}학기 ~ ${last.year}학년 ${last.semester}학기`;
+    const range =
+      first && last
+        ? `${first.year}학년 ${first.semester}학기 ~ ${last.year}학년 ${last.semester}학기`
+        : '';
     return { remainingSemesters: count, semesterRange: range };
   }, [roadmap, completedCourses]);
 

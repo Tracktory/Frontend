@@ -135,7 +135,7 @@ export function RecommendResultPage() {
                   <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={colors.primary} />
                   </View>
-                ) : vm.hasData ? (
+                ) : vm.hasJobData ? (
                   <ScrollView
                     style={styles.scrollArea}
                     contentContainerStyle={styles.listContent}
@@ -146,7 +146,8 @@ export function RecommendResultPage() {
                         key={job.id}
                         title={job.title}
                         description={job.description}
-                        titleTrailing={`${job.matchScore}%`}
+                        reasoning={job.reasoning}
+                        titleTrailing={job.matchScore > 0 ? `${job.matchScore}%` : undefined}
                         chips={job.techStack}
                         chipsReady={job.techStackReady}
                         onPress={() => vm.handleSelectJob(navigation, job.id)}

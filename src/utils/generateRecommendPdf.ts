@@ -31,13 +31,16 @@ function buildJobsPage(jobs: JobRecommendation[]): string {
       <div class="card">
         <div class="card-header">
           <span class="card-title">${escapeHtml(job.title)}</span>
-          <span class="score-badge">${job.matchScore}%</span>
+          ${job.matchScore > 0 ? `<span class="score-badge">${job.matchScore}%</span>` : ''}
         </div>
-        <p class="card-desc">${escapeHtml(job.description)}</p>
+        ${job.description ? `<p class="card-desc">${escapeHtml(job.description)}</p>` : ''}
+        ${job.reasoning ? `<p class="card-reasoning">추천 이유: ${escapeHtml(job.reasoning)}</p>` : ''}
         ${
           job.techStack.length > 0
             ? `<div class="chips">${job.techStack.map((t) => `<span class="chip">${escapeHtml(t)}</span>`).join('')}</div>`
-            : ''
+            : job.techStackReady === false
+              ? '<span class="collecting-badge">수집 중</span>'
+              : ''
         }
       </div>`
     )
@@ -96,12 +99,15 @@ function buildRoadmapPage(
   const semesterCards = roadmap.semesterSteps
     .map((step) => {
       const stageColor = STAGE_COLORS[step.stageNumber] ?? '#888';
+      const isPast = step.timing === 'past';
       const courseRows = step.courses
         .map((c) => {
-          const done = completedCourses.includes(c.name);
+          const done =
+            c.completed === true ||
+            (c.completed !== false && completedCourses.includes(c.name));
           return `
-          <tr class="${done ? 'row-done' : ''}">
-            <td class="dot-cell"><span class="dot" style="background:${done ? '#ccc' : stageColor}"></span></td>
+          <tr class="${done || isPast ? 'row-done' : ''}">
+            <td class="dot-cell"><span class="dot" style="background:${done || isPast ? '#ccc' : stageColor}"></span></td>
             <td class="course-name">${escapeHtml(c.name)}</td>
             <td class="course-credit">${c.credits}학점</td>
             <td class="course-status">${done ? '✓' : '—'}</td>
@@ -110,9 +116,9 @@ function buildRoadmapPage(
         .join('');
 
       return `
-      <div class="sem-card">
+      <div class="sem-card ${isPast ? 'sem-past' : ''}">
         <div class="sem-header">
-          <span class="sem-title">${step.year}학년 ${step.semester}학기</span>
+          <span class="sem-title">${step.year}학년 ${step.semester}학기${isPast ? ' (이수)' : ''}</span>
           <span class="stage-badge" style="color:${stageColor};background:${stageColor}22">${escapeHtml(step.stageLabel)}</span>
           <span class="sem-credits">${step.totalCredits}학점</span>
         </div>
@@ -163,6 +169,11 @@ const CSS = `
   .card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
   .card-title { font-size: 15px; font-weight: 700; color: #1a1a1a; }
   .card-desc { font-size: 12px; color: #555; line-height: 1.6; margin-bottom: 8px; }
+  .card-reasoning { font-size: 11px; color: #888; line-height: 1.5; margin-bottom: 8px; }
+  .collecting-badge {
+    font-size: 11px; font-weight: 600; color: #b45309;
+    background: #fef3c7; border-radius: 100px; padding: 3px 10px; display: inline-block;
+  }
 
   .score-badge {
     margin-left: auto;
@@ -188,6 +199,7 @@ const CSS = `
   .note p { font-size: 12px; color: #555; line-height: 1.6; }
 
   .sem-card { border: 1.5px solid #E5E7EB; border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; }
+  .sem-past { background: #f9fafb; border-color: #e5e7eb; }
   .sem-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
   .sem-title { font-size: 14px; font-weight: 700; color: #1a1a1a; }
   .stage-badge { font-size: 11px; font-weight: 700; border-radius: 100px; padding: 2px 10px; }
