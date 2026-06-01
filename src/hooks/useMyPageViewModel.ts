@@ -1,6 +1,9 @@
+import { useMemo, useState } from 'react';
 import { Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 
-import { useOnboardingStore } from '../stores/onboardingStore';
+import { AuthApiError } from '../api/authApi';
 import {
   MOCK_RECOMMENDATION_HISTORY,
 } from '../data/mockMyPageData';
@@ -9,9 +12,12 @@ import { hansungCourseData } from '../data/hansungCourseData';
 import type { HansungCourse } from '../data/hansungCourseData';
 
 const EMPTY_PLACEHOLDER = '선택 없음';
-const DISPLAY_NAME_FALLBACK = '00';
-const MAJOR_FALLBACK = '한성대 IT융합공학부';
+const MAJOR_FALLBACK = 'IT공과대학';
 const MAX_COMPLETED_COURSES = 30;
+
+function toIds(labels: string[], map: Record<string, number>): number[] {
+  return labels.map((l) => map[l]).filter((id): id is number => id !== undefined);
+}
 
 /** 입학연도 두 자리(YY학번 표기용) */
 function twoDigitAdmissionYear(year: number): string {
@@ -35,25 +41,28 @@ function formatEmployment(
 }
 
 export function useMyPageViewModel() {
+  const rootNavigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+
+  const profile = useProfileStore((s) => s.profile);
+  const loadProfile = useProfileStore((s) => s.loadProfile);
+  const patchProfile = useProfileStore((s) => s.patchProfile);
+  const recommendResult = useRecommendStore((s) => s.result);
+  const userName = useAuthStore((s) => s.userName);
+  const accessToken = useAuthStore((s) => s.accessToken);
+
+  const [isSaving, setIsSaving] = useState(false);
+  const [isAddingCourse, setIsAddingCourse] = useState(false);
+  const [removingCourseName, setRemovingCourseName] = useState<string | null>(null);
+
   const admissionYear = useOnboardingStore((s) => s.admissionYear);
+  const grade = useOnboardingStore((s) => s.grade);
   const college = useOnboardingStore((s) => s.college);
   const interests = useOnboardingStore((s) => s.interests);
-  const toggleInterest = useOnboardingStore((s) => s.toggleInterest);
-  const clearInterests = useOnboardingStore((s) => s.clearInterests);
   const developmentFields = useOnboardingStore((s) => s.developmentFields);
-  const toggleDevelopmentField = useOnboardingStore((s) => s.toggleDevelopmentField);
-  const clearDevelopmentFields = useOnboardingStore((s) => s.clearDevelopmentFields);
   const preferredCompanyTypes = useOnboardingStore((s) => s.preferredCompanyTypes);
-  const togglePreferredCompanyType = useOnboardingStore((s) => s.togglePreferredCompanyType);
-  const clearPreferredCompanyTypes = useOnboardingStore((s) => s.clearPreferredCompanyTypes);
   const employmentValues = useOnboardingStore((s) => s.employmentValues);
-  const toggleEmploymentValue = useOnboardingStore((s) => s.toggleEmploymentValue);
-  const clearEmploymentValues = useOnboardingStore((s) => s.clearEmploymentValues);
 
-  // completedCourses는 Zustand store에서 관리 (로드맵 탭에서도 참조 가능)
   const completedCourses = useOnboardingStore((s) => s.completedCourses);
-  const storeAddCompletedCourse = useOnboardingStore((s) => s.addCompletedCourse);
-  const storeRemoveCompletedCourse = useOnboardingStore((s) => s.removeCompletedCourse);
 
   const recommendationHistory: RecommendationHistoryItem[] = MOCK_RECOMMENDATION_HISTORY;
   const courseCatalog: HansungCourse[] = hansungCourseData;
@@ -70,39 +79,112 @@ export function useMyPageViewModel() {
   );
 
   const admissionBadge = formatAdmissionBadge(admissionYear);
-  const displayName = DISPLAY_NAME_FALLBACK;
-  const profileInitial = displayName.slice(-1);
 
-  const majorLine = college ?? MAJOR_FALLBACK;
+  const displayName = profile?.profile.name ?? userName ?? '-';
+  const profileInitial = displayName.length > 0 ? displayName.slice(-1) : '-';
 
-  const updateInterests = (next: string[]) => {
-    clearInterests();
-    next.slice(0, 5).forEach((item) => toggleInterest(item));
+  const sortedTracks = profile?.tracks
+    ? [...profile.tracks].sort((a, b) => a.trackOrder - b.trackOrder)
+    : [];
+  const majorLine =
+    sortedTracks.length > 0
+      ? sortedTracks.map((t) => t.name).join(' · ')
+      : (college ?? MAJOR_FALLBACK);
+
+  const handleCourseApiError = (err: unknown): void => {
+    if (err instanceof AuthApiError) {
+      switch (err.code) {
+        case 'AUTH_REQUIRED':
+          rootNavigation.reset({ index: 0, routes: [{ name: 'Auth' }] });
+          break;
+        case 'RESOURCE_NOT_FOUND':
+          Alert.alert('알림', '해당 이수 과목이 존재하지 않습니다.');
+          break;
+        case 'SUBJECT_ALREADY_COMPLETED':
+          Alert.alert('알림', '이미 이수 처리된 과목입니다.');
+          break;
+        case 'VALIDATION_FAILED':
+          Alert.alert('입력 오류', '입력 내용을 다시 확인해주세요.');
+          break;
+        default:
+          Alert.alert('오류', err.message);
+      }
+    } else {
+      Alert.alert('네트워크 오류', '잠시 후 다시 시도해주세요.');
+    }
   };
 
-  const updateDevelopmentFields = (next: string[]) => {
-    clearDevelopmentFields();
-    next.slice(0, 3).forEach((item) => toggleDevelopmentField(item));
+  const handlePatchError = (err: unknown): void => {
+    if (err instanceof AuthApiError) {
+      switch (err.code) {
+        case 'AUTH_REQUIRED':
+          rootNavigation.reset({ index: 0, routes: [{ name: 'Auth' }] });
+          break;
+        case 'RESOURCE_NOT_FOUND':
+          rootNavigation.reset({ index: 0, routes: [{ name: 'Onboarding' }] });
+          break;
+        case 'SUBJECT_ALREADY_COMPLETED':
+          Alert.alert('알림', '이미 이수 처리된 과목입니다.');
+          break;
+        case 'VALIDATION_FAILED':
+          Alert.alert('입력 오류', '입력 내용을 다시 확인해주세요.');
+          break;
+        default:
+          Alert.alert('오류', err.message);
+      }
+    } else {
+      Alert.alert('네트워크 오류', '잠시 후 다시 시도해주세요.');
+    }
   };
 
-  const updateEmployment = (next: {
-    preferredCompanyTypes: string[];
-    employmentValues: string[];
-  }) => {
-    clearPreferredCompanyTypes();
-    next.preferredCompanyTypes.forEach((item) => togglePreferredCompanyType(item));
-
-    clearEmploymentValues();
-    next.employmentValues.slice(0, 3).forEach((item) => toggleEmploymentValue(item));
-  };
-
-  const addCompletedCourse = (name: string): boolean => {
-    const trimmed = name.trim();
-    if (!trimmed) {
-      Alert.alert('알림', '과목명을 입력해 주세요.');
+  const runPatch = async (
+    body: Parameters<typeof patchProfile>[1]
+  ): Promise<boolean> => {
+    if (!accessToken) {
+      rootNavigation.reset({ index: 0, routes: [{ name: 'Auth' }] });
       return false;
     }
-    if (completedCourses.includes(trimmed)) {
+
+    setIsSaving(true);
+    try {
+      await patchProfile(accessToken, body, rootNavigation);
+      return true;
+    } catch (err) {
+      handlePatchError(err);
+      return false;
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const updateInterests = async (next: string[]): Promise<boolean> => {
+    return runPatch({
+      interestIds: toIds(next.slice(0, 5), INTEREST_ID_MAP),
+    });
+  };
+
+  const updateDevelopmentFields = async (next: string[]): Promise<boolean> => {
+    return runPatch({
+      devFieldIds: toIds(next.slice(0, 3), DEV_FIELD_ID_MAP),
+    });
+  };
+
+  const updateEmployment = async (next: {
+    preferredCompanyTypes: string[];
+    employmentValues: string[];
+  }): Promise<boolean> => {
+    return runPatch({
+      companyTypeIds: toIds(next.preferredCompanyTypes, COMPANY_TYPE_ID_MAP),
+      workValueIds: toIds(next.employmentValues.slice(0, 3), WORK_VALUE_ID_MAP),
+    });
+  };
+
+  const addCompletedCourse = async (
+    item: CourseCatalogItem,
+    year: number,
+    semester: 1 | 2
+  ): Promise<boolean> => {
+    if (completedCourses.includes(item.name)) {
       Alert.alert('알림', '이미 이수 과목에 추가된 과목입니다.');
       return false;
     }
@@ -113,11 +195,48 @@ export function useMyPageViewModel() {
       );
       return false;
     }
-    return storeAddCompletedCourse(trimmed);
+    if (!accessToken) {
+      rootNavigation.reset({ index: 0, routes: [{ name: 'Auth' }] });
+      return false;
+    }
+
+    setIsAddingCourse(true);
+    try {
+      await addCompletedCourseApi(accessToken, {
+        subjectId: item.subjectId,
+        year,
+        semester,
+      });
+      await loadProfile(accessToken, rootNavigation);
+      return true;
+    } catch (err) {
+      handleCourseApiError(err);
+      return false;
+    } finally {
+      setIsAddingCourse(false);
+    }
   };
 
-  const removeCompletedCourse = (name: string) => {
-    storeRemoveCompletedCourse(name);
+  const removeCompletedCourse = async (name: string): Promise<void> => {
+    const subjectId = resolveSubjectId(name, profile, courseCatalog);
+    if (subjectId == null) {
+      Alert.alert('알림', '과목 정보를 찾을 수 없습니다.');
+      return;
+    }
+    if (!accessToken) {
+      rootNavigation.reset({ index: 0, routes: [{ name: 'Auth' }] });
+      return;
+    }
+
+    setRemovingCourseName(name);
+    try {
+      await deleteCompletedCourseApi(accessToken, subjectId);
+      await loadProfile(accessToken, rootNavigation);
+    } catch (err) {
+      handleCourseApiError(err);
+    } finally {
+      setRemovingCourseName(null);
+    }
   };
 
   const handleHistoryPress = (_item: RecommendationHistoryItem) => {
@@ -138,7 +257,11 @@ export function useMyPageViewModel() {
     employmentLine,
     completedCourses,
     courseCatalog,
+    defaultCompletedYear,
     recommendationHistory,
+    isSaving,
+    isAddingCourse,
+    removingCourseName,
     updateInterests,
     updateDevelopmentFields,
     updateEmployment,

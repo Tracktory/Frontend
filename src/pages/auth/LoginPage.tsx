@@ -48,6 +48,7 @@ export function LoginPage({ navigation }: Props) {
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
+                editable={!vm.isSubmitting}
               />
               {/* 고정 높이 에러 슬롯 — 에러 유무와 무관하게 항상 공간 확보 */}
               <View style={styles.errorSlot}>
@@ -69,6 +70,7 @@ export function LoginPage({ navigation }: Props) {
                 onBlur={vm.handlePasswordBlur}
                 secureTextEntry
                 autoCapitalize="none"
+                editable={!vm.isSubmitting}
               />
               <View style={styles.errorSlot}>
                 {vm.passwordError ? (
@@ -80,11 +82,24 @@ export function LoginPage({ navigation }: Props) {
 
           {/* 버튼 영역 */}
           <View style={styles.bottomArea}>
-            <Button
-              title="로그인"
-              variant={vm.isLoginEnabled ? 'primary' : 'disabled'}
-              onPress={vm.handleLogin}
-            />
+            {/* 로그인 에러 슬롯 (INVALID_CREDENTIALS 등) */}
+            <View style={styles.loginErrorSlot}>
+              {vm.loginError ? (
+                <Text style={styles.loginErrorText}>{vm.loginError}</Text>
+              ) : null}
+            </View>
+
+            {vm.isSubmitting ? (
+              <View style={styles.loadingBtn}>
+                <ActivityIndicator color={colors.white} />
+              </View>
+            ) : (
+              <Button
+                title="로그인"
+                variant={vm.isLoginEnabled ? 'primary' : 'disabled'}
+                onPress={vm.handleLogin}
+              />
+            )}
 
             <View style={styles.signUpRow}>
               <Text style={styles.signUpPrompt}>계정이 없으신가요?</Text>
@@ -170,6 +185,23 @@ const styles = StyleSheet.create({
   bottomArea: {
     gap: 16,
     paddingTop: 8,
+  },
+  loginErrorSlot: {
+    minHeight: 20,
+    alignItems: 'center',
+  },
+  loginErrorText: {
+    fontSize: 13,
+    color: colors.stageCap,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  loadingBtn: {
+    height: 52,
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   signUpRow: {
     flexDirection: 'row',

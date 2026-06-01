@@ -43,6 +43,9 @@ export function MyPage() {
         <MyCompletedCoursesSection
           courses={vm.completedCourses}
           catalog={vm.courseCatalog}
+          defaultYear={vm.defaultCompletedYear}
+          isAddingCourse={vm.isAddingCourse}
+          removingCourseName={vm.removingCourseName}
           onAddCourse={vm.addCompletedCourse}
           onRemoveCourse={vm.removeCompletedCourse}
         />
@@ -54,6 +57,7 @@ export function MyPage() {
         <MyInfoEditModal
           visible={editingSection != null}
           section={editingSection}
+          isSaving={vm.isSaving}
           currentInterests={vm.interests}
           currentDevelopmentFields={vm.developmentFields}
           currentPreferredCompanyTypes={vm.preferredCompanyTypes}

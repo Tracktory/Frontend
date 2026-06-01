@@ -4,6 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { MainTabNavigator } from './MainTabNavigator';
 import { JobDetailPage } from '../pages/recommendation/JobDetailPage';
 import { CourseDetailPage } from '../pages/recommendation/CourseDetailPage';
+import { useProfileLoader } from '../hooks/useProfileLoader';
 
 export type MainStackParamList = {
   Tabs: undefined;
@@ -13,7 +14,9 @@ export type MainStackParamList = {
 
 const Stack = createStackNavigator<MainStackParamList>();
 
-export function MainStackNavigator() {
+function MainStackNavigatorInner() {
+  useProfileLoader();
+
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Tabs" component={MainTabNavigator} />
@@ -21,4 +24,8 @@ export function MainStackNavigator() {
       <Stack.Screen name="CourseDetail" component={CourseDetailPage} />
     </Stack.Navigator>
   );
+}
+
+export function MainStackNavigator() {
+  return <MainStackNavigatorInner />;
 }

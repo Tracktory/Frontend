@@ -1,5 +1,9 @@
 import { useState } from 'react';
+import { Alert } from 'react-native';
 import type { StackNavigationProp } from '@react-navigation/stack';
+
+import { login, AuthApiError } from '../api/authApi';
+import { useAuthStore } from '../stores/authStore';
 import type { AuthStackParamList } from '../navigation/AuthNavigator';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 
@@ -21,25 +25,54 @@ export function useLoginViewModel(
   navigation: AuthNavigation,
   rootNavigation: RootNavigation
 ) {
+  const setAuth = useAuthStore((s) => s.setAuth);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isLoginEnabled = email.trim().length > 0 && password.trim().length > 0;
 
   const handleEmailBlur = () => setEmailError(validateEmail(email));
   const handlePasswordBlur = () => setPasswordError(validatePassword(password));
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     const eErr = validateEmail(email);
     const pErr = validatePassword(password);
     setEmailError(eErr);
     setPasswordError(pErr);
+    setLoginError('');
     if (eErr || pErr) return;
 
-    // TODO: API 연동 시 여기에 인증 요청 추가
-    rootNavigation.navigate('Onboarding');
+    setIsSubmitting(true);
+    try {
+      const data = await login(email, password);
+      setAuth(data);
+      rootNavigation.reset({
+        index: 0,
+        routes: [{ name: data.onboardingCompleted ? 'Main' : 'Onboarding' }],
+      });
+    } catch (err) {
+      if (err instanceof AuthApiError) {
+        switch (err.code) {
+          case 'INVALID_CREDENTIALS':
+            setLoginError('이메일 또는 비밀번호가 일치하지 않습니다.');
+            break;
+          case 'VALIDATION_FAILED':
+            Alert.alert('입력 오류', '요청 형식이 올바르지 않습니다.');
+            break;
+          default:
+            Alert.alert('오류', err.message);
+        }
+      } else {
+        Alert.alert('네트워크 오류', '잠시 후 다시 시도해주세요.');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleGoToSignUp = () => {
@@ -53,7 +86,9 @@ export function useLoginViewModel(
     setPassword,
     emailError,
     passwordError,
+    loginError,
     isLoginEnabled,
+    isSubmitting,
     handleEmailBlur,
     handlePasswordBlur,
     handleLogin,

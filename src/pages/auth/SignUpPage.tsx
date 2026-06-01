@@ -1,7 +1,6 @@
 import React from 'react';
 import {
-  KeyboardAvoidingView,
-  Platform,
+  ActivityIndicator,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -25,10 +24,7 @@ export function SignUpPage({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
+      <View style={styles.flex}>
         {/* 헤더 */}
         <View style={styles.header}>
           <Pressable onPress={() => navigation.goBack()} hitSlop={8} style={styles.backBtn}>
@@ -50,19 +46,19 @@ export function SignUpPage({ navigation }: Props) {
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>이름</Text>
               <TextInput
-                style={[styles.input, vm.nameError ? styles.inputError : null]}
+                style={[styles.input, vm.userNameError ? styles.inputError : null]}
                 placeholder="이름을 입력하세요"
                 placeholderTextColor={colors.textHint}
-                value={vm.name}
-                onChangeText={vm.setName}
-                onBlur={vm.handleNameBlur}
+                value={vm.userName}
+                onChangeText={vm.setUserName}
+                onBlur={vm.handleUserNameBlur}
                 autoCapitalize="none"
                 autoCorrect={false}
+                editable={!vm.isSubmitting}
               />
-              {/* 고정 높이 에러 슬롯 — 에러 유무와 무관하게 항상 공간 확보 */}
               <View style={styles.errorSlot}>
-                {vm.nameError ? (
-                  <Text style={styles.errorText}>{vm.nameError}</Text>
+                {vm.userNameError ? (
+                  <Text style={styles.errorText}>{vm.userNameError}</Text>
                 ) : null}
               </View>
             </View>
@@ -80,6 +76,7 @@ export function SignUpPage({ navigation }: Props) {
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
+                editable={!vm.isSubmitting}
               />
               <View style={styles.errorSlot}>
                 {vm.emailError ? (
@@ -93,13 +90,14 @@ export function SignUpPage({ navigation }: Props) {
               <Text style={styles.inputLabel}>비밀번호</Text>
               <TextInput
                 style={[styles.input, vm.passwordError ? styles.inputError : null]}
-                placeholder="비밀번호를 입력하세요 (8자 이상)"
+                placeholder="8~64자, 영문·숫자·특수문자 각 1개 이상"
                 placeholderTextColor={colors.textHint}
                 value={vm.password}
                 onChangeText={vm.setPassword}
                 onBlur={vm.handlePasswordBlur}
                 secureTextEntry
                 autoCapitalize="none"
+                editable={!vm.isSubmitting}
               />
               <View style={styles.errorSlot}>
                 {vm.passwordError ? (
@@ -120,6 +118,7 @@ export function SignUpPage({ navigation }: Props) {
                 onBlur={vm.handleConfirmPasswordBlur}
                 secureTextEntry
                 autoCapitalize="none"
+                editable={!vm.isSubmitting}
               />
               <View style={styles.errorSlot}>
                 {vm.confirmPasswordError ? (
@@ -131,14 +130,20 @@ export function SignUpPage({ navigation }: Props) {
 
           {/* 회원가입 버튼 */}
           <View style={styles.bottomArea}>
-            <Button
-              title="회원가입"
-              variant={vm.isValid ? 'primary' : 'disabled'}
-              onPress={vm.handleSignUp}
-            />
+            {vm.isSubmitting ? (
+              <View style={styles.loadingBtn}>
+                <ActivityIndicator color={colors.white} />
+              </View>
+            ) : (
+              <Button
+                title="회원가입"
+                variant={vm.isValid ? 'primary' : 'disabled'}
+                onPress={vm.handleSignUp}
+              />
+            )}
           </View>
         </ScrollView>
-      </KeyboardAvoidingView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -214,5 +219,12 @@ const styles = StyleSheet.create({
   },
   bottomArea: {
     paddingTop: 16,
+  },
+  loadingBtn: {
+    height: 52,
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

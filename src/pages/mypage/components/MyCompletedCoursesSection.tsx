@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   KeyboardAvoidingView,
   Modal,
@@ -24,9 +25,15 @@ interface MyCompletedCoursesSectionProps {
   onRemoveCourse: (name: string) => void;
 }
 
+const YEAR_OPTIONS = [1, 2, 3, 4] as const;
+const SEMESTER_OPTIONS = [1, 2] as const;
+
 export function MyCompletedCoursesSection({
   courses,
   catalog,
+  defaultYear,
+  isAddingCourse = false,
+  removingCourseName = null,
   onAddCourse,
   onRemoveCourse,
 }: MyCompletedCoursesSectionProps) {
@@ -62,6 +69,7 @@ export function MyCompletedCoursesSection({
   };
 
   const closeModal = () => {
+    if (isAddingCourse) return;
     setModalVisible(false);
     setQuery('');
     setSelectedTrack(null);
@@ -188,10 +196,18 @@ export function MyCompletedCoursesSection({
             <Pressable
               hitSlop={6}
               onPress={() => onRemoveCourse(name)}
-              style={({ pressed }) => [styles.chipRemove, pressed && styles.chipRemovePressed]}
+              disabled={removingCourseName != null}
+              style={({ pressed }) => [
+                styles.chipRemove,
+                (pressed || removingCourseName === name) && styles.chipRemovePressed,
+              ]}
               accessibilityLabel={`${name} 삭제`}
             >
-              <Ionicons name="close-circle" size={18} color={colors.primary} />
+              {removingCourseName === name ? (
+                <ActivityIndicator size="small" color={colors.primary} />
+              ) : (
+                <Ionicons name="close-circle" size={18} color={colors.primary} />
+              )}
             </Pressable>
           </View>
         ))}
@@ -228,8 +244,10 @@ export function MyCompletedCoursesSection({
               ]}
             >
               <View style={styles.sheetHeader}>
-                <Text style={styles.sheetTitle}>과목 추가</Text>
-                <Pressable hitSlop={12} onPress={closeModal}>
+                <Text style={styles.sheetTitle}>
+                  {selectedCourse ? '이수 학년·학기 선택' : '과목 추가'}
+                </Text>
+                <Pressable hitSlop={12} onPress={closeModal} disabled={isAddingCourse}>
                   <Ionicons name="close" size={26} color={colors.textSecondary} />
                 </Pressable>
               </View>
@@ -357,6 +375,79 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.textPrimary,
   },
+  selectedCourseName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.textPrimary,
+    marginBottom: 16,
+  },
+  fieldLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    marginBottom: 8,
+  },
+  optionRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 16,
+  },
+  optionChip: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    backgroundColor: colors.white,
+  },
+  optionChipActive: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primaryLight,
+  },
+  optionChipText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    fontWeight: '500',
+  },
+  optionChipTextActive: {
+    color: colors.primary,
+    fontWeight: '600',
+  },
+  confirmRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 8,
+    marginTop: 8,
+  },
+  backButton: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  backButtonText: {
+    color: colors.textSecondary,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  confirmButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    minWidth: 72,
+    alignItems: 'center',
+  },
+  confirmButtonText: {
+    color: colors.white,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
   search: {
     backgroundColor: colors.inputSurface,
     borderRadius: 10,
@@ -417,5 +508,7 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 14,
     color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });

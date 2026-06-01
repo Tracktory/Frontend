@@ -13,6 +13,8 @@ import { createEmploymentSlice } from './slices/employmentSlice';
 import { createExperienceSlice } from './slices/experienceSlice';
 import { createInterestSlice } from './slices/interestSlice';
 import { createTrackSlice } from './slices/trackSlice';
+import type { ProfileData } from '../api/profileApi';
+import { mapProfileToOnboarding } from '../utils/mapProfileToOnboarding';
 import type { AdmissionSlice } from './slices/admissionSlice';
 import type { CollegeSlice } from './slices/collegeSlice';
 import type { CompletedCoursesSlice } from './slices/completedCoursesSlice';
@@ -41,7 +43,9 @@ export type OnboardingState = AdmissionSlice &
   InterestSlice &
   DevelopmentSlice &
   EmploymentSlice &
-  ExperienceSlice;
+  ExperienceSlice & {
+    hydrateFromProfile: (data: ProfileData) => void;
+  };
 
 export const useOnboardingStore = create<OnboardingState>()(
   persist(
@@ -54,6 +58,10 @@ export const useOnboardingStore = create<OnboardingState>()(
       ...createDevelopmentSlice(...a),
       ...createEmploymentSlice(...a),
       ...createExperienceSlice(...a),
+      hydrateFromProfile: (data: ProfileData) => {
+        const mapped = mapProfileToOnboarding(data);
+        a[0](mapped);
+      },
     }),
     {
       name: 'onboarding-storage',

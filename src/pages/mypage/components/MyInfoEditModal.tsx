@@ -1,5 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 import {
   COMPANY_TYPE_OPTIONS,
@@ -14,17 +22,18 @@ type EditableSection = 'interests' | 'development' | 'employment';
 interface MyInfoEditModalProps {
   visible: boolean;
   section: EditableSection | null;
+  isSaving?: boolean;
   currentInterests: string[];
   currentDevelopmentFields: string[];
   currentPreferredCompanyTypes: string[];
   currentEmploymentValues: string[];
   onClose: () => void;
-  onSaveInterests: (next: string[]) => void;
-  onSaveDevelopmentFields: (next: string[]) => void;
+  onSaveInterests: (next: string[]) => Promise<boolean>;
+  onSaveDevelopmentFields: (next: string[]) => Promise<boolean>;
   onSaveEmployment: (next: {
     preferredCompanyTypes: string[];
     employmentValues: string[];
-  }) => void;
+  }) => Promise<boolean>;
 }
 
 function toggleWithLimit(
@@ -44,6 +53,7 @@ function toggleWithLimit(
 export function MyInfoEditModal({
   visible,
   section,
+  isSaving = false,
   currentInterests,
   currentDevelopmentFields,
   currentPreferredCompanyTypes,
@@ -79,18 +89,22 @@ export function MyInfoEditModal({
     return '';
   }, [section]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (isSaving) return;
+
+    let ok = true;
     if (section === 'interests') {
-      onSaveInterests(draftInterests);
+      ok = await onSaveInterests(draftInterests);
     } else if (section === 'development') {
-      onSaveDevelopmentFields(draftDevelopmentFields);
+      ok = await onSaveDevelopmentFields(draftDevelopmentFields);
     } else if (section === 'employment') {
-      onSaveEmployment({
+      ok = await onSaveEmployment({
         preferredCompanyTypes: draftCompanyTypes,
         employmentValues: draftEmploymentValues,
       });
     }
-    onClose();
+
+    if (ok) onClose();
   };
 
   return (
@@ -98,10 +112,10 @@ export function MyInfoEditModal({
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={onClose}
+      onRequestClose={isSaving ? undefined : onClose}
     >
       <View style={styles.backdrop}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+        <Pressable style={StyleSheet.absoluteFill} onPress={isSaving ? undefined : onClose} />
         <View style={styles.sheet}>
           <Text style={styles.title}>{sectionTitle}</Text>
 
@@ -113,6 +127,7 @@ export function MyInfoEditModal({
                   {INTEREST_OPTIONS.map((option) => (
                     <Pressable
                       key={option}
+                      disabled={isSaving}
                       onPress={() =>
                         setDraftInterests((prev) => toggleWithLimit(prev, option, 5))
                       }
@@ -142,6 +157,7 @@ export function MyInfoEditModal({
                   {DEVELOPMENT_FIELD_OPTIONS.map((option) => (
                     <Pressable
                       key={option}
+                      disabled={isSaving}
                       onPress={() =>
                         setDraftDevelopmentFields((prev) =>
                           toggleWithLimit(prev, option, 3)
@@ -173,6 +189,7 @@ export function MyInfoEditModal({
                   {COMPANY_TYPE_OPTIONS.map((option) => (
                     <Pressable
                       key={option}
+                      disabled={isSaving}
                       onPress={() =>
                         setDraftCompanyTypes((prev) => toggleWithLimit(prev, option))
                       }
@@ -199,6 +216,7 @@ export function MyInfoEditModal({
                   {EMPLOYMENT_VALUE_OPTIONS.map((option) => (
                     <Pressable
                       key={option}
+                      disabled={isSaving}
                       onPress={() =>
                         setDraftEmploymentValues((prev) =>
                           toggleWithLimit(prev, option, 3)
@@ -225,11 +243,23 @@ export function MyInfoEditModal({
           </ScrollView>
 
           <View style={styles.buttonRow}>
-            <Pressable style={styles.cancelButton} onPress={onClose}>
+            <Pressable
+              style={[styles.cancelButton, isSaving && styles.buttonDisabled]}
+              onPress={onClose}
+              disabled={isSaving}
+            >
               <Text style={styles.cancelText}>취소</Text>
             </Pressable>
-            <Pressable style={styles.saveButton} onPress={handleSave}>
-              <Text style={styles.saveText}>저장</Text>
+            <Pressable
+              style={[styles.saveButton, isSaving && styles.buttonDisabled]}
+              onPress={handleSave}
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <ActivityIndicator color={colors.white} size="small" />
+              ) : (
+                <Text style={styles.saveText}>저장</Text>
+              )}
             </Pressable>
           </View>
         </View>
@@ -331,5 +361,8 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: 14,
     fontWeight: '700',
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
 });

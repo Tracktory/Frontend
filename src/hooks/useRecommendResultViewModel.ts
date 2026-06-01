@@ -1,18 +1,28 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { NavigationProp } from '@react-navigation/native';
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 
 import { fetchRecommendResult } from '../api/recommendApi';
 import type { RecommendResult } from '../api/recommendApi';
+import { AuthApiError } from '../api/authApi';
+import { useAuthStore } from '../stores/authStore';
+import { useOnboardingStore } from '../stores/onboardingStore';
+import { useRecommendStore } from '../stores/recommendStore';
 import type { TabKey } from '../pages/recommendation/components/SegmentTab';
 import type { MainStackParamList } from '../navigation/MainStackNavigator';
-  import { useOnboardingStore } from '../stores/onboardingStore';
+import type { RootStackParamList } from '../navigation/RootNavigator';
 
 export function useRecommendResultViewModel() {
+  const rootNavigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+
   const [activeTab, setActiveTab] = useState<TabKey>('job');
 
   const [result, setResult] = useState<RecommendResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
+
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const setRecommendResult = useRecommendStore((s) => s.setRecommendResult);
 
   // onboardingStore 구독 — 변경 감지용
   const interests = useOnboardingStore((s) => s.interests);
@@ -21,17 +31,37 @@ export function useRecommendResultViewModel() {
   const employmentValues = useOnboardingStore((s) => s.employmentValues);
 
   const refresh = useCallback(async () => {
+    if (!accessToken) {
+      rootNavigation.reset({ index: 0, routes: [{ name: 'Auth' }] });
+      return;
+    }
     setIsLoading(true);
     setIsError(false);
     try {
-      const data = await fetchRecommendResult();
+      const data = await fetchRecommendResult(accessToken);
       setResult(data);
-    } catch {
-      setIsError(true);
+      setRecommendResult(data);
+    } catch (err) {
+      if (err instanceof AuthApiError) {
+        switch (err.code) {
+          case 'AUTH_REQUIRED':
+            rootNavigation.reset({ index: 0, routes: [{ name: 'Auth' }] });
+            break;
+          case 'RESOURCE_NOT_FOUND':
+            rootNavigation.reset({ index: 0, routes: [{ name: 'Onboarding' }] });
+            break;
+          default:
+            setIsError(true);
+        }
+      } else {
+        setIsError(true);
+      }
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  // rootNavigation은 stable ref이므로 deps 생략해도 안전하나 exhaustive-deps 준수
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accessToken]);
 
   // 최초 마운트 시 데이터 로드
   useEffect(() => {
@@ -46,8 +76,6 @@ export function useRecommendResultViewModel() {
       return;
     }
     refresh();
-  // refresh는 useCallback으로 안정적이므로 deps에서 제외해도 되나,
-  // eslint가 요구하므로 포함 (무한루프 없음 — refresh 자체는 변하지 않음)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [interests, developmentFields, preferredCompanyTypes, employmentValues]);
 
