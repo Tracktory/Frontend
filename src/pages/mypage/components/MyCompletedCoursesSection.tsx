@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -21,8 +21,15 @@ import type { HansungCourse } from '../../../data/hansungCourseData';
 interface MyCompletedCoursesSectionProps {
   courses: string[];
   catalog: HansungCourse[];
-  onAddCourse: (name: string) => boolean;
-  onRemoveCourse: (name: string) => void;
+  defaultYear: number;
+  isAddingCourse?: boolean;
+  removingCourseName?: string | null;
+  onAddCourse: (
+    course: HansungCourse,
+    year: number,
+    semester: 1 | 2
+  ) => Promise<boolean>;
+  onRemoveCourse: (name: string) => void | Promise<void>;
 }
 
 const YEAR_OPTIONS = [1, 2, 3, 4] as const;
@@ -41,6 +48,9 @@ export function MyCompletedCoursesSection({
   const [modalVisible, setModalVisible] = useState(false);
   const [query, setQuery] = useState('');
   const [selectedTrack, setSelectedTrack] = useState<string | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<HansungCourse | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number>(defaultYear);
+  const [selectedSemester, setSelectedSemester] = useState<1 | 2>(1);
 
   const uniqueTracks = useMemo(
     () => [...new Set(catalog.map((c) => c.track))],
@@ -65,6 +75,9 @@ export function MyCompletedCoursesSection({
   const openModal = () => {
     setQuery('');
     setSelectedTrack(null);
+    setSelectedCourse(null);
+    setSelectedYear(defaultYear);
+    setSelectedSemester(1);
     setModalVisible(true);
   };
 
@@ -73,16 +86,96 @@ export function MyCompletedCoursesSection({
     setModalVisible(false);
     setQuery('');
     setSelectedTrack(null);
+    setSelectedCourse(null);
   };
 
   const handlePickCourse = (course: HansungCourse) => {
-    const ok = onAddCourse(course.subject);
-    if (ok) {
-      closeModal();
-    }
+    setSelectedCourse(course);
+    setSelectedYear(defaultYear);
+    setSelectedSemester(1);
+  };
+
+  const handleConfirmAdd = async () => {
+    if (!selectedCourse || isAddingCourse) return;
+    const ok = await onAddCourse(selectedCourse, selectedYear, selectedSemester);
+    if (ok) closeModal();
   };
 
   const renderBody = () => {
+    if (selectedCourse) {
+      return (
+        <>
+          <Text style={styles.selectedCourseName}>{selectedCourse.subject}</Text>
+
+          <Text style={styles.fieldLabel}>이수 학년</Text>
+          <View style={styles.optionRow}>
+            {YEAR_OPTIONS.map((year) => (
+              <Pressable
+                key={year}
+                disabled={isAddingCourse}
+                onPress={() => setSelectedYear(year)}
+                style={[styles.optionChip, selectedYear === year && styles.optionChipActive]}
+              >
+                <Text
+                  style={[
+                    styles.optionChipText,
+                    selectedYear === year && styles.optionChipTextActive,
+                  ]}
+                >
+                  {year}학년
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+
+          <Text style={styles.fieldLabel}>이수 학기</Text>
+          <View style={styles.optionRow}>
+            {SEMESTER_OPTIONS.map((semester) => (
+              <Pressable
+                key={semester}
+                disabled={isAddingCourse}
+                onPress={() => setSelectedSemester(semester)}
+                style={[
+                  styles.optionChip,
+                  selectedSemester === semester && styles.optionChipActive,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.optionChipText,
+                    selectedSemester === semester && styles.optionChipTextActive,
+                  ]}
+                >
+                  {semester}학기
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+
+          <View style={styles.confirmRow}>
+            <Pressable
+              style={[styles.backButton, isAddingCourse && styles.buttonDisabled]}
+              onPress={() => setSelectedCourse(null)}
+              disabled={isAddingCourse}
+            >
+              <Text style={styles.backButtonText}>뒤로</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.confirmButton, isAddingCourse && styles.buttonDisabled]}
+              onPress={handleConfirmAdd}
+              disabled={isAddingCourse}
+            >
+              {isAddingCourse ? (
+                <ActivityIndicator color={colors.white} size="small" />
+              ) : (
+                <Text style={styles.confirmButtonText}>추가</Text>
+              )}
+            </Pressable>
+          </View>
+        </>
+      );
+    }
+
     if (query.trim() !== '') {
       if (searchResults.length === 0) {
         return (
@@ -238,10 +331,7 @@ export function MyCompletedCoursesSection({
             style={styles.sheetOuter}
           >
             <View
-              style={[
-                styles.sheet,
-                { paddingBottom: Math.max(insets.bottom, 16) },
-              ]}
+              style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 16) }]}
             >
               <View style={styles.sheetHeader}>
                 <Text style={styles.sheetTitle}>
@@ -252,20 +342,22 @@ export function MyCompletedCoursesSection({
                 </Pressable>
               </View>
 
-              <TextInput
-                style={styles.search}
-                placeholder="과목명 검색"
-                placeholderTextColor={colors.textHint}
-                value={query}
-                onChangeText={(text) => {
-                  setQuery(text);
-                  if (text.trim() !== '' && selectedTrack !== null) {
-                    setSelectedTrack(null);
-                  }
-                }}
-                autoCorrect={false}
-                autoCapitalize="none"
-              />
+              {!selectedCourse && (
+                <TextInput
+                  style={styles.search}
+                  placeholder="과목명 검색"
+                  placeholderTextColor={colors.textHint}
+                  value={query}
+                  onChangeText={(text) => {
+                    setQuery(text);
+                    if (text.trim() !== '' && selectedTrack !== null) {
+                      setSelectedTrack(null);
+                    }
+                  }}
+                  autoCorrect={false}
+                  autoCapitalize="none"
+                />
+              )}
 
               {renderBody()}
             </View>
@@ -342,7 +434,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.primary,
   },
-
   modalOuter: {
     flex: 1,
     justifyContent: 'flex-end',

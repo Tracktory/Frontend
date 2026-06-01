@@ -5,11 +5,25 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 
 import { AuthApiError } from '../api/authApi';
 import {
-  MOCK_RECOMMENDATION_HISTORY,
-} from '../data/mockMyPageData';
+  addCompletedCourse as addCompletedCourseApi,
+  deleteCompletedCourse as deleteCompletedCourseApi,
+} from '../api/completedCoursesApi';
+import { useOnboardingStore } from '../stores/onboardingStore';
+import { useProfileStore } from '../stores/profileStore';
+import { useRecommendStore } from '../stores/recommendStore';
+import { useAuthStore } from '../stores/authStore';
+import { MOCK_RECOMMENDATION_HISTORY } from '../data/mockMyPageData';
 import type { RecommendationHistoryItem } from '../data/mockMyPageData';
 import { hansungCourseData } from '../data/hansungCourseData';
 import type { HansungCourse } from '../data/hansungCourseData';
+import {
+  INTEREST_ID_MAP,
+  DEV_FIELD_ID_MAP,
+  COMPANY_TYPE_ID_MAP,
+  WORK_VALUE_ID_MAP,
+} from '../pages/onboarding/data/idMappings';
+import { buildCourseCatalog, resolveSubjectId } from '../utils/buildCourseCatalog';
+import type { RootStackParamList } from '../navigation/RootNavigator';
 
 const EMPTY_PLACEHOLDER = '선택 없음';
 const MAJOR_FALLBACK = 'IT공과대학';
@@ -66,6 +80,13 @@ export function useMyPageViewModel() {
 
   const recommendationHistory: RecommendationHistoryItem[] = MOCK_RECOMMENDATION_HISTORY;
   const courseCatalog: HansungCourse[] = hansungCourseData;
+
+  const subjectIdCatalog = useMemo(
+    () => buildCourseCatalog(recommendResult, profile),
+    [recommendResult, profile]
+  );
+
+  const defaultCompletedYear = profile?.profile.currentYear ?? grade ?? 1;
 
   const interestsLine =
     interests.length > 0 ? interests.join(', ') : EMPTY_PLACEHOLDER;
@@ -180,11 +201,13 @@ export function useMyPageViewModel() {
   };
 
   const addCompletedCourse = async (
-    item: CourseCatalogItem,
+    course: HansungCourse,
     year: number,
     semester: 1 | 2
   ): Promise<boolean> => {
-    if (completedCourses.includes(item.name)) {
+    const name = course.subject;
+
+    if (completedCourses.includes(name)) {
       Alert.alert('알림', '이미 이수 과목에 추가된 과목입니다.');
       return false;
     }
@@ -195,6 +218,12 @@ export function useMyPageViewModel() {
       );
       return false;
     }
+
+    const subjectId = resolveSubjectId(name, profile, subjectIdCatalog);
+    if (subjectId == null) {
+      Alert.alert('알림', '과목 정보를 찾을 수 없습니다.');
+      return false;
+    }
     if (!accessToken) {
       rootNavigation.reset({ index: 0, routes: [{ name: 'Auth' }] });
       return false;
@@ -202,11 +231,7 @@ export function useMyPageViewModel() {
 
     setIsAddingCourse(true);
     try {
-      await addCompletedCourseApi(accessToken, {
-        subjectId: item.subjectId,
-        year,
-        semester,
-      });
+      await addCompletedCourseApi(accessToken, { subjectId, year, semester });
       await loadProfile(accessToken, rootNavigation);
       return true;
     } catch (err) {
@@ -218,7 +243,7 @@ export function useMyPageViewModel() {
   };
 
   const removeCompletedCourse = async (name: string): Promise<void> => {
-    const subjectId = resolveSubjectId(name, profile, courseCatalog);
+    const subjectId = resolveSubjectId(name, profile, subjectIdCatalog);
     if (subjectId == null) {
       Alert.alert('알림', '과목 정보를 찾을 수 없습니다.');
       return;
