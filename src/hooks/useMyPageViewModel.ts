@@ -247,12 +247,10 @@ export function useMyPageViewModel() {
     });
   };
 
-  const addCompletedCourse = async (
-    course: HansungCourse,
-    year: number,
-    semester: 1 | 2
-  ): Promise<boolean> => {
+  const addCompletedCourse = async (course: HansungCourse): Promise<boolean> => {
     const name = course.subject;
+    const year = defaultCompletedYear;
+    const semester: 1 | 2 = 1;
 
     if (completedCourses.includes(name)) {
       Alert.alert('알림', '이미 이수 과목에 추가된 과목입니다.');
@@ -266,11 +264,6 @@ export function useMyPageViewModel() {
       return false;
     }
 
-    const subjectId = resolveSubjectId(name, profile, subjectIdCatalog);
-    if (subjectId == null) {
-      Alert.alert('알림', '과목 정보를 찾을 수 없습니다.');
-      return false;
-    }
     if (!accessToken) {
       rootNavigation.reset({ index: 0, routes: [{ name: 'Auth' }] });
       return false;
@@ -278,7 +271,7 @@ export function useMyPageViewModel() {
 
     setIsAddingCourse(true);
     try {
-      await addCompletedCourseApi(accessToken, { subjectId, year, semester });
+      await addCompletedCourseApi(accessToken, { subjectName: name, year, semester });
       await loadProfile(accessToken, rootNavigation);
       return true;
     } catch (err) {
@@ -334,7 +327,6 @@ export function useMyPageViewModel() {
     employmentLine,
     completedCourses,
     courseCatalog,
-    defaultCompletedYear,
     recommendationHistory,
     isSaving,
     isAddingCourse,

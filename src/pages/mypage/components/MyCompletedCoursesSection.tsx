@@ -21,24 +21,15 @@ import type { HansungCourse } from '../../../data/hansungCourseData';
 interface MyCompletedCoursesSectionProps {
   courses: string[];
   catalog: HansungCourse[];
-  defaultYear: number;
   isAddingCourse?: boolean;
   removingCourseName?: string | null;
-  onAddCourse: (
-    course: HansungCourse,
-    year: number,
-    semester: 1 | 2
-  ) => Promise<boolean>;
+  onAddCourse: (course: HansungCourse) => Promise<boolean>;
   onRemoveCourse: (name: string) => void | Promise<void>;
 }
-
-const YEAR_OPTIONS = [1, 2, 3, 4] as const;
-const SEMESTER_OPTIONS = [1, 2] as const;
 
 export function MyCompletedCoursesSection({
   courses,
   catalog,
-  defaultYear,
   isAddingCourse = false,
   removingCourseName = null,
   onAddCourse,
@@ -48,9 +39,6 @@ export function MyCompletedCoursesSection({
   const [modalVisible, setModalVisible] = useState(false);
   const [query, setQuery] = useState('');
   const [selectedTrack, setSelectedTrack] = useState<string | null>(null);
-  const [selectedCourse, setSelectedCourse] = useState<HansungCourse | null>(null);
-  const [selectedYear, setSelectedYear] = useState<number>(defaultYear);
-  const [selectedSemester, setSelectedSemester] = useState<1 | 2>(1);
 
   const uniqueTracks = useMemo(
     () => [...new Set(catalog.map((c) => c.track))],
@@ -75,9 +63,6 @@ export function MyCompletedCoursesSection({
   const openModal = () => {
     setQuery('');
     setSelectedTrack(null);
-    setSelectedCourse(null);
-    setSelectedYear(defaultYear);
-    setSelectedSemester(1);
     setModalVisible(true);
   };
 
@@ -86,96 +71,15 @@ export function MyCompletedCoursesSection({
     setModalVisible(false);
     setQuery('');
     setSelectedTrack(null);
-    setSelectedCourse(null);
   };
 
-  const handlePickCourse = (course: HansungCourse) => {
-    setSelectedCourse(course);
-    setSelectedYear(defaultYear);
-    setSelectedSemester(1);
-  };
-
-  const handleConfirmAdd = async () => {
-    if (!selectedCourse || isAddingCourse) return;
-    const ok = await onAddCourse(selectedCourse, selectedYear, selectedSemester);
+  const handleAddCourse = async (course: HansungCourse) => {
+    if (isAddingCourse) return;
+    const ok = await onAddCourse(course);
     if (ok) closeModal();
   };
 
   const renderBody = () => {
-    if (selectedCourse) {
-      return (
-        <>
-          <Text style={styles.selectedCourseName}>{selectedCourse.subject}</Text>
-
-          <Text style={styles.fieldLabel}>이수 학년</Text>
-          <View style={styles.optionRow}>
-            {YEAR_OPTIONS.map((year) => (
-              <Pressable
-                key={year}
-                disabled={isAddingCourse}
-                onPress={() => setSelectedYear(year)}
-                style={[styles.optionChip, selectedYear === year && styles.optionChipActive]}
-              >
-                <Text
-                  style={[
-                    styles.optionChipText,
-                    selectedYear === year && styles.optionChipTextActive,
-                  ]}
-                >
-                  {year}학년
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-
-          <Text style={styles.fieldLabel}>이수 학기</Text>
-          <View style={styles.optionRow}>
-            {SEMESTER_OPTIONS.map((semester) => (
-              <Pressable
-                key={semester}
-                disabled={isAddingCourse}
-                onPress={() => setSelectedSemester(semester)}
-                style={[
-                  styles.optionChip,
-                  selectedSemester === semester && styles.optionChipActive,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.optionChipText,
-                    selectedSemester === semester && styles.optionChipTextActive,
-                  ]}
-                >
-                  {semester}학기
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-
-          <View style={styles.confirmRow}>
-            <Pressable
-              style={[styles.backButton, isAddingCourse && styles.buttonDisabled]}
-              onPress={() => setSelectedCourse(null)}
-              disabled={isAddingCourse}
-            >
-              <Text style={styles.backButtonText}>뒤로</Text>
-            </Pressable>
-            <Pressable
-              style={[styles.confirmButton, isAddingCourse && styles.buttonDisabled]}
-              onPress={handleConfirmAdd}
-              disabled={isAddingCourse}
-            >
-              {isAddingCourse ? (
-                <ActivityIndicator color={colors.white} size="small" />
-              ) : (
-                <Text style={styles.confirmButtonText}>추가</Text>
-              )}
-            </Pressable>
-          </View>
-        </>
-      );
-    }
-
     if (query.trim() !== '') {
       if (searchResults.length === 0) {
         return (
@@ -194,7 +98,8 @@ export function MyCompletedCoursesSection({
           renderItem={({ item }) => (
             <Pressable
               style={({ pressed }) => [styles.listRow, pressed && styles.listRowPressed]}
-              onPress={() => handlePickCourse(item)}
+              onPress={() => handleAddCourse(item)}
+              disabled={isAddingCourse}
             >
               <Text style={styles.listRowText} numberOfLines={1}>
                 {item.subject}
@@ -235,7 +140,8 @@ export function MyCompletedCoursesSection({
               renderItem={({ item }) => (
                 <Pressable
                   style={({ pressed }) => [styles.listRow, pressed && styles.listRowPressed]}
-                  onPress={() => handlePickCourse(item)}
+                  onPress={() => handleAddCourse(item)}
+                  disabled={isAddingCourse}
                 >
                   <Text style={styles.listRowText} numberOfLines={1}>
                     {item.subject}
@@ -334,29 +240,33 @@ export function MyCompletedCoursesSection({
               style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 16) }]}
             >
               <View style={styles.sheetHeader}>
-                <Text style={styles.sheetTitle}>
-                  {selectedCourse ? '이수 학년·학기 선택' : '과목 추가'}
-                </Text>
+                <Text style={styles.sheetTitle}>과목 추가</Text>
                 <Pressable hitSlop={12} onPress={closeModal} disabled={isAddingCourse}>
                   <Ionicons name="close" size={26} color={colors.textSecondary} />
                 </Pressable>
               </View>
 
-              {!selectedCourse && (
-                <TextInput
-                  style={styles.search}
-                  placeholder="과목명 검색"
-                  placeholderTextColor={colors.textHint}
-                  value={query}
-                  onChangeText={(text) => {
-                    setQuery(text);
-                    if (text.trim() !== '' && selectedTrack !== null) {
-                      setSelectedTrack(null);
-                    }
-                  }}
-                  autoCorrect={false}
-                  autoCapitalize="none"
-                />
+              <TextInput
+                style={styles.search}
+                placeholder="과목명 검색"
+                placeholderTextColor={colors.textHint}
+                value={query}
+                onChangeText={(text) => {
+                  setQuery(text);
+                  if (text.trim() !== '' && selectedTrack !== null) {
+                    setSelectedTrack(null);
+                  }
+                }}
+                autoCorrect={false}
+                autoCapitalize="none"
+                editable={!isAddingCourse}
+              />
+
+              {isAddingCourse && (
+                <View style={styles.addingBanner}>
+                  <ActivityIndicator size="small" color={colors.primary} />
+                  <Text style={styles.addingBannerText}>이수 과목 등록 중...</Text>
+                </View>
               )}
 
               {renderBody()}
@@ -466,78 +376,17 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.textPrimary,
   },
-  selectedCourseName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.textPrimary,
-    marginBottom: 16,
-  },
-  fieldLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.textSecondary,
-    marginBottom: 8,
-  },
-  optionRow: {
+  addingBanner: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignItems: 'center',
     gap: 8,
-    marginBottom: 16,
-  },
-  optionChip: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 16,
-    paddingHorizontal: 14,
+    marginBottom: 8,
     paddingVertical: 8,
-    backgroundColor: colors.white,
   },
-  optionChipActive: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primaryLight,
-  },
-  optionChipText: {
-    fontSize: 14,
+  addingBannerText: {
+    fontSize: 13,
     color: colors.textSecondary,
     fontWeight: '500',
-  },
-  optionChipTextActive: {
-    color: colors.primary,
-    fontWeight: '600',
-  },
-  confirmRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 8,
-    marginTop: 8,
-  },
-  backButton: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-  backButtonText: {
-    color: colors.textSecondary,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  confirmButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    minWidth: 72,
-    alignItems: 'center',
-  },
-  confirmButtonText: {
-    color: colors.white,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  buttonDisabled: {
-    opacity: 0.6,
   },
   search: {
     backgroundColor: colors.inputSurface,

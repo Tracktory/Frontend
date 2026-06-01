@@ -9,7 +9,7 @@ interface ApiEnvelope<T> {
 }
 
 export interface AddCompletedCourseRequestBody {
-  subjectId: number;
+  subjectName: string;
   year: number;
   semester: 1 | 2;
 }
