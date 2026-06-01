@@ -23,10 +23,6 @@ import { useOnboardingStore } from '../../stores/onboardingStore';
 import { SegmentTab } from './components/SegmentTab';
 import { JobCard } from './components/JobCard';
 import { TrackRecommendPanel } from './components/TrackRecommendPanel';
-import { LlmSynergySection } from './components/LlmSynergySection';
-import { TrackDescriptionSection } from './components/TrackDescriptionSection';
-import { RequiredCoursesSection } from './components/RequiredCoursesSection';
-import { PrerequisiteSection } from './components/PrerequisiteSection';
 import { RoadmapPanel } from './components/RoadmapPanel';
 import { generateRecommendPdf } from '../../utils/generateRecommendPdf';
 import type { MainStackParamList } from '../../navigation/MainStackNavigator';
@@ -176,10 +172,6 @@ export function RecommendResultPage() {
                     showsVerticalScrollIndicator={false}
                   >
                     <TrackRecommendPanel data={vm.trackRecommend} />
-                    <LlmSynergySection body={vm.trackRecommend.llmSynergy} />
-                    <TrackDescriptionSection description={vm.trackRecommend.trackDescription} />
-                    <RequiredCoursesSection courses={vm.trackRecommend.requiredCourses} />
-                    <PrerequisiteSection note={vm.trackRecommend.prerequisiteNote} />
                   </ScrollView>
                 ) : null}
               </>

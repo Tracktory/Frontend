@@ -55,6 +55,9 @@ interface ApiSupportingTrack {
   trackId?: number;
   code?: string;
   name: string;
+  score?: number | null;
+  reasoning?: string | null;
+  primary?: boolean;
   isCrossCombination?: boolean;
 }
 
@@ -187,18 +190,16 @@ function mapJobs(items: ApiJobItem[]): JobRecommendation[] {
 function mapTracks(tracks: ApiTracksPayload): TrackRecommendPayload {
   const primary = tracks.primary.map((t, index) => {
     const rank = (t.trackOrder ?? (index === 0 ? 1 : 2)) as 1 | 2;
-    const coreSubjects = t.coreSubjects?.length
-      ? `핵심과목 : ${t.coreSubjects.join(', ')}`
-      : t.reasoning?.trim()
-        ? t.reasoning
-        : `추천 트랙: ${t.name}`;
+    const rankLabel = rank === 1 ? '1트랙·주전공' : '2트랙';
 
     return {
       rank,
       title: t.name,
-      coreSubjects,
+      rankLabel,
+      score: t.score ?? null,
+      reasoning: t.reasoning?.trim() || null,
+      coreSubjects: t.coreSubjects ?? [],
       relatedJobs: t.relatedJobs ?? [],
-      emphasized: rank === 1,
     };
   });
 
@@ -206,7 +207,8 @@ function mapTracks(tracks: ApiTracksPayload): TrackRecommendPayload {
   const secondary = supportingList.map((t, i) => ({
     id: String(t.trackId ?? t.code ?? `s${i + 1}`),
     name: t.name,
-    emphasized: t.isCrossCombination ?? false,
+    score: t.score ?? null,
+    reasoning: t.reasoning?.trim() || null,
   }));
 
   const combinationReasoning =
@@ -217,8 +219,12 @@ function mapTracks(tracks: ApiTracksPayload): TrackRecommendPayload {
     tracks.combination?.summary ??
     tracks.combinationSummary ??
     '';
+  const combinationScore =
+    tracks.combination?.score ?? tracks.combinationScore;
 
   return {
+    combinationScore,
+    combinationReasoning,
     primary,
     secondary,
     llmSynergy: combinationReasoning || combinationSummary,

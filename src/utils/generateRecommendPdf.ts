@@ -55,16 +55,52 @@ function buildJobsPage(jobs: JobRecommendation[]): string {
 }
 
 function buildTrackPage(track: TrackRecommendPayload): string {
+  const trackNames = track.primary.map((t) => t.title).filter(Boolean).join(' + ');
+  const combinationHeadline =
+    track.combinationScore != null && trackNames
+      ? `시너지 점수 ${track.combinationScore} : ${escapeHtml(trackNames)}`
+      : track.combinationScore != null
+        ? `시너지 점수 ${track.combinationScore}`
+        : trackNames
+          ? escapeHtml(trackNames)
+          : '';
+  const combinationReasoning = track.combinationReasoning.trim()
+    ? `<p class="card-desc">선택 이유 : ${escapeHtml(track.combinationReasoning)}</p>`
+    : '';
+
   const primaryCards = track.primary
     .map(
       (t) => `
-      <div class="card ${t.emphasized ? 'card-primary' : ''}">
+      <div class="card">
         <div class="card-header">
-          <span class="rank-badge">${t.rank}순위</span>
           <span class="card-title">${escapeHtml(t.title)}</span>
+          ${t.score != null ? `<span class="match-score">시너지 ${t.score}</span>` : ''}
         </div>
-        <p class="card-desc">${escapeHtml(t.coreSubjects)}</p>
-        <div class="chips">${t.relatedJobs.map((j) => `<span class="chip">${escapeHtml(j)}</span>`).join('')}</div>
+        <p class="card-meta">${escapeHtml(t.rankLabel)}</p>
+        ${t.reasoning ? `<p class="card-desc">선택 이유: ${escapeHtml(t.reasoning)}</p>` : ''}
+        ${
+          t.coreSubjects.length > 0
+            ? `<div class="chips">${t.coreSubjects.map((s) => `<span class="chip">${escapeHtml(s)}</span>`).join('')}</div>`
+            : ''
+        }
+        ${
+          t.relatedJobs.length > 0
+            ? `<p class="card-desc">연계 직무: ${escapeHtml(t.relatedJobs.join(', '))}</p>`
+            : ''
+        }
+      </div>`
+    )
+    .join('');
+
+  const secondaryCards = track.secondary
+    .map(
+      (t) => `
+      <div class="card card-muted">
+        <div class="card-header">
+          <span class="card-title">${escapeHtml(t.name)}</span>
+          ${t.score != null ? `<span class="match-score">${t.score}</span>` : ''}
+        </div>
+        ${t.reasoning ? `<p class="card-desc">${escapeHtml(t.reasoning)}</p>` : ''}
       </div>`
     )
     .join('');
@@ -76,8 +112,10 @@ function buildTrackPage(track: TrackRecommendPayload): string {
   return `
   <div class="page">
     <h1 class="page-title">트랙 추천</h1>
-    <p class="page-subtitle">선택한 직무와 흥미 분야를 바탕으로 추천된 트랙입니다.</p>
+    ${combinationHeadline ? `<p class="page-subtitle">${combinationHeadline}</p>` : ''}
+    ${combinationReasoning}
     ${primaryCards}
+    ${secondaryCards.length > 0 ? `<div class="section"><h2 class="section-title">보조 추천</h2>${secondaryCards}</div>` : ''}
     <div class="section">
       <h2 class="section-title">AI 시너지 분석</h2>
       <p class="card-desc">${escapeHtml(track.llmSynergy)}</p>
