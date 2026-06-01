@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 
 import { signUp, AuthApiError } from '../api/authApi';
-import { useAuthStore } from '../stores/authStore';
-import type { RootStackParamList } from '../navigation/RootNavigator';
+import type { AuthStackParamList } from '../navigation/AuthNavigator';
+
+type AuthNavigation = StackNavigationProp<AuthStackParamList, 'SignUp'>;
 
 function validateUserName(value: string): string {
   if (!value.trim()) return '이름을 입력해주세요.';
@@ -32,10 +32,7 @@ function validateConfirmPassword(password: string, confirm: string): string {
   return '';
 }
 
-export function useSignUpViewModel() {
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const setAuth = useAuthStore((s) => s.setAuth);
-
+export function useSignUpViewModel(navigation: AuthNavigation) {
   const [userName, setUserName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -73,9 +70,14 @@ export function useSignUpViewModel() {
 
     setIsSubmitting(true);
     try {
-      const data = await signUp(userName, email, password);
-      setAuth(data);
-      navigation.reset({ index: 0, routes: [{ name: 'Onboarding' }] });
+      await signUp(userName, email, password);
+      Alert.alert('회원가입 완료', '로그인 후 온보딩을 진행해주세요.', [
+        {
+          text: '확인',
+          onPress: () =>
+            navigation.reset({ index: 0, routes: [{ name: 'Login' }] }),
+        },
+      ]);
     } catch (err) {
       if (err instanceof AuthApiError) {
         switch (err.code) {

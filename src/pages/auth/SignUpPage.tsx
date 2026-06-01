@@ -20,7 +20,7 @@ import type { AuthStackParamList } from '@/src/navigation/AuthNavigator';
 type Props = StackScreenProps<AuthStackParamList, 'SignUp'>;
 
 export function SignUpPage({ navigation }: Props) {
-  const vm = useSignUpViewModel();
+  const vm = useSignUpViewModel(navigation);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
