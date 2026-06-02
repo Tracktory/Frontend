@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { colors } from '../../../styles/colors';
-import type { SemesterCourse, SemesterStep } from '../../../data/mockRoadmapData';
+import type { SemesterCourse, SemesterStep, SemesterTiming } from '../../../data/mockRoadmapData';
 
 const STAGE_COLORS: Record<1 | 2 | 3 | 4, string> = {
   1: colors.stageBasic,
@@ -12,7 +12,14 @@ const STAGE_COLORS: Record<1 | 2 | 3 | 4, string> = {
   4: colors.stageCap,
 };
 
-function isCourseCompleted(course: SemesterCourse, completedCourses: string[]): boolean {
+function isCourseCompleted(
+  course: SemesterCourse,
+  completedCourses: string[],
+  stepTiming: SemesterTiming
+): boolean {
+  if (stepTiming !== 'past') {
+    return completedCourses.includes(course.name);
+  }
   if (course.completed === true) return true;
   if (course.completed === false) return false;
   return completedCourses.includes(course.name);
@@ -32,7 +39,9 @@ export function RoadmapSemesterCard({ step, completedCourses, onPressCourse }: R
   const stageColor = STAGE_COLORS[step.stageNumber];
   const isPastSemester = step.timing === 'past';
 
-  const courseCompletions = step.courses.map((c) => isCourseCompleted(c, completedCourses));
+  const courseCompletions = step.courses.map((c) =>
+    isCourseCompleted(c, completedCourses, step.timing)
+  );
   const earnedCredits = step.courses.reduce(
     (sum, c, i) => sum + (courseCompletions[i] ? c.credits : 0),
     0

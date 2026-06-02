@@ -22,6 +22,7 @@ import {
   resolveTrackId,
 } from '../pages/onboarding/data/idMappings';
 import type { RootStackParamList } from '../navigation/RootNavigator';
+import { admissionYearFromStudentId } from '../utils/mapProfileToOnboarding';
 
 const EMPTY_PLACEHOLDER = '선택 없음';
 const MAJOR_FALLBACK = 'IT공과대학';
@@ -36,9 +37,19 @@ function twoDigitAdmissionYear(year: number): string {
   return `${year % 100}`.padStart(2, '0');
 }
 
-function formatAdmissionBadge(year: number | null): string {
-  if (year == null) return EMPTY_PLACEHOLDER;
-  return `${twoDigitAdmissionYear(year)}학번`;
+function formatProfileSubtitle(
+  admissionYear: number | null,
+  currentYear: number | null | undefined
+): string {
+  const gradePart =
+    currentYear != null && currentYear >= 1 ? `${currentYear}학년` : null;
+  const badgePart =
+    admissionYear != null ? `${twoDigitAdmissionYear(admissionYear)}학번` : null;
+
+  if (badgePart && gradePart) return `${badgePart} · ${gradePart}`;
+  if (gradePart) return gradePart;
+  if (badgePart) return badgePart;
+  return EMPTY_PLACEHOLDER;
 }
 
 function formatEmployment(
@@ -107,7 +118,13 @@ export function useMyPageViewModel() {
       ? experiencedFields.join(', ')
       : EMPTY_PLACEHOLDER;
 
-  const admissionBadge = formatAdmissionBadge(admissionYear);
+  const profileAdmissionYear =
+    admissionYearFromStudentId(profile?.profile.studentId) ?? admissionYear;
+  const profileCurrentYear = profile?.profile.currentYear ?? grade;
+  const admissionBadge = formatProfileSubtitle(
+    profileAdmissionYear,
+    profileCurrentYear
+  );
 
   const displayName = profile?.profile.name ?? userName ?? '-';
   const profileInitial = displayName.length > 0 ? displayName.slice(-1) : '-';

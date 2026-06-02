@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '../../../styles/colors';
-import type { RoadmapPayload } from '../../../data/mockRoadmapData';
+import type { RoadmapPayload, SemesterTiming } from '../../../data/mockRoadmapData';
 import { useOnboardingStore } from '../../../stores/onboardingStore';
 import { applyStudentGradeToSemesterSteps } from '../../../utils/roadmapTiming';
 import { RoadmapConnectionCard } from './RoadmapConnectionCard';
@@ -29,7 +29,13 @@ export function RoadmapPanel({ roadmap, isLoading, isError, onRetry }: RoadmapPa
     return applyStudentGradeToSemesterSteps(roadmap.semesterSteps, grade);
   }, [roadmap, grade]);
 
-  const isCourseIncomplete = (course: { name: string; completed?: boolean }) => {
+  const isCourseIncomplete = (
+    course: { name: string; completed?: boolean },
+    stepTiming: SemesterTiming
+  ) => {
+    if (stepTiming !== 'past') {
+      return !completedCourses.includes(course.name);
+    }
     if (course.completed === true) return false;
     if (course.completed === false) return true;
     return !completedCourses.includes(course.name);
@@ -41,11 +47,11 @@ export function RoadmapPanel({ roadmap, isLoading, isError, onRetry }: RoadmapPa
     const incompleteSteps = steps.filter(
       (step) =>
         step.timing !== 'past' &&
-        step.courses.some((c) => isCourseIncomplete(c))
+        step.courses.some((c) => isCourseIncomplete(c, step.timing))
     );
     const count = incompleteSteps.length;
-    const first = steps[0];
-    const last = steps[steps.length - 1];
+    const first = incompleteSteps[0];
+    const last = incompleteSteps[incompleteSteps.length - 1];
     const range =
       first && last
         ? `${first.year}학년 ${first.semester}학기 ~ ${last.year}학년 ${last.semester}학기`

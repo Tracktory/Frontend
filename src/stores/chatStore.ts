@@ -73,9 +73,22 @@ export function buildInitialMessages(): ChatMessage[] {
   ];
 }
 
+function syncMessagesToUser(
+  messagesByUserId: Record<string, ChatMessage[]>,
+  activeUserId: number | null,
+  messages: ChatMessage[]
+): Record<string, ChatMessage[]> {
+  if (activeUserId == null) return messagesByUserId;
+  return { ...messagesByUserId, [userKey(activeUserId)]: messages };
+}
+
 /** 순수 상태 + 원자 액션만 보관 — 응답 생성 로직은 useChatViewModel에서 처리 */
 interface ChatState {
   messages: ChatMessage[];
+  /** 현재 화면에 표시 중인 사용자 (메시지 버킷 동기화용) */
+  activeUserId: number | null;
+  /** userId별 대화 메시지 (탭 이탈 후 복귀 시 복원) */
+  messagesByUserId: Record<string, ChatMessage[]>;
   /** userId별 API threadId (동일 사용자는 세션 간 재사용) */
   threadIdsByUserId: Record<string, string>;
   enterChatScreen: (userId: number) => void;
@@ -91,10 +104,21 @@ export const useChatStore = create<ChatState>()(
   persist(
     (set, get) => ({
       messages: buildInitialMessages(),
+      activeUserId: null,
+      messagesByUserId: {},
       threadIdsByUserId: {},
 
-      enterChatScreen: (_userId: number) => {
-        set({ messages: buildInitialMessages() });
+      enterChatScreen: (userId: number) => {
+        const key = userKey(userId);
+        const stored = get().messagesByUserId[key];
+        const messages = stored ?? buildInitialMessages();
+        set((s) => ({
+          activeUserId: userId,
+          messages,
+          messagesByUserId: stored
+            ? s.messagesByUserId
+            : { ...s.messagesByUserId, [key]: messages },
+        }));
       },
 
       getThreadIdForUser: (userId: number) => {
@@ -108,20 +132,51 @@ export const useChatStore = create<ChatState>()(
       },
 
       resetConversationForUser: (userId: number) => {
+        const key = userKey(userId);
+        const initial = buildInitialMessages();
         set((s) => {
-          const next = { ...s.threadIdsByUserId };
-          delete next[userKey(userId)];
-          return { messages: buildInitialMessages(), threadIdsByUserId: next };
+          const nextThreads = { ...s.threadIdsByUserId };
+          delete nextThreads[key];
+          const nextMessages = { ...s.messagesByUserId, [key]: initial };
+          return {
+            messages: s.activeUserId === userId ? initial : s.messages,
+            messagesByUserId: nextMessages,
+            threadIdsByUserId: nextThreads,
+          };
         });
       },
 
       clearChatForLogout: () => {
-        set({ messages: buildInitialMessages(), threadIdsByUserId: {} });
+        set({
+          messages: buildInitialMessages(),
+          activeUserId: null,
+          messagesByUserId: {},
+          threadIdsByUserId: {},
+        });
       },
 
-      appendMessage: (m) => set((s) => ({ messages: [...s.messages, m] })),
+      appendMessage: (m) =>
+        set((s) => {
+          const messages = [...s.messages, m];
+          return {
+            messages,
+            messagesByUserId: syncMessagesToUser(
+              s.messagesByUserId,
+              s.activeUserId,
+              messages
+            ),
+          };
+        }),
 
-      setMessages: (msgs) => set({ messages: msgs }),
+      setMessages: (msgs) =>
+        set((s) => ({
+          messages: msgs,
+          messagesByUserId: syncMessagesToUser(
+            s.messagesByUserId,
+            s.activeUserId,
+            msgs
+          ),
+        })),
     }),
     {
       name: 'chat-storage',
