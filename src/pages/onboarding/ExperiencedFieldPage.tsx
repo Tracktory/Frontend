@@ -1,129 +1,70 @@
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { StackScreenProps } from '@react-navigation/stack';
 
-import { Button } from '../../components/Button';
-import { ProgressBar } from '../../components/ProgressBar';
 import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
+import { useOnboardingStore } from '../../stores/onboardingStore';
 import { colors } from '../../styles/colors';
 import { useExperiencedFieldViewModel } from '../../hooks/useExperiencedFieldViewModel';
 import { InterestChip } from './components/InterestChip';
 import { TECH_TAG_OPTIONS } from './data/onboardingOptions';
+import { ONBOARDING_COPY } from './data/onboardingCopy';
+import { getOnboardingProgress } from './data/onboardingProgress';
+import { OnboardingStepLayout } from './components/OnboardingStepLayout';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'GoalSelect'>;
 
 export function ExperiencedFieldPage({ navigation }: Props) {
   const vm = useExperiencedFieldViewModel(navigation);
+  const affiliation = useOnboardingStore((s) => s.affiliation);
+  const copy = ONBOARDING_COPY.experiencedField;
 
   return (
-    <View style={styles.screen}>
-      <View style={styles.headerRow}>
-        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>← 뒤로</Text>
-        </Pressable>
+    <OnboardingStepLayout
+      progress={getOnboardingProgress('GoalSelect', affiliation)}
+      title={copy.title}
+      subtitle={copy.subtitle}
+      showBack
+      onBack={() => navigation.goBack()}
+      primaryTitle={copy.ctaPrimary}
+      onPrimaryPress={vm.handleNext}
+      secondaryTitle={copy.ctaSecondary}
+      onSecondaryPress={vm.handleSkip}
+      scrollable
+    >
+      <TextInput
+        style={styles.textInput}
+        placeholder="예: Python, React, 데이터분석"
+        placeholderTextColor={colors.textHint}
+        value={vm.fieldInput}
+        onChangeText={vm.setExperiencedFieldInput}
+        returnKeyType="done"
+      />
+      <Text style={styles.tagHint}>자유 입력 또는 아래 태그 선택</Text>
+      <View style={styles.chipGroup}>
+        {TECH_TAG_OPTIONS.map((tag) => {
+          const isSelected = vm.selectedFields.includes(tag);
+          return (
+            <InterestChip
+              key={tag}
+              label={tag}
+              selected={isSelected}
+              onPress={() => vm.toggleExperiencedField(tag)}
+            />
+          );
+        })}
       </View>
-
-      <ScrollView
-        style={styles.scrollArea}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        <ProgressBar progress={0.84} />
-
-        <Text style={styles.title}>
-          <Text style={styles.titleHighlight}>공부해본 분야</Text>가 있나요?
-        </Text>
-        <Text style={styles.subtitle}>*선택사항입니다</Text>
-
-        <TextInput
-          style={styles.textInput}
-          placeholder="EX) Python, React, 데이터분석 등"
-          placeholderTextColor={colors.textHint}
-          value={vm.fieldInput}
-          onChangeText={vm.setExperiencedFieldInput}
-          returnKeyType="done"
-        />
-
-        <Text style={styles.tagHint}>자유 입력 또는 아래 태그 선택</Text>
-
-        <View style={styles.chipGroup}>
-          {TECH_TAG_OPTIONS.map((tag) => {
-            const isSelected = vm.selectedFields.includes(tag);
-            return (
-              <InterestChip
-                key={tag}
-                label={tag}
-                selected={isSelected}
-                onPress={() => vm.toggleExperiencedField(tag)}
-              />
-            );
-          })}
-        </View>
-      </ScrollView>
-
-      <View style={styles.bottomArea}>
-        <Button title="건너뛰기" variant="secondary" onPress={vm.handleSkip} />
-        <View style={styles.spacer} />
-        <Button title="다음 단계로" variant="primary" onPress={vm.handleNext} />
-      </View>
-    </View>
+    </OnboardingStepLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingHorizontal: 20,
-    paddingTop: 48,
-    paddingBottom: 28,
-  },
-  headerRow: {
-    minHeight: 44,
-    justifyContent: 'center',
-    marginBottom: 4,
-  },
-  backButton: {
-    alignSelf: 'flex-start',
-    paddingVertical: 8,
-    paddingRight: 12,
-  },
-  backButtonText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: colors.textSecondary,
-  },
-  scrollArea: {
-    flex: 1,
-  },
-  content: {
-    paddingBottom: 16,
-  },
-  title: {
-    fontSize: 28,
-    lineHeight: 36,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  titleHighlight: {
-    color: colors.primary,
-  },
-  subtitle: {
-    fontSize: 13,
-    lineHeight: 20,
-    color: colors.textSecondary,
-    marginBottom: 20,
-  },
   textInput: {
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    paddingHorizontal: 0,
     paddingVertical: 14,
-    fontSize: 15,
+    fontSize: 16,
     color: colors.textPrimary,
     marginBottom: 16,
   },
@@ -136,11 +77,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
-  },
-  bottomArea: {
-    paddingTop: 12,
-  },
-  spacer: {
-    height: 10,
   },
 });

@@ -1,102 +1,96 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
 import { StackScreenProps } from '@react-navigation/stack';
 
-import { Button } from '../../components/Button';
-import { ProgressBar } from '../../components/ProgressBar';
 import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
+import { useOnboardingStore } from '../../stores/onboardingStore';
 import { colors } from '../../styles/colors';
 import { useAffiliationViewModel } from '../../hooks/useAffiliationViewModel';
-import { AffiliationCard } from './components/AffiliationCard';
+import { ONBOARDING_COPY } from './data/onboardingCopy';
+import { getOnboardingProgress } from './data/onboardingProgress';
+import { OnboardingStepLayout } from './components/OnboardingStepLayout';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'Affiliation'>;
 
 export function AffiliationPage({ navigation }: Props) {
   const vm = useAffiliationViewModel(navigation);
+  const affiliation = useOnboardingStore((s) => s.affiliation);
+  const copy = ONBOARDING_COPY.affiliation;
+  const subtitle = vm.subtitle || copy.subtitle;
 
   return (
-    <View style={styles.screen}>
-      <View style={styles.headerRow}>
-        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>← 뒤로</Text>
-        </Pressable>
-      </View>
-
-      <View style={styles.content}>
-        <ProgressBar progress={0.28} />
-
-        <Text style={styles.title}>
-          <Text style={styles.titleHighlight}>소속</Text>을 선택해주세요
+    <OnboardingStepLayout
+      progress={getOnboardingProgress('Affiliation', affiliation)}
+      title={copy.title}
+      subtitle={subtitle}
+      showBack
+      onBack={() => navigation.goBack()}
+      primaryTitle={copy.ctaPrimary}
+      primaryVariant={vm.canProceed ? 'primary' : 'disabled'}
+      primarySubtitle={vm.canProceed ? undefined : copy.ctaDisabledHint}
+      onPrimaryPress={vm.handleNext}
+    >
+      <Pressable
+        style={({ pressed }) => [
+          styles.option,
+          vm.affiliation === '1학년' && styles.optionSelected,
+          pressed && styles.pressed,
+        ]}
+        onPress={() => vm.setAffiliation('1학년')}
+      >
+        <Text
+          style={[
+            styles.optionText,
+            vm.affiliation === '1학년' && styles.optionTextSelected,
+          ]}
+        >
+          1학년이에요 (트랙 아직 안 정함)
         </Text>
-        <Text style={styles.subtitle}>{vm.subtitle}</Text>
-
-        <AffiliationCard
-          title="1학년 신입생"
-          selected={vm.affiliation === '1학년'}
-          onPress={() => vm.setAffiliation('1학년')}
-        />
-        <AffiliationCard
-          title="2학년 이상 재학생"
-          selected={vm.affiliation === '2학년이상'}
-          onPress={() => vm.setAffiliation('2학년이상')}
-        />
-      </View>
-
-      <View style={styles.bottomArea}>
-        <Button
-          title="다음 단계로"
-          variant={vm.canProceed ? 'primary' : 'disabled'}
-          onPress={vm.handleNext}
-          subtitle={vm.canProceed ? undefined : '소속을 선택해주세요'}
-        />
-      </View>
-    </View>
+      </Pressable>
+      <Pressable
+        style={({ pressed }) => [
+          styles.option,
+          vm.affiliation === '2학년이상' && styles.optionSelected,
+          pressed && styles.pressed,
+        ]}
+        onPress={() => vm.setAffiliation('2학년이상')}
+      >
+        <Text
+          style={[
+            styles.optionText,
+            vm.affiliation === '2학년이상' && styles.optionTextSelected,
+          ]}
+        >
+          2학년 이상 (트랙 1·2 있음)
+        </Text>
+      </Pressable>
+    </OnboardingStepLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingHorizontal: 20,
-    paddingTop: 48,
-    paddingBottom: 28,
+  option: {
+    width: '100%',
+    borderRadius: 12,
+    paddingVertical: 22,
+    paddingHorizontal: 16,
+    marginBottom: 12,
+    backgroundColor: colors.selectSurface,
+    alignItems: 'center',
   },
-  headerRow: {
-    minHeight: 44,
-    justifyContent: 'center',
-    marginBottom: 4,
+  optionSelected: {
+    backgroundColor: colors.selectSurfaceActive,
   },
-  backButton: {
-    alignSelf: 'flex-start',
-    paddingVertical: 8,
-    paddingRight: 12,
-  },
-  backButtonText: {
+  optionText: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
     color: colors.textSecondary,
+    textAlign: 'center',
   },
-  content: {
-    flex: 1,
-  },
-  title: {
-    fontSize: 28,
-    lineHeight: 36,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    marginBottom: 8,
-  },
-  titleHighlight: {
+  optionTextSelected: {
     color: colors.primary,
   },
-  subtitle: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: colors.textSecondary,
-    marginBottom: 24,
-  },
-  bottomArea: {
-    paddingTop: 12,
+  pressed: {
+    opacity: 0.92,
   },
 });

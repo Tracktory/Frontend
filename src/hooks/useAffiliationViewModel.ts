@@ -15,7 +15,7 @@ export function useAffiliationViewModel(navigation: Navigation) {
 
   const handleNext = () => {
     if (!canProceed) return;
-    navigation.navigate(affiliation === '1학년' ? 'CollegeSelect' : 'TrackInput');
+    navigation.navigate(affiliation === '1학년' ? 'CollegeSelect' : 'Track1Select');
   };
 
   return {

@@ -14,12 +14,13 @@ export function YearSelectButton({ year, selected, onPress }: YearSelectButtonPr
     <Pressable
       style={({ pressed }) => [
         styles.button,
-        selected ? styles.selectedButton : styles.defaultButton,
+        selected && styles.selectedButton,
         pressed && styles.pressed,
       ]}
       onPress={onPress}
     >
       <Text style={[styles.label, selected && styles.selectedLabel]}>{year}년</Text>
+      {selected ? <Text style={styles.check}>✓</Text> : null}
     </Pressable>
   );
 }
@@ -27,22 +28,17 @@ export function YearSelectButton({ year, selected, onPress }: YearSelectButtonPr
 const styles = StyleSheet.create({
   button: {
     width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     borderRadius: 12,
     paddingVertical: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: 16,
     marginBottom: 12,
-  },
-  defaultButton: {
     backgroundColor: colors.selectSurface,
   },
   selectedButton: {
     backgroundColor: colors.selectSurfaceActive,
-    shadowColor: colors.shadowPrimary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 4,
-    elevation: 4,
   },
   pressed: {
     opacity: 0.92,
@@ -54,6 +50,12 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   selectedLabel: {
+    color: colors.primary,
+    fontWeight: '600',
+  },
+  check: {
+    fontSize: 18,
+    fontWeight: '700',
     color: colors.primary,
   },
 });

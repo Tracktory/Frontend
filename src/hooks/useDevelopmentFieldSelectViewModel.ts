@@ -35,7 +35,7 @@ export function useDevelopmentFieldSelectViewModel(navigation: Navigation) {
 
   const handleNext = () => {
     if (!canProceed) return;
-    navigation.navigate('EmploymentPreference');
+    navigation.navigate('CompanyTypeSelect');
   };
 
   return {

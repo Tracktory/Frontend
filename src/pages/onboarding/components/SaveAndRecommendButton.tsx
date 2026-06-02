@@ -17,7 +17,7 @@ export function SaveAndRecommendButton({ onPress, isLoading }: SaveAndRecommendB
       </View>
     );
   }
-  return <Button title="저장하고 추천받기" variant="primary" onPress={onPress} />;
+  return <Button title="AI에게 맡기기" variant="primary" onPress={onPress} />;
 }
 
 const styles = StyleSheet.create({

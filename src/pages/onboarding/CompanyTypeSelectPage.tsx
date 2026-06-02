@@ -1,27 +1,26 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { StackScreenProps } from '@react-navigation/stack';
 
 import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
 import { useOnboardingStore } from '../../stores/onboardingStore';
-import { colors } from '../../styles/colors';
-import { useDevelopmentFieldSelectViewModel } from '../../hooks/useDevelopmentFieldSelectViewModel';
-import { InterestChip } from './components/InterestChip';
-import { DEVELOPMENT_FIELD_OPTIONS } from './data/onboardingOptions';
+import { useCompanyTypeSelectViewModel } from '../../hooks/useCompanyTypeSelectViewModel';
+import { COMPANY_TYPE_OPTIONS } from './data/onboardingOptions';
 import { ONBOARDING_COPY } from './data/onboardingCopy';
 import { getOnboardingProgress } from './data/onboardingProgress';
 import { OnboardingStepLayout } from './components/OnboardingStepLayout';
+import { InterestChip } from './components/InterestChip';
 
-type Props = StackScreenProps<OnboardingStackParamList, 'DevelopmentFieldSelect'>;
+type Props = StackScreenProps<OnboardingStackParamList, 'CompanyTypeSelect'>;
 
-export function DevelopmentFieldSelectPage({ navigation }: Props) {
-  const vm = useDevelopmentFieldSelectViewModel(navigation);
+export function CompanyTypeSelectPage({ navigation }: Props) {
+  const vm = useCompanyTypeSelectViewModel(navigation);
   const affiliation = useOnboardingStore((s) => s.affiliation);
-  const copy = ONBOARDING_COPY.developmentFieldSelect;
+  const copy = ONBOARDING_COPY.companyTypeSelect;
 
   return (
     <OnboardingStepLayout
-      progress={getOnboardingProgress('DevelopmentFieldSelect', affiliation)}
+      progress={getOnboardingProgress('CompanyTypeSelect', affiliation)}
       title={copy.title}
       subtitle={copy.subtitle}
       showBack
@@ -32,17 +31,15 @@ export function DevelopmentFieldSelectPage({ navigation }: Props) {
       onPrimaryPress={vm.handleNext}
       scrollable
     >
-      <Text style={styles.counter}>{vm.developmentFields.length}/3</Text>
       <View style={styles.chipGroup}>
-        {DEVELOPMENT_FIELD_OPTIONS.map((field) => {
-          const isSelected = vm.developmentFields.includes(field);
+        {COMPANY_TYPE_OPTIONS.map((type) => {
+          const isSelected = vm.selectedCompanyTypes.includes(type);
           return (
             <InterestChip
-              key={field}
-              label={field}
+              key={type}
+              label={type}
               selected={isSelected}
-              disabled={vm.maxReached && !isSelected}
-              onPress={() => vm.handleToggle(field)}
+              onPress={() => vm.handleToggleCompanyType(type)}
             />
           );
         })}
@@ -52,12 +49,6 @@ export function DevelopmentFieldSelectPage({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  counter: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.textSecondary,
-    marginBottom: 12,
-  },
   chipGroup: {
     flexDirection: 'row',
     flexWrap: 'wrap',

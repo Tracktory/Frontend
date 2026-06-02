@@ -2,114 +2,62 @@ import React from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { StackScreenProps } from '@react-navigation/stack';
 
-import { Button } from '../../components/Button';
-import { ProgressBar } from '../../components/ProgressBar';
 import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
 import { colors } from '../../styles/colors';
 import { useNameViewModel } from '../../hooks/useNameViewModel';
+import { ONBOARDING_COPY } from './data/onboardingCopy';
+import { getOnboardingProgress } from './data/onboardingProgress';
+import { OnboardingStepLayout } from './components/OnboardingStepLayout';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'Name'>;
 
 export function NamePage({ navigation }: Props) {
   const vm = useNameViewModel(navigation);
+  const copy = ONBOARDING_COPY.name;
 
   return (
-    <View style={styles.screen}>
-      <View style={styles.headerSpacer} />
-
-      <View style={styles.content}>
-        <ProgressBar progress={0.07} />
-
-        <Text style={styles.title}>
-          <Text style={styles.titleHighlight}>이름</Text>을 알려주세요
-        </Text>
-        <Text style={styles.subtitle}>맞춤 추천에 사용됩니다.</Text>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>이름</Text>
-          <TextInput
-            style={[styles.input, vm.nameError ? styles.inputError : null]}
-            placeholder="이름을 입력하세요"
-            placeholderTextColor={colors.textHint}
-            value={vm.name}
-            onChangeText={vm.setName}
-            onBlur={vm.handleNameBlur}
-            autoCapitalize="words"
-            autoCorrect={false}
-          />
-          <View style={styles.errorSlot}>
-            {vm.nameError ? <Text style={styles.errorText}>{vm.nameError}</Text> : null}
-          </View>
-        </View>
+    <OnboardingStepLayout
+      progress={getOnboardingProgress('Name', null)}
+      title={copy.title}
+      subtitle={copy.subtitle}
+      primaryTitle={copy.ctaPrimary}
+      primaryVariant={vm.canProceed ? 'primary' : 'disabled'}
+      primarySubtitle={vm.canProceed ? undefined : copy.ctaDisabledHint}
+      onPrimaryPress={vm.handleNext}
+    >
+      <TextInput
+        style={[styles.input, vm.nameError ? styles.inputError : null]}
+        placeholder="이름"
+        placeholderTextColor={colors.textHint}
+        value={vm.name}
+        onChangeText={vm.setName}
+        onBlur={vm.handleNameBlur}
+        autoCapitalize="words"
+        autoCorrect={false}
+      />
+      <View style={styles.errorSlot}>
+        {vm.nameError ? <Text style={styles.errorText}>{vm.nameError}</Text> : null}
       </View>
-
-      <View style={styles.bottomArea}>
-        <Button
-          title="다음 단계로"
-          variant={vm.canProceed ? 'primary' : 'disabled'}
-          onPress={vm.handleNext}
-          subtitle={vm.canProceed ? undefined : '이름을 입력해주세요'}
-        />
-      </View>
-    </View>
+      <Text style={styles.hint}>입력한 이름은 추천 리포트에만 쓰여요</Text>
+    </OnboardingStepLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingHorizontal: 20,
-    paddingTop: 48,
-    paddingBottom: 28,
-  },
-  headerSpacer: {
-    minHeight: 44,
-  },
-  content: {
-    flex: 1,
-  },
-  title: {
-    fontSize: 28,
-    lineHeight: 36,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  titleHighlight: {
-    color: colors.primary,
-  },
-  subtitle: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: colors.textSecondary,
-    marginBottom: 24,
-  },
-  inputGroup: {
-    gap: 6,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.textStrong,
-  },
   input: {
     height: 52,
-    backgroundColor: colors.inputSurface,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    fontSize: 15,
+    fontSize: 18,
     color: colors.textPrimary,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    paddingHorizontal: 0,
   },
   inputError: {
-    borderColor: colors.stageCap,
-    backgroundColor: '#FFF5F5',
+    borderBottomColor: colors.stageCap,
   },
   errorSlot: {
-    height: 18,
+    minHeight: 18,
+    marginTop: 6,
     justifyContent: 'center',
   },
   errorText: {
@@ -117,7 +65,10 @@ const styles = StyleSheet.create({
     color: colors.stageCap,
     fontWeight: '500',
   },
-  bottomArea: {
-    paddingTop: 12,
+  hint: {
+    marginTop: 12,
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.textHint,
   },
 });

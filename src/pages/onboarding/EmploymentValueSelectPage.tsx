@@ -4,24 +4,24 @@ import { StackScreenProps } from '@react-navigation/stack';
 
 import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
 import { useOnboardingStore } from '../../stores/onboardingStore';
-import { colors } from '../../styles/colors';
-import { useDevelopmentFieldSelectViewModel } from '../../hooks/useDevelopmentFieldSelectViewModel';
-import { InterestChip } from './components/InterestChip';
-import { DEVELOPMENT_FIELD_OPTIONS } from './data/onboardingOptions';
+import { useEmploymentValueSelectViewModel } from '../../hooks/useEmploymentValueSelectViewModel';
+import { EMPLOYMENT_VALUE_OPTIONS } from './data/onboardingOptions';
 import { ONBOARDING_COPY } from './data/onboardingCopy';
 import { getOnboardingProgress } from './data/onboardingProgress';
+import { colors } from '../../styles/colors';
 import { OnboardingStepLayout } from './components/OnboardingStepLayout';
+import { InterestChip } from './components/InterestChip';
 
-type Props = StackScreenProps<OnboardingStackParamList, 'DevelopmentFieldSelect'>;
+type Props = StackScreenProps<OnboardingStackParamList, 'EmploymentValueSelect'>;
 
-export function DevelopmentFieldSelectPage({ navigation }: Props) {
-  const vm = useDevelopmentFieldSelectViewModel(navigation);
+export function EmploymentValueSelectPage({ navigation }: Props) {
+  const vm = useEmploymentValueSelectViewModel(navigation);
   const affiliation = useOnboardingStore((s) => s.affiliation);
-  const copy = ONBOARDING_COPY.developmentFieldSelect;
+  const copy = ONBOARDING_COPY.employmentValueSelect;
 
   return (
     <OnboardingStepLayout
-      progress={getOnboardingProgress('DevelopmentFieldSelect', affiliation)}
+      progress={getOnboardingProgress('EmploymentValueSelect', affiliation)}
       title={copy.title}
       subtitle={copy.subtitle}
       showBack
@@ -32,17 +32,19 @@ export function DevelopmentFieldSelectPage({ navigation }: Props) {
       onPrimaryPress={vm.handleNext}
       scrollable
     >
-      <Text style={styles.counter}>{vm.developmentFields.length}/3</Text>
+      <Text style={styles.counter}>
+        {vm.selectedValues.length}/3
+      </Text>
       <View style={styles.chipGroup}>
-        {DEVELOPMENT_FIELD_OPTIONS.map((field) => {
-          const isSelected = vm.developmentFields.includes(field);
+        {EMPLOYMENT_VALUE_OPTIONS.map((value) => {
+          const isSelected = vm.selectedValues.includes(value);
           return (
             <InterestChip
-              key={field}
-              label={field}
+              key={value}
+              label={value}
               selected={isSelected}
-              disabled={vm.maxReached && !isSelected}
-              onPress={() => vm.handleToggle(field)}
+              disabled={vm.valuesMaxReached && !isSelected}
+              onPress={() => vm.handleToggleValue(value)}
             />
           );
         })}

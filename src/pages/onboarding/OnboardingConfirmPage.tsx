@@ -1,223 +1,95 @@
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { StackScreenProps } from '@react-navigation/stack';
 
-import { ProgressBar } from '../../components/ProgressBar';
 import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
+import { useOnboardingStore } from '../../stores/onboardingStore';
 import { colors } from '../../styles/colors';
 import { useOnboardingConfirmViewModel } from '../../hooks/useOnboardingConfirmViewModel';
+import { ONBOARDING_COPY } from './data/onboardingCopy';
+import { getOnboardingProgress } from './data/onboardingProgress';
+import { OnboardingStepLayout } from './components/OnboardingStepLayout';
 import { SaveAndRecommendButton } from './components/SaveAndRecommendButton';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'OnboardingConfirm'>;
 
-function ConfirmCard({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function ConfirmRow({ label, value }: { label: string; value: string }) {
   return (
-    <View style={cardStyles.card}>
-      <Text style={cardStyles.label}>{label}</Text>
-      <View style={cardStyles.valueRow}>{children}</View>
+    <View style={styles.row}>
+      <Text style={styles.rowLabel}>{label}</Text>
+      <Text style={styles.rowValue}>{value}</Text>
     </View>
   );
 }
 
-function ChipList({ items }: { items: string[] }) {
-  if (items.length === 0) {
-    return <Text style={cardStyles.empty}>선택 안 함</Text>;
-  }
+function ConfirmChips({ label, items }: { label: string; items: string[] }) {
   return (
-    <>
-      {items.map((item) => (
-        <View key={item} style={cardStyles.chip}>
-          <Text style={cardStyles.chipText}>{item}</Text>
-        </View>
-      ))}
-    </>
+    <View style={styles.row}>
+      <Text style={styles.rowLabel}>{label}</Text>
+      {items.length === 0 ? (
+        <Text style={styles.empty}>선택 안 함</Text>
+      ) : (
+        <Text style={styles.rowValue}>{items.join(' · ')}</Text>
+      )}
+    </View>
   );
 }
-
-const cardStyles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.chipSurface,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    marginBottom: 10,
-  },
-  label: {
-    fontSize: 12,
-    color: colors.textHint,
-    marginBottom: 8,
-  },
-  valueRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    alignItems: 'center',
-  },
-  chip: {
-    backgroundColor: colors.primary,
-    borderRadius: 100,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  chipText: {
-    fontSize: 13,
-    color: colors.white,
-    fontWeight: '500',
-  },
-  empty: {
-    fontSize: 14,
-    color: colors.textHint,
-  },
-});
 
 export function OnboardingConfirmPage({ navigation }: Props) {
   const vm = useOnboardingConfirmViewModel(navigation);
+  const affiliation = useOnboardingStore((s) => s.affiliation);
+  const copy = ONBOARDING_COPY.confirm;
+
+  const affiliationValue =
+    vm.affiliation === '1학년'
+      ? vm.college ?? '선택 안 함'
+      : vm.track1
+        ? `${vm.track1}${vm.track2 ? ` / ${vm.track2}` : ''}`
+        : '선택 안 함';
 
   return (
-    <View style={styles.screen}>
-      <View style={styles.headerRow}>
-        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>← 뒤로</Text>
-        </Pressable>
-      </View>
-
-      <ScrollView
-        style={styles.scrollArea}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-        nestedScrollEnabled
-        keyboardShouldPersistTaps="handled"
-      >
-        <ProgressBar progress={1.0} />
-
-        <Text style={styles.title}>
-          <Text style={styles.titleHighlight}>이 내용이</Text>맞을까요?
-        </Text>
-        <Text style={styles.subtitle}>저장 후 AI가 맞춤 추천을 생성합니다</Text>
-
-        <ConfirmCard label="이름">
-          {vm.name ? (
-            <Text style={styles.valueText}>{vm.name}</Text>
-          ) : (
-            <Text style={cardStyles.empty}>선택 안 함</Text>
-          )}
-        </ConfirmCard>
-
-        <ConfirmCard label="입학년도">
-          {vm.admissionYearLabel ? (
-            <Text style={styles.valueText}>{vm.admissionYearLabel}</Text>
-          ) : (
-            <Text style={cardStyles.empty}>선택 안 함</Text>
-          )}
-        </ConfirmCard>
-
-        {vm.affiliation === '1학년' ? (
-          <ConfirmCard label="소속">
-            {vm.college ? (
-              <Text style={styles.valueText}>{vm.college}</Text>
-            ) : (
-              <Text style={cardStyles.empty}>선택 안 함</Text>
-            )}
-          </ConfirmCard>
-        ) : (
-          <ConfirmCard label="소속">
-            {vm.track1 ? (
-              <Text style={styles.valueText}>
-                {vm.track1}
-                {vm.track2 ? `  /  ${vm.track2}` : ''}
-              </Text>
-            ) : (
-              <Text style={cardStyles.empty}>선택 안 함</Text>
-            )}
-          </ConfirmCard>
-        )}
-
-        <ConfirmCard label="관심사">
-          <ChipList items={vm.interests} />
-        </ConfirmCard>
-
-        <ConfirmCard label="흥미 개발분야">
-          <ChipList items={vm.developmentFields} />
-        </ConfirmCard>
-
-        <ConfirmCard label="취업 선호">
-          <ChipList items={vm.employmentChips} />
-        </ConfirmCard>
-
-        {vm.allExperiencedFields.length > 0 && (
-          <ConfirmCard label="공부해본 분야">
-            <ChipList items={vm.allExperiencedFields} />
-          </ConfirmCard>
-        )}
-      </ScrollView>
-
-      <View style={styles.bottomArea}>
-        <SaveAndRecommendButton onPress={vm.handleSave} isLoading={vm.isSubmitting} />
-      </View>
-    </View>
+    <OnboardingStepLayout
+      progress={getOnboardingProgress('OnboardingConfirm', affiliation)}
+      title={copy.title}
+      subtitle={copy.subtitle}
+      showBack
+      onBack={() => navigation.goBack()}
+      primaryTitle=""
+      scrollable
+      footer={<SaveAndRecommendButton onPress={vm.handleSave} isLoading={vm.isSubmitting} />}
+    >
+      <ConfirmRow label="이름" value={vm.name || '선택 안 함'} />
+      <ConfirmRow label="입학·학년" value={vm.admissionYearLabel ?? '선택 안 함'} />
+      <ConfirmRow label="소속" value={affiliationValue} />
+      <ConfirmChips label="관심 분야" items={vm.interests} />
+      <ConfirmChips label="개발 분야" items={vm.developmentFields} />
+      <ConfirmChips label="취업 선호" items={vm.employmentChips} />
+      {vm.allExperiencedFields.length > 0 ? (
+        <ConfirmChips label="해본 기술" items={vm.allExperiencedFields} />
+      ) : null}
+    </OnboardingStepLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingHorizontal: 20,
-    paddingTop: 48,
-    paddingBottom: 28,
+  row: {
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderSubtle,
   },
-  headerRow: {
-    minHeight: 44,
-    justifyContent: 'center',
-    marginBottom: 4,
+  rowLabel: {
+    fontSize: 13,
+    color: colors.textHint,
+    marginBottom: 6,
   },
-  backButton: {
-    alignSelf: 'flex-start',
-    paddingVertical: 8,
-    paddingRight: 12,
-  },
-  backButtonText: {
+  rowValue: {
     fontSize: 16,
-    fontWeight: '500',
-    color: colors.textSecondary,
-  },
-  scrollArea: {
-    flex: 1,
-  },
-  content: {
-    flexGrow: 1,
-    paddingBottom: 16,
-  },
-  title: {
-    fontSize: 28,
-    lineHeight: 36,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  titleHighlight: {
-    color: colors.primary,
-  },
-  subtitle: {
-    fontSize: 14,
-    lineHeight: 22,
-    color: colors.textSecondary,
-    marginBottom: 20,
-  },
-  valueText: {
-    fontSize: 15,
     fontWeight: '600',
     color: colors.textPrimary,
+    lineHeight: 24,
   },
-  bottomArea: {
-    paddingTop: 12,
-    paddingBottom: 8,
+  empty: {
+    fontSize: 15,
+    color: colors.textHint,
   },
 });
