@@ -46,11 +46,11 @@ export function CollegeSelectPage({ navigation }: Props) {
           </Pressable>
         ))}
 
-        {vm.college && (
+        {vm.college && (COLLEGE_TRACK_MAP[vm.college]?.length ?? 0) > 0 && (
           <View style={styles.trackPanel}>
             <Text style={styles.trackHeader}>💡 해당 단과대 트랙 목록</Text>
             <View style={styles.chipRow}>
-              {COLLEGE_TRACK_MAP[vm.college].map((track) => (
+              {(COLLEGE_TRACK_MAP[vm.college] ?? []).map((track) => (
                 <View key={track} style={styles.trackChip}>
                   <Text style={styles.trackChipLabel}>{track}</Text>
                 </View>

@@ -6,6 +6,8 @@ import { colors } from '../../../styles/colors';
 export interface JobCardProps {
   title: string;
   description: string;
+  /** 추천 근거 (description과 별개). 있을 때만 표시 */
+  reasoning?: string;
   /** 제목 행 오른쪽 보조 텍스트 (예: 적합도 `92%`). 점수가 없으면 생략. */
   titleTrailing?: string;
   chips: string[];
@@ -29,6 +31,7 @@ export interface JobCardProps {
 export function JobCard({
   title,
   description,
+  reasoning,
   titleTrailing,
   chips,
   chipsReady = true,
@@ -41,6 +44,7 @@ export function JobCard({
   const showChips = chipsReady;
   const showCollecting = !chipsReady;
   const hasDescription = description.trim().length > 0;
+  const hasReasoning = (reasoning?.trim().length ?? 0) > 0;
   const hasChipRow = showCollecting || (showChips && chips.length > 0);
 
   const cardStyle = [
@@ -65,6 +69,9 @@ export function JobCard({
         ) : null}
       </View>
       {hasDescription ? <Text style={styles.description}>{description}</Text> : null}
+      {hasReasoning ? (
+        <Text style={styles.reasoning}>추천 이유: {reasoning}</Text>
+      ) : null}
     </View>
   );
 
@@ -175,6 +182,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textSecondary,
     lineHeight: 20,
+  },
+  reasoning: {
+    marginTop: 6,
+    fontSize: 13,
+    color: colors.textHint,
+    lineHeight: 18,
   },
   techRow: {
     flexDirection: 'row',

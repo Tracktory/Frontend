@@ -6,6 +6,7 @@ export interface EmploymentSlice {
   togglePreferredCompanyType: (type: string) => void;
   clearPreferredCompanyTypes: () => void;
   toggleEmploymentValue: (value: string) => void;
+  setEmploymentValues: (values: string[]) => void;
   clearEmploymentValues: () => void;
 }
 
@@ -33,6 +34,10 @@ export const createEmploymentSlice: StateCreator<EmploymentSlice> = (set) => ({
       if (state.employmentValues.length >= 3) return state;
       return { employmentValues: [...state.employmentValues, value] };
     });
+  },
+  setEmploymentValues: (values: string[]) => {
+    const deduped = [...new Set(values)].slice(0, 3);
+    set({ employmentValues: deduped });
   },
   clearEmploymentValues: () => {
     set({ employmentValues: [] });

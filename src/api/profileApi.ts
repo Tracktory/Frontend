@@ -10,7 +10,7 @@ interface ApiEnvelope<T> {
 
 export interface ProfileData {
   profile: {
-    studentId: string;
+    studentId?: string;
     currentYear: number;
     name: string;
     departmentId: number;

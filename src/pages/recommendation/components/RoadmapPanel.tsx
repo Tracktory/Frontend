@@ -4,6 +4,11 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { colors } from '../../../styles/colors';
 import type { RoadmapPayload } from '../../../data/mockRoadmapData';
 import { useOnboardingStore } from '../../../stores/onboardingStore';
+import { useProfileStore } from '../../../stores/profileStore';
+import {
+  applyStudentGradeToSemesterSteps,
+  computeRemainingSemestersFromCurrentYear,
+} from '../../../utils/roadmapTiming';
 import { RoadmapConnectionCard } from './RoadmapConnectionCard';
 import { RoadmapSemesterCard } from './RoadmapSemesterCard';
 import { CourseDetailModal } from './CourseDetailModal';
@@ -18,22 +23,23 @@ interface RoadmapPanelProps {
 
 export function RoadmapPanel({ roadmap, isLoading, isError, onRetry }: RoadmapPanelProps) {
   const completedCourses = useOnboardingStore((s) => s.completedCourses);
+  const grade = useOnboardingStore((s) => s.grade);
+  const profileCurrentYear = useProfileStore((s) => s.profile?.profile.currentYear);
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
 
   const hasCompletedCourses = completedCourses.length > 0;
 
-  const { remainingSemesters, semesterRange } = useMemo(() => {
-    if (!roadmap) return { remainingSemesters: 0, semesterRange: '' };
-    const steps = roadmap.semesterSteps;
-    const incompleteSteps = steps.filter((step) =>
-      step.courses.some((c) => !completedCourses.includes(c.name))
-    );
-    const count = incompleteSteps.length;
-    const first = steps[0];
-    const last = steps[steps.length - 1];
-    const range = `${first.year}학년 ${first.semester}학기 ~ ${last.year}학년 ${last.semester}학기`;
-    return { remainingSemesters: count, semesterRange: range };
-  }, [roadmap, completedCourses]);
+  const semesterSteps = useMemo(() => {
+    if (!roadmap) return [];
+    return applyStudentGradeToSemesterSteps(roadmap.semesterSteps, grade);
+  }, [roadmap, grade]);
+
+  const currentYear = profileCurrentYear ?? grade;
+
+  const { remainingSemesters, semesterRange } = useMemo(
+    () => computeRemainingSemestersFromCurrentYear(currentYear),
+    [currentYear]
+  );
 
   if (isLoading) {
     return <RoadmapSkeleton />;
@@ -64,7 +70,7 @@ export function RoadmapPanel({ roadmap, isLoading, isError, onRetry }: RoadmapPa
       />
 
       {/* 학기별 카드 */}
-      {roadmap.semesterSteps.map((step) => (
+      {semesterSteps.map((step) => (
         <RoadmapSemesterCard
           key={`${step.year}-${step.semester}`}
           step={step}

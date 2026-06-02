@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -21,17 +21,15 @@ import type { HansungCourse } from '../../../data/hansungCourseData';
 interface MyCompletedCoursesSectionProps {
   courses: string[];
   catalog: HansungCourse[];
-  onAddCourse: (name: string) => boolean;
-  onRemoveCourse: (name: string) => void;
+  isAddingCourse?: boolean;
+  removingCourseName?: string | null;
+  onAddCourse: (course: HansungCourse) => Promise<boolean>;
+  onRemoveCourse: (name: string) => void | Promise<void>;
 }
-
-const YEAR_OPTIONS = [1, 2, 3, 4] as const;
-const SEMESTER_OPTIONS = [1, 2] as const;
 
 export function MyCompletedCoursesSection({
   courses,
   catalog,
-  defaultYear,
   isAddingCourse = false,
   removingCourseName = null,
   onAddCourse,
@@ -75,11 +73,10 @@ export function MyCompletedCoursesSection({
     setSelectedTrack(null);
   };
 
-  const handlePickCourse = (course: HansungCourse) => {
-    const ok = onAddCourse(course.subject);
-    if (ok) {
-      closeModal();
-    }
+  const handleAddCourse = async (course: HansungCourse) => {
+    if (isAddingCourse) return;
+    const ok = await onAddCourse(course);
+    if (ok) closeModal();
   };
 
   const renderBody = () => {
@@ -101,7 +98,8 @@ export function MyCompletedCoursesSection({
           renderItem={({ item }) => (
             <Pressable
               style={({ pressed }) => [styles.listRow, pressed && styles.listRowPressed]}
-              onPress={() => handlePickCourse(item)}
+              onPress={() => handleAddCourse(item)}
+              disabled={isAddingCourse}
             >
               <Text style={styles.listRowText} numberOfLines={1}>
                 {item.subject}
@@ -142,7 +140,8 @@ export function MyCompletedCoursesSection({
               renderItem={({ item }) => (
                 <Pressable
                   style={({ pressed }) => [styles.listRow, pressed && styles.listRowPressed]}
-                  onPress={() => handlePickCourse(item)}
+                  onPress={() => handleAddCourse(item)}
+                  disabled={isAddingCourse}
                 >
                   <Text style={styles.listRowText} numberOfLines={1}>
                     {item.subject}
@@ -238,15 +237,10 @@ export function MyCompletedCoursesSection({
             style={styles.sheetOuter}
           >
             <View
-              style={[
-                styles.sheet,
-                { paddingBottom: Math.max(insets.bottom, 16) },
-              ]}
+              style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 16) }]}
             >
               <View style={styles.sheetHeader}>
-                <Text style={styles.sheetTitle}>
-                  {selectedCourse ? '이수 학년·학기 선택' : '과목 추가'}
-                </Text>
+                <Text style={styles.sheetTitle}>과목 추가</Text>
                 <Pressable hitSlop={12} onPress={closeModal} disabled={isAddingCourse}>
                   <Ionicons name="close" size={26} color={colors.textSecondary} />
                 </Pressable>
@@ -265,7 +259,15 @@ export function MyCompletedCoursesSection({
                 }}
                 autoCorrect={false}
                 autoCapitalize="none"
+                editable={!isAddingCourse}
               />
+
+              {isAddingCourse && (
+                <View style={styles.addingBanner}>
+                  <ActivityIndicator size="small" color={colors.primary} />
+                  <Text style={styles.addingBannerText}>이수 과목 등록 중...</Text>
+                </View>
+              )}
 
               {renderBody()}
             </View>
@@ -342,7 +344,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.primary,
   },
-
   modalOuter: {
     flex: 1,
     justifyContent: 'flex-end',
@@ -375,78 +376,17 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.textPrimary,
   },
-  selectedCourseName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.textPrimary,
-    marginBottom: 16,
-  },
-  fieldLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.textSecondary,
-    marginBottom: 8,
-  },
-  optionRow: {
+  addingBanner: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignItems: 'center',
     gap: 8,
-    marginBottom: 16,
-  },
-  optionChip: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 16,
-    paddingHorizontal: 14,
+    marginBottom: 8,
     paddingVertical: 8,
-    backgroundColor: colors.white,
   },
-  optionChipActive: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primaryLight,
-  },
-  optionChipText: {
-    fontSize: 14,
+  addingBannerText: {
+    fontSize: 13,
     color: colors.textSecondary,
     fontWeight: '500',
-  },
-  optionChipTextActive: {
-    color: colors.primary,
-    fontWeight: '600',
-  },
-  confirmRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 8,
-    marginTop: 8,
-  },
-  backButton: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-  backButtonText: {
-    color: colors.textSecondary,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  confirmButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    minWidth: 72,
-    alignItems: 'center',
-  },
-  confirmButtonText: {
-    color: colors.white,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  buttonDisabled: {
-    opacity: 0.6,
   },
   search: {
     backgroundColor: colors.inputSurface,

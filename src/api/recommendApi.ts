@@ -1,7 +1,7 @@
 import { AuthApiError } from './authApi';
 import type { JobRecommendation } from '../data/mockRecommendData';
 import type { TrackRecommendPayload } from '../data/mockTrackRecommendData';
-import type { RoadmapPayload, SemesterStep, SemesterCourse } from '../data/mockRoadmapData';
+import type { RoadmapPayload, SemesterStep, SemesterCourse, SemesterTiming } from '../data/mockRoadmapData';
 
 export type RecommendResult = {
   jobs: JobRecommendation[];
@@ -19,172 +19,309 @@ interface ApiEnvelope<T> {
   error: { code: string; message: string; details: unknown } | null;
 }
 
+interface ApiRelatedTrack {
+  name: string;
+  description: string;
+}
+
+interface ApiSubjectRef {
+  code?: string;
+  name: string;
+}
+
 interface ApiJobItem {
-  jobId: number;
+  jobId?: number;
+  id?: number;
+  code?: string;
   name: string;
   score: number;
-  reasoning: string;
-  techStacks: string[];
+  description?: string;
+  reasoning?: string | null;
+  techStacks?: string[];
+  techStackReady?: boolean;
+  detailedDescription?: string;
+  coreSkills?: string[];
+  advancedSkills?: string[];
+  relatedTracks?: ApiRelatedTrack[];
 }
 
 interface ApiPrimaryTrack {
-  trackId: number;
+  trackId?: number;
+  code?: string;
   name: string;
-  trackOrder: 1 | 2;
-  score: number;
-  coreSubjects: string[];
-  relatedJobs: string[];
+  trackOrder?: 1 | 2;
+  score?: number;
+  reasoning?: string | null;
+  primary?: boolean;
+  mainSubjects?: ApiSubjectRef[];
+  coreSubjects?: string[];
+  relatedJobs?: string[];
 }
 
 interface ApiSupportingTrack {
-  trackId: number;
+  trackId?: number;
+  code?: string;
   name: string;
+  score?: number | null;
+  reasoning?: string | null;
+  primary?: boolean;
+  isCrossCombination?: boolean;
 }
 
 interface ApiTracksPayload {
-  combination: {
-    score: number;
-    summary: string;
-    reasoning: string;
-  };
-  trackDescription: string;
+  combination?: { score: number; summary: string; reasoning: string };
+  combinationScore?: number;
+  combinationSummary?: string;
+  combinationReasoning?: string;
+  trackDescription?: string;
+  requiredCourses?: string[];
+  prerequisiteNote?: string;
   primary: ApiPrimaryTrack[];
-  supporting: ApiSupportingTrack[];
+  supporting?: ApiSupportingTrack[];
+  secondary?: ApiSupportingTrack[];
+}
+
+interface ApiCoursePrerequisite {
+  subjectId?: number;
+  code?: string;
+  name: string;
+  completed?: boolean;
+  strength?: string;
 }
 
 interface ApiCourseItem {
-  subjectId: number;
+  subjectId?: number;
+  code?: string;
   name: string;
-  credit: number;
-  score: number;
-  completed: boolean;
-  stageLabel: string;
-  description: string;
-  prerequisites: { subjectId: number; name: string; completed: boolean; strength: string }[];
+  timing?: string;
+  completed?: boolean;
+  score?: number | null;
+  credit?: number;
+  description?: string;
+  stageLabel?: string;
+  prerequisites?: ApiCoursePrerequisite[];
 }
 
 interface ApiSemesterGroup {
   year: number;
   semester: number;
-  timing: 'past' | 'current' | 'future';
   stage: string;
-  stageLabel: string;
-  totalCredits: number;
-  requiredCredits: number;
-  summary: string;
-  items: ApiCourseItem[];
+  stageLabel?: string;
+  timing: string;
+  totalCredits?: number;
+  requiredCredits?: number;
+  summary?: string;
+  items?: ApiCourseItem[];
+  courses?: ApiCourseItem[];
 }
 
 interface ApiRoadmapPayload {
-  totalSemestersRemaining: number;
-  semesterRange: string;
-  semesterGroups: ApiSemesterGroup[];
+  reasoning?: string;
+  totalSemestersRemaining?: number;
+  semesterRange?: string;
+  semesterGroups?: ApiSemesterGroup[];
+  semesters?: ApiSemesterGroup[];
 }
 
 interface ApiFlow {
-  interestSummary: string;
-  jobName: string;
-  tracksSummary: string;
+  interestSummary?: string;
+  jobName?: string;
+  tracksSummary?: string;
 }
 
 interface ApiRecommendData {
   recommendationId: number;
-  status: string;
-  triggerSource: string;
-  createdAt: string;
-  flow: ApiFlow;
-  jobs: { items: ApiJobItem[] };
+  status?: string;
+  triggerSource?: string;
+  createdAt?: string;
+  flow?: ApiFlow;
+  jobs: ApiJobItem[] | { items: ApiJobItem[] };
   tracks: ApiTracksPayload;
   roadmap: ApiRoadmapPayload;
 }
 
-// ---------- Mapper functions ----------
+// ---------- Mapper helpers ----------
 
-function mapJobs(items: ApiJobItem[]): JobRecommendation[] {
-  return items.map((item) => ({
-    id: String(item.jobId),
-    title: item.name,
-    description: item.reasoning,
-    matchScore: item.score,
-    techStack: item.techStacks,
-    techStackReady: item.techStacks.length > 0,
-  }));
+function extractJobItems(jobs: ApiRecommendData['jobs']): ApiJobItem[] {
+  if (Array.isArray(jobs)) return jobs;
+  return jobs?.items ?? [];
 }
 
-function mapTracks(tracks: ApiTracksPayload): TrackRecommendPayload {
-  const primary = tracks.primary.map((t) => ({
-    rank: t.trackOrder,
-    title: t.name,
-    coreSubjects: `핵심과목 : ${t.coreSubjects.join(', ')}`,
-    relatedJobs: t.relatedJobs,
-    emphasized: t.trackOrder === 1,
-  })) as TrackRecommendPayload['primary'];
+function extractSemesterGroups(roadmap: ApiRoadmapPayload): ApiSemesterGroup[] {
+  return roadmap.semesterGroups ?? roadmap.semesters ?? [];
+}
 
-  const secondary = tracks.supporting.map((t, i) => ({
-    id: `s${i + 1}`,
-    name: t.name,
-    emphasized: false,
-  }));
+function extractCourses(group: ApiSemesterGroup): ApiCourseItem[] {
+  return group.items ?? group.courses ?? [];
+}
 
-  return {
-    primary,
-    secondary,
-    llmSynergy: tracks.combination.reasoning,
-    trackDescription: tracks.trackDescription,
-    requiredCourses: tracks.primary[0]?.coreSubjects ?? [],
-    prerequisiteNote: '',
-  };
+function normalizeTiming(timing: string): SemesterTiming {
+  const lower = timing.toLowerCase();
+  if (lower === 'past') return 'past';
+  if (lower === 'current') return 'current';
+  return 'future';
 }
 
 const STAGE_NUMBER_MAP: Record<string, 1 | 2 | 3 | 4> = {
   foundation: 1,
   core: 2,
-  advanced: 3,
-  capstone: 4,
+  applied: 3,
+  industry: 4,
 };
 
-function mapRoadmap(roadmap: ApiRoadmapPayload, flow: ApiFlow): RoadmapPayload {
-  const semesterSteps: SemesterStep[] = roadmap.semesterGroups.map((g) => {
-    const courses: SemesterCourse[] = g.items.map((item) => ({
-      id: String(item.subjectId),
+const STAGE_LABEL_MAP: Record<string, string> = {
+  foundation: '기초',
+  core: '핵심',
+  applied: '응용',
+  industry: '산학',
+};
+
+// ---------- Mapper functions ----------
+
+function mapSubjectNames(
+  mainSubjects?: ApiSubjectRef[],
+  coreSubjects?: string[]
+): string[] {
+  if (mainSubjects?.length) {
+    return mainSubjects.map((s) => s.name).filter(Boolean);
+  }
+  return coreSubjects ?? [];
+}
+
+function mapJobs(items: ApiJobItem[]): JobRecommendation[] {
+  return items.map((item, index) => ({
+    id: String(item.jobId ?? item.id ?? item.code ?? index + 1),
+    title: item.name,
+    description: item.description ?? '',
+    reasoning: item.reasoning ?? '',
+    matchScore: item.score ?? 0,
+    techStack: (item.techStacks ?? []).slice(0, 4),
+    techStackReady: item.techStackReady ?? (item.techStacks?.length ?? 0) > 0,
+    detailedDescription: item.detailedDescription ?? item.description ?? '',
+    coreSkills: item.coreSkills ?? [],
+    advancedSkills: item.advancedSkills ?? [],
+    relatedTracks: item.relatedTracks ?? [],
+  }));
+}
+
+function mapTracks(tracks: ApiTracksPayload): TrackRecommendPayload {
+  const primary = tracks.primary.map((t, index) => {
+    const rank = (t.trackOrder ?? (index === 0 ? 1 : 2)) as 1 | 2;
+    const rankLabel = rank === 1 ? '1트랙·주전공' : '2트랙';
+
+    return {
+      rank,
+      title: t.name,
+      rankLabel,
+      score: t.score ?? null,
+      reasoning: t.reasoning?.trim() || null,
+      coreSubjects: mapSubjectNames(t.mainSubjects, t.coreSubjects),
+      relatedJobs: t.relatedJobs ?? [],
+    };
+  });
+
+  const supportingList = tracks.supporting ?? tracks.secondary ?? [];
+  const secondary = supportingList.map((t, i) => ({
+    id: String(t.trackId ?? t.code ?? `s${i + 1}`),
+    name: t.name,
+    score: t.score ?? null,
+    reasoning: t.reasoning?.trim() || null,
+  }));
+
+  const combinationReasoning =
+    tracks.combination?.reasoning ??
+    tracks.combinationReasoning ??
+    '';
+  const combinationSummary =
+    tracks.combination?.summary ??
+    tracks.combinationSummary ??
+    '';
+  const combinationScore =
+    tracks.combination?.score ?? tracks.combinationScore;
+
+  return {
+    combinationScore,
+    combinationReasoning,
+    primary,
+    secondary,
+    llmSynergy: combinationReasoning || combinationSummary,
+    trackDescription: tracks.trackDescription ?? combinationSummary,
+    requiredCourses:
+      tracks.requiredCourses ??
+      mapSubjectNames(tracks.primary[0]?.mainSubjects, tracks.primary[0]?.coreSubjects),
+    prerequisiteNote: tracks.prerequisiteNote ?? '',
+  };
+}
+
+function buildConnectionMessage(
+  flow: ApiFlow | undefined,
+  tracks: ApiTracksPayload,
+  roadmap: ApiRoadmapPayload
+): string {
+  if (flow?.jobName && flow?.tracksSummary) {
+    return `${flow.jobName} → ${flow.tracksSummary}`;
+  }
+  if (flow?.interestSummary) return flow.interestSummary;
+
+  const summary =
+    tracks.combination?.summary ??
+    tracks.combinationSummary ??
+    '';
+  if (summary) return summary;
+
+  return roadmap.reasoning ?? tracks.combinationReasoning ?? tracks.combination?.reasoning ?? '';
+}
+
+function mapRoadmap(
+  roadmap: ApiRoadmapPayload,
+  tracks: ApiTracksPayload,
+  flow?: ApiFlow
+): RoadmapPayload {
+  const groups = extractSemesterGroups(roadmap);
+
+  const semesterSteps: SemesterStep[] = groups.map((g) => {
+    const timing = normalizeTiming(g.timing);
+    const courses: SemesterCourse[] = extractCourses(g).map((item) => ({
+      id: String(item.subjectId ?? item.code ?? item.name),
       name: item.name,
-      description: item.description,
-      credits: item.credit,
-      score: item.score,
-      prerequisites: item.prerequisites.map((p) => ({
+      description: item.description ?? '',
+      credits: item.credit ?? 3,
+      score: item.score ?? undefined,
+      completed: item.completed ?? false,
+      timing: item.timing ? normalizeTiming(item.timing) : timing,
+      prerequisites: (item.prerequisites ?? []).map((p) => ({
         name: p.name,
-        completed: p.completed,
-        strength: p.strength,
+        completed: p.completed ?? false,
+        strength: p.strength ?? '',
       })),
     }));
+
+    const stageKey = g.stage.toLowerCase();
 
     return {
       year: g.year as 1 | 2 | 3 | 4,
       semester: g.semester as 1 | 2,
-      stageLabel: g.stageLabel,
-      stageNumber: STAGE_NUMBER_MAP[g.stage] ?? 1,
-      totalCredits: g.totalCredits,
+      timing,
+      stageLabel: g.stageLabel ?? STAGE_LABEL_MAP[stageKey] ?? g.stage,
+      stageNumber: STAGE_NUMBER_MAP[stageKey] ?? 1,
+      totalCredits: g.totalCredits ?? courses.reduce((sum, c) => sum + c.credits, 0),
       courses,
     };
   });
 
-  const currentGroup = roadmap.semesterGroups.find((g) => g.timing === 'current');
-  const futureGroup = roadmap.semesterGroups.find((g) => g.timing === 'future');
+  const currentGroup = groups.find((g) => normalizeTiming(g.timing) === 'current');
+  const futureGroups = groups.filter((g) => normalizeTiming(g.timing) === 'future');
 
   const semesterGuide = {
-    nextSemester: currentGroup?.items.map((i) => i.name) ?? [],
-    afterNextSemester: futureGroup?.items.map((i) => i.name) ?? [],
+    nextSemester: currentGroup ? extractCourses(currentGroup).map((c) => c.name) : [],
+    afterNextSemester: futureGroups[0] ? extractCourses(futureGroups[0]).map((c) => c.name) : [],
   };
-
-  const connectionMessage = flow.jobName && flow.tracksSummary
-    ? `${flow.jobName} → ${flow.tracksSummary}`
-    : flow.interestSummary;
 
   return {
     steps: [],
     semesterSteps,
     semesterGuide,
-    connectionMessage,
+    connectionMessage: buildConnectionMessage(flow, tracks, roadmap),
   };
 }
 
@@ -192,7 +329,7 @@ function mapRoadmap(roadmap: ApiRoadmapPayload, flow: ApiFlow): RoadmapPayload {
 
 export async function fetchRecommendResult(
   accessToken: string,
-  forceRefresh = false
+  forceRefresh = true
 ): Promise<RecommendResult> {
   const res = await fetch(`${BASE_URL}/api/v1/recommendations`, {
     method: 'POST',
@@ -217,8 +354,8 @@ export async function fetchRecommendResult(
 
   const data = envelope.data;
   return {
-    jobs: mapJobs(data.jobs.items),
+    jobs: mapJobs(extractJobItems(data.jobs)),
     trackRecommend: mapTracks(data.tracks),
-    roadmap: mapRoadmap(data.roadmap, data.flow),
+    roadmap: mapRoadmap(data.roadmap, data.tracks, data.flow),
   };
 }

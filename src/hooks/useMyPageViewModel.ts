@@ -1,15 +1,28 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 
 import { AuthApiError } from '../api/authApi';
 import {
-  MOCK_RECOMMENDATION_HISTORY,
-} from '../data/mockMyPageData';
-import type { RecommendationHistoryItem } from '../data/mockMyPageData';
+  addCompletedCourse as addCompletedCourseApi,
+  deleteCompletedCourse as deleteCompletedCourseApi,
+} from '../api/completedCoursesApi';
+import { useOnboardingStore } from '../stores/onboardingStore';
+import { useProfileStore } from '../stores/profileStore';
+import { useAuthStore } from '../stores/authStore';
 import { hansungCourseData } from '../data/hansungCourseData';
 import type { HansungCourse } from '../data/hansungCourseData';
+import {
+  INTEREST_ID_MAP,
+  DEV_FIELD_ID_MAP,
+  COMPANY_TYPE_ID_MAP,
+  WORK_VALUE_ID_MAP,
+  TECH_STACK_ID_MAP,
+  resolveTrackId,
+} from '../pages/onboarding/data/idMappings';
+import type { RootStackParamList } from '../navigation/RootNavigator';
+import { admissionYearFromStudentId } from '../utils/mapProfileToOnboarding';
 
 const EMPTY_PLACEHOLDER = '선택 없음';
 const MAJOR_FALLBACK = 'IT공과대학';
@@ -24,9 +37,19 @@ function twoDigitAdmissionYear(year: number): string {
   return `${year % 100}`.padStart(2, '0');
 }
 
-function formatAdmissionBadge(year: number | null): string {
-  if (year == null) return EMPTY_PLACEHOLDER;
-  return `${twoDigitAdmissionYear(year)}학번`;
+function formatProfileSubtitle(
+  admissionYear: number | null,
+  currentYear: number | null | undefined
+): string {
+  const gradePart =
+    currentYear != null && currentYear >= 1 ? `${currentYear}학년` : null;
+  const badgePart =
+    admissionYear != null ? `${twoDigitAdmissionYear(admissionYear)}학번` : null;
+
+  if (badgePart && gradePart) return `${badgePart} · ${gradePart}`;
+  if (gradePart) return gradePart;
+  if (badgePart) return badgePart;
+  return EMPTY_PLACEHOLDER;
 }
 
 function formatEmployment(
@@ -46,7 +69,6 @@ export function useMyPageViewModel() {
   const profile = useProfileStore((s) => s.profile);
   const loadProfile = useProfileStore((s) => s.loadProfile);
   const patchProfile = useProfileStore((s) => s.patchProfile);
-  const recommendResult = useRecommendStore((s) => s.result);
   const userName = useAuthStore((s) => s.userName);
   const accessToken = useAuthStore((s) => s.accessToken);
 
@@ -61,11 +83,19 @@ export function useMyPageViewModel() {
   const developmentFields = useOnboardingStore((s) => s.developmentFields);
   const preferredCompanyTypes = useOnboardingStore((s) => s.preferredCompanyTypes);
   const employmentValues = useOnboardingStore((s) => s.employmentValues);
+  const track1 = useOnboardingStore((s) => s.track1);
+  const track2 = useOnboardingStore((s) => s.track2);
+  const experiencedFields = useOnboardingStore((s) => s.experiencedFields);
 
   const completedCourses = useOnboardingStore((s) => s.completedCourses);
 
-  const recommendationHistory: RecommendationHistoryItem[] = MOCK_RECOMMENDATION_HISTORY;
   const courseCatalog: HansungCourse[] = hansungCourseData;
+
+  const defaultCompletedYear = profile?.profile.currentYear ?? grade ?? 1;
+
+  const sortedTracks = profile?.tracks
+    ? [...profile.tracks].sort((a, b) => a.trackOrder - b.trackOrder)
+    : [];
 
   const interestsLine =
     interests.length > 0 ? interests.join(', ') : EMPTY_PLACEHOLDER;
@@ -78,14 +108,27 @@ export function useMyPageViewModel() {
     employmentValues
   );
 
-  const admissionBadge = formatAdmissionBadge(admissionYear);
+  const tracksLine =
+    sortedTracks.length > 0
+      ? sortedTracks.map((t) => t.name).join(' · ')
+      : [track1, track2].filter(Boolean).join(' · ') || EMPTY_PLACEHOLDER;
+
+  const experiencedLine =
+    experiencedFields.length > 0
+      ? experiencedFields.join(', ')
+      : EMPTY_PLACEHOLDER;
+
+  const profileAdmissionYear =
+    admissionYearFromStudentId(profile?.profile.studentId) ?? admissionYear;
+  const profileCurrentYear = profile?.profile.currentYear ?? grade;
+  const admissionBadge = formatProfileSubtitle(
+    profileAdmissionYear,
+    profileCurrentYear
+  );
 
   const displayName = profile?.profile.name ?? userName ?? '-';
   const profileInitial = displayName.length > 0 ? displayName.slice(-1) : '-';
 
-  const sortedTracks = profile?.tracks
-    ? [...profile.tracks].sort((a, b) => a.trackOrder - b.trackOrder)
-    : [];
   const majorLine =
     sortedTracks.length > 0
       ? sortedTracks.map((t) => t.name).join(' · ')
@@ -179,12 +222,38 @@ export function useMyPageViewModel() {
     });
   };
 
-  const addCompletedCourse = async (
-    item: CourseCatalogItem,
-    year: number,
-    semester: 1 | 2
-  ): Promise<boolean> => {
-    if (completedCourses.includes(item.name)) {
+  const updateTracks = async (next: {
+    track1: string;
+    track2: string;
+  }): Promise<boolean> => {
+    const tracks: { trackId: number; trackOrder: 1 | 2 }[] = [];
+    const id1 = resolveTrackId(next.track1.trim());
+    if (id1) tracks.push({ trackId: id1, trackOrder: 1 });
+    const id2 = resolveTrackId(next.track2.trim());
+    if (id2) tracks.push({ trackId: id2, trackOrder: 2 });
+    if (tracks.length === 0) {
+      Alert.alert('입력 오류', '1트랙을 선택해주세요.');
+      return false;
+    }
+    return runPatch({ tracks });
+  };
+
+  const updateExperience = async (next: string[]): Promise<boolean> => {
+    const unique = [...new Set(next.map((s) => s.trim()).filter(Boolean))];
+    const catalogTags = unique.filter((t) => TECH_STACK_ID_MAP[t] !== undefined);
+    const customTags = unique.filter((t) => TECH_STACK_ID_MAP[t] === undefined);
+    return runPatch({
+      techStackIds: toIds(catalogTags, TECH_STACK_ID_MAP),
+      techStackCustoms: customTags,
+    });
+  };
+
+  const addCompletedCourse = async (course: HansungCourse): Promise<boolean> => {
+    const name = course.subject;
+    const year = defaultCompletedYear;
+    const semester: 1 | 2 = 1;
+
+    if (completedCourses.includes(name)) {
       Alert.alert('알림', '이미 이수 과목에 추가된 과목입니다.');
       return false;
     }
@@ -195,6 +264,7 @@ export function useMyPageViewModel() {
       );
       return false;
     }
+
     if (!accessToken) {
       rootNavigation.reset({ index: 0, routes: [{ name: 'Auth' }] });
       return false;
@@ -202,11 +272,7 @@ export function useMyPageViewModel() {
 
     setIsAddingCourse(true);
     try {
-      await addCompletedCourseApi(accessToken, {
-        subjectId: item.subjectId,
-        year,
-        semester,
-      });
+      await addCompletedCourseApi(accessToken, { subjectName: name, year, semester });
       await loadProfile(accessToken, rootNavigation);
       return true;
     } catch (err) {
@@ -218,7 +284,7 @@ export function useMyPageViewModel() {
   };
 
   const removeCompletedCourse = async (name: string): Promise<void> => {
-    const subjectId = resolveSubjectId(name, profile, courseCatalog);
+    const subjectId = profile?.completedSubjects.find((s) => s.name === name)?.subjectId;
     if (subjectId == null) {
       Alert.alert('알림', '과목 정보를 찾을 수 없습니다.');
       return;
@@ -239,34 +305,34 @@ export function useMyPageViewModel() {
     }
   };
 
-  const handleHistoryPress = (_item: RecommendationHistoryItem) => {
-    Alert.alert('알림', '추천 결과 상세는 추후 제공됩니다.');
-  };
-
   return {
     displayName,
     profileInitial,
     majorLine,
     admissionBadge,
+    track1,
+    track2,
     interests,
     developmentFields,
     preferredCompanyTypes,
     employmentValues,
+    experiencedFields,
+    tracksLine,
     interestsLine,
     developmentLine,
+    experiencedLine,
     employmentLine,
     completedCourses,
     courseCatalog,
-    defaultCompletedYear,
-    recommendationHistory,
     isSaving,
     isAddingCourse,
     removingCourseName,
+    updateTracks,
     updateInterests,
     updateDevelopmentFields,
+    updateExperience,
     updateEmployment,
     addCompletedCourse,
     removeCompletedCourse,
-    handleHistoryPress,
   };
 }

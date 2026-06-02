@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 
 import { useChatStore, createMessage } from '../stores/chatStore';
-import { sendChatMessage, sendFeedback } from '../api/chatApi';
+import { sendChatMessage } from '../api/chatApi';
 import { AuthApiError } from '../api/authApi';
 import { useAuthStore } from '../stores/authStore';
 import type { RootStackParamList } from '../navigation/RootNavigator';
@@ -22,16 +22,27 @@ export function useChatViewModel() {
   const rootNavigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   const messages = useChatStore((s) => s.messages);
-  const threadId = useChatStore((s) => s.threadId);
-  const resetConversation = useChatStore((s) => s.resetConversation);
+  const getThreadIdForUser = useChatStore((s) => s.getThreadIdForUser);
+  const setThreadIdForUser = useChatStore((s) => s.setThreadIdForUser);
+  const resetConversationForUser = useChatStore((s) => s.resetConversationForUser);
   const appendMessage = useChatStore((s) => s.appendMessage);
   const setMessages = useChatStore((s) => s.setMessages);
-  const setThreadId = useChatStore((s) => s.setThreadId);
 
   const accessToken = useAuthStore((s) => s.accessToken);
+  const userId = useAuthStore((s) => s.userId);
 
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+
+  const resolveThreadId = (): string | null => {
+    if (userId == null) return null;
+    let id = getThreadIdForUser(userId);
+    if (!id) {
+      id = generateUUID();
+      setThreadIdForUser(userId, id);
+    }
+    return id;
+  };
 
   const callApi = async (currentThreadId: string, text: string) => {
     if (!accessToken) {
@@ -75,12 +86,12 @@ export function useChatViewModel() {
     const trimmed = inputText.trim();
     if (!trimmed || isTyping) return false;
 
+    const currentThreadId = resolveThreadId();
+    if (!currentThreadId) return false;
+
     const userMsg = createMessage('user', 'text', trimmed);
     appendMessage(userMsg);
     setInputText('');
-
-    const currentThreadId = threadId ?? generateUUID();
-    if (!threadId) setThreadId(currentThreadId);
 
     await callApi(currentThreadId, trimmed);
     return true;
@@ -89,16 +100,18 @@ export function useChatViewModel() {
   const handleChip = async (chipId: string, label: string) => {
     if (isTyping) return;
 
+    const currentThreadId = resolveThreadId();
+    if (!currentThreadId) return;
+
     const userMsg = createMessage('user', 'text', label);
     appendMessage(userMsg);
-
-    const currentThreadId = threadId ?? generateUUID();
-    if (!threadId) setThreadId(currentThreadId);
 
     await callApi(currentThreadId, label);
   };
 
   const handleReset = () => {
+    if (userId == null) return;
+
     Alert.alert(
       '새 대화 시작',
       '정말 초기화하시겠습니까?',
@@ -108,7 +121,7 @@ export function useChatViewModel() {
           text: '확인',
           style: 'destructive',
           onPress: () => {
-            resetConversation();
+            resetConversationForUser(userId);
           },
         },
       ],
@@ -129,10 +142,6 @@ export function useChatViewModel() {
     setMessages(recent);
   };
 
-  const handleFeedback = (messageId: string, type: 'like' | 'dislike') => {
-    sendFeedback(messageId, type);
-  };
-
   return {
     messages,
     inputText,
@@ -142,6 +151,5 @@ export function useChatViewModel() {
     handleChip,
     handleReset,
     handleLoadHistory,
-    handleFeedback,
   };
-}
+};

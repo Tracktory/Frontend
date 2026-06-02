@@ -101,6 +101,14 @@ export function OnboardingConfirmPage({ navigation }: Props) {
         </Text>
         <Text style={styles.subtitle}>저장 후 AI가 맞춤 추천을 생성합니다</Text>
 
+        <ConfirmCard label="이름">
+          {vm.name ? (
+            <Text style={styles.valueText}>{vm.name}</Text>
+          ) : (
+            <Text style={cardStyles.empty}>선택 안 함</Text>
+          )}
+        </ConfirmCard>
+
         <ConfirmCard label="입학년도">
           {vm.admissionYearLabel ? (
             <Text style={styles.valueText}>{vm.admissionYearLabel}</Text>

@@ -46,56 +46,75 @@ export function JobDetailPage({ route, navigation }: Props) {
         {/* 타이틀 영역 */}
         <View style={styles.titleSection}>
           <Text style={styles.jobTitle}>{detail.title}</Text>
-          <View style={styles.matchRow}>
-            <View style={styles.matchBadge}>
-              <Text style={styles.matchText}>매칭도 {detail.matchScore}%</Text>
+          {detail.matchScore > 0 && (
+            <View style={styles.matchRow}>
+              <View style={styles.matchBadge}>
+                <Text style={styles.matchText}>매칭도 {detail.matchScore}%</Text>
+              </View>
             </View>
+          )}
+        </View>
+
+        <View style={styles.divider} />
+
+        {detail.reasoning.trim().length > 0 && (
+          <>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>추천 이유</Text>
+              <Text style={styles.descriptionText}>{detail.reasoning}</Text>
+            </View>
+            <View style={styles.divider} />
+          </>
+        )}
+
+        {detail.detailedDescription.trim().length > 0 && (
+          <>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>직무 설명</Text>
+              <Text style={styles.descriptionText}>{detail.detailedDescription}</Text>
+            </View>
+            <View style={styles.divider} />
+          </>
+        )}
+
+        {detail.coreSkills.length > 0 && (
+          <>
+            <View style={styles.section}>
+              <JobDetailSkillSection
+                title="필요 역량 (기본)"
+                skills={detail.coreSkills}
+                variant="core"
+              />
+            </View>
+            <View style={styles.divider} />
+          </>
+        )}
+
+        {detail.advancedSkills.length > 0 && (
+          <>
+            <View style={styles.section}>
+              <JobDetailSkillSection
+                title="필요 역량 (심화)"
+                skills={detail.advancedSkills}
+                variant="advanced"
+              />
+            </View>
+            <View style={styles.divider} />
+          </>
+        )}
+
+        {detail.relatedTracks.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>관련 트랙</Text>
+            {detail.relatedTracks.map((track) => (
+              <JobDetailTrackCard
+                key={track.name}
+                name={track.name}
+                description={track.description}
+              />
+            ))}
           </View>
-        </View>
-
-        <View style={styles.divider} />
-
-        {/* 직무 설명 */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>직무 설명</Text>
-          <Text style={styles.descriptionText}>{detail.detailedDescription}</Text>
-        </View>
-
-        <View style={styles.divider} />
-
-        {/* 필요 역량 - 기본 */}
-        <View style={styles.section}>
-          <JobDetailSkillSection
-            title="필요 역량 (기본)"
-            skills={detail.coreSkills}
-            variant="core"
-          />
-        </View>
-
-        <View style={styles.divider} />
-
-        {/* 필요 역량 - 심화 */}
-        <View style={styles.section}>
-          <JobDetailSkillSection
-            title="필요 역량 (심화)"
-            skills={detail.advancedSkills}
-            variant="advanced"
-          />
-        </View>
-
-        <View style={styles.divider} />
-
-        {/* 관련 트랙 */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>관련 트랙</Text>
-          {detail.relatedTracks.map((track) => (
-            <JobDetailTrackCard
-              key={track.name}
-              name={track.name}
-              description={track.description}
-            />
-          ))}
-        </View>
+        )}
       </ScrollView>
     </View>
   );

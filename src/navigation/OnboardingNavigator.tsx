@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 
+import { useOnboardingStore } from '../stores/onboardingStore';
+
+import { NamePage } from '@/src/pages/onboarding/NamePage';
 import { AdmissionYearPage } from '@/src/pages/onboarding/AdmissionYearPage';
 import { AffiliationPage } from '@/src/pages/onboarding/AffiliationPage';
 import { CollegeSelectPage } from '@/src/pages/onboarding/CollegeSelectPage';
@@ -10,9 +13,9 @@ import { ExperiencedFieldPage } from '@/src/pages/onboarding/ExperiencedFieldPag
 import { InterestSelectPage } from '@/src/pages/onboarding/InterestSelectPage';
 import { OnboardingConfirmPage } from '@/src/pages/onboarding/OnboardingConfirmPage';
 import { TrackInputPage } from '@/src/pages/onboarding/TrackInputPage';
-import { RecommendLoadingPage } from '@/src/pages/recommendation/RecommendLoadingPage';
 
 export type OnboardingStackParamList = {
+  Name: undefined;
   AdmissionYear: undefined;
   Affiliation: undefined;
   CollegeSelect: undefined;
@@ -22,19 +25,25 @@ export type OnboardingStackParamList = {
   EmploymentPreference: undefined;
   GoalSelect: undefined;
   OnboardingConfirm: undefined;
-  RecommendLoading: undefined;
 };
 
 const Stack = createStackNavigator<OnboardingStackParamList>();
 
 export function OnboardingNavigator() {
+  const resetOnboarding = useOnboardingStore((s) => s.resetOnboarding);
+
+  useEffect(() => {
+    resetOnboarding();
+  }, [resetOnboarding]);
+
   return (
     <Stack.Navigator
-      initialRouteName="AdmissionYear"
+      initialRouteName="Name"
       screenOptions={{
         headerShown: false,
       }}
     >
+      <Stack.Screen name="Name" component={NamePage} />
       <Stack.Screen name="AdmissionYear" component={AdmissionYearPage} />
       <Stack.Screen name="Affiliation" component={AffiliationPage} />
       <Stack.Screen name="CollegeSelect" component={CollegeSelectPage} />
@@ -44,7 +53,6 @@ export function OnboardingNavigator() {
       <Stack.Screen name="EmploymentPreference" component={EmploymentPreferencePage} />
       <Stack.Screen name="GoalSelect" component={ExperiencedFieldPage} />
       <Stack.Screen name="OnboardingConfirm" component={OnboardingConfirmPage} />
-      <Stack.Screen name="RecommendLoading" component={RecommendLoadingPage} />
     </Stack.Navigator>
   );
 }

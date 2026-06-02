@@ -4,8 +4,10 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 
 import { login, AuthApiError } from '../api/authApi';
 import { useAuthStore } from '../stores/authStore';
+import { useOnboardingStore } from '../stores/onboardingStore';
 import type { AuthStackParamList } from '../navigation/AuthNavigator';
 import type { RootStackParamList } from '../navigation/RootNavigator';
+import { resetToRecommendLoading } from '../utils/navigateToRecommendLoading';
 
 type AuthNavigation = StackNavigationProp<AuthStackParamList, 'Login'>;
 type RootNavigation = StackNavigationProp<RootStackParamList>;
@@ -51,10 +53,15 @@ export function useLoginViewModel(
     try {
       const data = await login(email, password);
       setAuth(data);
-      rootNavigation.reset({
-        index: 0,
-        routes: [{ name: data.onboardingCompleted ? 'Main' : 'Onboarding' }],
-      });
+      if (data.onboardingCompleted) {
+        resetToRecommendLoading(rootNavigation);
+      } else {
+        useOnboardingStore.getState().resetOnboarding();
+        rootNavigation.reset({
+          index: 0,
+          routes: [{ name: 'Onboarding' }],
+        });
+      }
     } catch (err) {
       if (err instanceof AuthApiError) {
         switch (err.code) {

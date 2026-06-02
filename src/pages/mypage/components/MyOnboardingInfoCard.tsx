@@ -33,37 +33,47 @@ function Row({ label, value, showDivider, onEdit }: RowProps) {
 }
 
 interface MyOnboardingInfoCardProps {
+  tracksLine: string;
   interestsLine: string;
   developmentLine: string;
+  experiencedLine: string;
   employmentLine: string;
+  onEditTracks: () => void;
   onEditInterests: () => void;
   onEditDevelopment: () => void;
+  onEditExperience: () => void;
   onEditEmployment: () => void;
 }
 
 export function MyOnboardingInfoCard({
+  tracksLine,
   interestsLine,
   developmentLine,
+  experiencedLine,
   employmentLine,
+  onEditTracks,
   onEditInterests,
   onEditDevelopment,
+  onEditExperience,
   onEditEmployment,
 }: MyOnboardingInfoCardProps) {
   return (
     <>
       <Text style={styles.sectionTitle}>내 정보</Text>
       <View style={styles.card}>
-        <Row
-          label="관심사"
-          value={interestsLine}
-          showDivider
-          onEdit={onEditInterests}
-        />
+        <Row label="트랙 정보" value={tracksLine} showDivider onEdit={onEditTracks} />
+        <Row label="관심사" value={interestsLine} showDivider onEdit={onEditInterests} />
         <Row
           label="흥미 개발 분야"
           value={developmentLine}
           showDivider
           onEdit={onEditDevelopment}
+        />
+        <Row
+          label="공부해본 분야"
+          value={experiencedLine}
+          showDivider
+          onEdit={onEditExperience}
         />
         <Row
           label="취업 선호도"

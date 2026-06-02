@@ -1,7 +1,9 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import type { StackNavigationProp } from '@react-navigation/stack';
 
 import { RecommendResultPage } from '../pages/recommendation/RecommendResultPage';
+import type { MainStackParamList } from './MainStackNavigator';
 import { ChatBotPage } from '../pages/chat/ChatBotPage';
 import { MyPage } from '../pages/mypage/MyPage';
 import { colors } from '../styles/colors';
@@ -40,6 +42,13 @@ export function MainTabNavigator() {
       <Tab.Screen
         name="Home"
         component={RecommendResultPage}
+        listeners={({ navigation }) => ({
+          tabPress: () => {
+            const parent =
+              navigation.getParent<StackNavigationProp<MainStackParamList>>();
+            parent?.navigate('RecommendLoading', { forceRefresh: true });
+          },
+        })}
         options={{
           tabBarLabel: '홈',
           tabBarIcon: ({ focused }) =>

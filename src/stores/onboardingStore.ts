@@ -1,9 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { create as CreateType } from 'zustand';
-import type {
-  createJSONStorage as CreateJSONStorageType,
-  persist as PersistType,
-} from 'zustand/middleware';
 
 import { createAdmissionSlice } from './slices/admissionSlice';
 import { createCollegeSlice } from './slices/collegeSlice';
@@ -29,43 +24,79 @@ declare const require: (id: string) => unknown;
 const { create } = require('zustand') as {
   create: typeof CreateType;
 };
-const { createJSONStorage, persist } = require('zustand/middleware') as {
-  createJSONStorage: typeof CreateJSONStorageType;
-  persist: typeof PersistType;
-};
 
 export type { AffiliationType } from './slices/admissionSlice';
 
-export type OnboardingState = AdmissionSlice &
+type OnboardingDataState = AdmissionSlice &
   CollegeSlice &
   CompletedCoursesSlice &
   TrackSlice &
   InterestSlice &
   DevelopmentSlice &
   EmploymentSlice &
-  ExperienceSlice & {
-    hydrateFromProfile: (data: ProfileData) => void;
-  };
+  ExperienceSlice;
 
-export const useOnboardingStore = create<OnboardingState>()(
-  persist(
-    (...a) => ({
-      ...createAdmissionSlice(...a),
-      ...createCollegeSlice(...a),
-      ...createCompletedCoursesSlice(...a),
-      ...createTrackSlice(...a),
-      ...createInterestSlice(...a),
-      ...createDevelopmentSlice(...a),
-      ...createEmploymentSlice(...a),
-      ...createExperienceSlice(...a),
-      hydrateFromProfile: (data: ProfileData) => {
-        const mapped = mapProfileToOnboarding(data);
-        a[0](mapped);
-      },
-    }),
-    {
-      name: 'onboarding-storage',
-      storage: createJSONStorage(() => AsyncStorage),
-    }
-  )
-);
+/** 온보딩 입력 필드 초기값 (액션 제외) */
+export function getInitialOnboardingState(): OnboardingDataState {
+  return {
+    name: '',
+    admissionYear: null,
+    grade: null,
+    affiliation: null,
+    college: null,
+    completedCourses: [],
+    track1: '',
+    track2: '',
+    interests: [],
+    developmentFields: [],
+    preferredCompanyTypes: [],
+    employmentValues: [],
+    experiencedFields: [],
+    experiencedFieldInput: '',
+  };
+}
+
+export type OnboardingState = OnboardingDataState & {
+  setName: AdmissionSlice['setName'];
+  setAdmissionYear: AdmissionSlice['setAdmissionYear'];
+  setAffiliation: AdmissionSlice['setAffiliation'];
+  setCollege: CollegeSlice['setCollege'];
+  addCompletedCourse: CompletedCoursesSlice['addCompletedCourse'];
+  removeCompletedCourse: CompletedCoursesSlice['removeCompletedCourse'];
+  setTrack1: TrackSlice['setTrack1'];
+  setTrack2: TrackSlice['setTrack2'];
+  toggleInterest: InterestSlice['toggleInterest'];
+  setInterests: InterestSlice['setInterests'];
+  clearInterests: InterestSlice['clearInterests'];
+  toggleDevelopmentField: DevelopmentSlice['toggleDevelopmentField'];
+  setDevelopmentFields: DevelopmentSlice['setDevelopmentFields'];
+  clearDevelopmentFields: DevelopmentSlice['clearDevelopmentFields'];
+  togglePreferredCompanyType: EmploymentSlice['togglePreferredCompanyType'];
+  clearPreferredCompanyTypes: EmploymentSlice['clearPreferredCompanyTypes'];
+  toggleEmploymentValue: EmploymentSlice['toggleEmploymentValue'];
+  setEmploymentValues: EmploymentSlice['setEmploymentValues'];
+  clearEmploymentValues: EmploymentSlice['clearEmploymentValues'];
+  toggleExperiencedField: ExperienceSlice['toggleExperiencedField'];
+  clearExperiencedFields: ExperienceSlice['clearExperiencedFields'];
+  setExperiencedFieldInput: ExperienceSlice['setExperiencedFieldInput'];
+  hydrateFromProfile: (data: ProfileData) => void;
+  resetOnboarding: () => void;
+};
+
+export const useOnboardingStore = create<OnboardingState>()((...a) => ({
+  ...createAdmissionSlice(...a),
+  ...createCollegeSlice(...a),
+  ...createCompletedCoursesSlice(...a),
+  ...createTrackSlice(...a),
+  ...createInterestSlice(...a),
+  ...createDevelopmentSlice(...a),
+  ...createEmploymentSlice(...a),
+  ...createExperienceSlice(...a),
+  hydrateFromProfile: (data: ProfileData) => {
+    const mapped = mapProfileToOnboarding(data);
+    a[0](mapped);
+  },
+  resetOnboarding: () => {
+    a[0](getInitialOnboardingState());
+  },
+}));

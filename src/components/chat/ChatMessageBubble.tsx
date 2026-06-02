@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '../../styles/colors';
 import type { ChatMessage, CourseSuggestion } from '../../stores/chatStore';
@@ -48,71 +48,13 @@ const cardStyles = StyleSheet.create({
   },
 });
 
-interface FeedbackRowProps {
-  messageId: string;
-  onFeedback: (messageId: string, type: 'like' | 'dislike') => void;
-}
-
-function FeedbackRow({ messageId, onFeedback }: FeedbackRowProps) {
-  const [selected, setSelected] = useState<'like' | 'dislike' | null>(null);
-
-  const handlePress = (type: 'like' | 'dislike') => {
-    if (selected !== null) return; // 한 번만 선택 가능
-    setSelected(type);
-    onFeedback(messageId, type);
-  };
-
-  return (
-    <View style={feedbackStyles.row}>
-      <Pressable
-        style={[feedbackStyles.btn, selected === 'like' && feedbackStyles.btnSelected]}
-        onPress={() => handlePress('like')}
-        hitSlop={6}
-      >
-        <Text style={feedbackStyles.emoji}>👍</Text>
-      </Pressable>
-      <Pressable
-        style={[feedbackStyles.btn, selected === 'dislike' && feedbackStyles.btnSelected]}
-        onPress={() => handlePress('dislike')}
-        hitSlop={6}
-      >
-        <Text style={feedbackStyles.emoji}>👎</Text>
-      </Pressable>
-    </View>
-  );
-}
-
-const feedbackStyles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    gap: 6,
-    marginTop: 6,
-  },
-  btn: {
-    padding: 4,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.white,
-  },
-  btnSelected: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primaryLight,
-  },
-  emoji: {
-    fontSize: 14,
-  },
-});
-
 interface BubbleProps {
   message: ChatMessage;
   onChipPress?: (id: string, label: string) => void;
-  onFeedback?: (messageId: string, type: 'like' | 'dislike') => void;
 }
 
-export function ChatMessageBubble({ message, onChipPress, onFeedback }: BubbleProps) {
+export function ChatMessageBubble({ message, onChipPress }: BubbleProps) {
   const isUser = message.role === 'user';
-  const showFeedback = !isUser && message.type === 'text' && onFeedback != null;
 
   return (
     <View style={[styles.row, isUser ? styles.rowUser : styles.rowBot]}>
@@ -127,11 +69,6 @@ export function ChatMessageBubble({ message, onChipPress, onFeedback }: BubblePr
           <CourseCard key={c.title} course={c} />
         ))}
       </View>
-
-      {/* 피드백 버튼 — assistant text 버블 하단에만 표시 */}
-      {showFeedback && (
-        <FeedbackRow messageId={message.id} onFeedback={onFeedback!} />
-      )}
 
       {/* 선택지 칩 (말풍선 아래 별도 행) */}
       {message.type === 'quickReply' && message.chips && (
