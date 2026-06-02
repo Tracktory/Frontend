@@ -19,6 +19,10 @@ function uid() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
+function userKey(userId: number): string {
+  return String(userId);
+}
+
 export type ChatQuickChip = {
   id: string;
   label: string;
@@ -72,24 +76,48 @@ export function buildInitialMessages(): ChatMessage[] {
 /** 순수 상태 + 원자 액션만 보관 — 응답 생성 로직은 useChatViewModel에서 처리 */
 interface ChatState {
   messages: ChatMessage[];
-  /** 현재 대화 세션 ID. null이면 다음 전송 시 신규 발급 */
-  threadId: string | null;
-  setThreadId: (id: string | null) => void;
-  resetConversation: () => void;
+  /** userId별 API threadId (동일 사용자는 세션 간 재사용) */
+  threadIdsByUserId: Record<string, string>;
+  enterChatScreen: (userId: number) => void;
+  getThreadIdForUser: (userId: number) => string | null;
+  setThreadIdForUser: (userId: number, threadId: string) => void;
+  resetConversationForUser: (userId: number) => void;
+  clearChatForLogout: () => void;
   appendMessage: (m: ChatMessage) => void;
-  /** 히스토리 불러오기 등 외부에서 메시지 목록 전체 교체 시 사용 */
   setMessages: (msgs: ChatMessage[]) => void;
 }
 
 export const useChatStore = create<ChatState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       messages: buildInitialMessages(),
-      threadId: null,
+      threadIdsByUserId: {},
 
-      setThreadId: (id) => set({ threadId: id }),
+      enterChatScreen: (_userId: number) => {
+        set({ messages: buildInitialMessages() });
+      },
 
-      resetConversation: () => set({ messages: buildInitialMessages(), threadId: null }),
+      getThreadIdForUser: (userId: number) => {
+        return get().threadIdsByUserId[userKey(userId)] ?? null;
+      },
+
+      setThreadIdForUser: (userId: number, threadId: string) => {
+        set((s) => ({
+          threadIdsByUserId: { ...s.threadIdsByUserId, [userKey(userId)]: threadId },
+        }));
+      },
+
+      resetConversationForUser: (userId: number) => {
+        set((s) => {
+          const next = { ...s.threadIdsByUserId };
+          delete next[userKey(userId)];
+          return { messages: buildInitialMessages(), threadIdsByUserId: next };
+        });
+      },
+
+      clearChatForLogout: () => {
+        set({ messages: buildInitialMessages(), threadIdsByUserId: {} });
+      },
 
       appendMessage: (m) => set((s) => ({ messages: [...s.messages, m] })),
 
@@ -98,12 +126,13 @@ export const useChatStore = create<ChatState>()(
     {
       name: 'chat-storage',
       storage: createJSONStorage(() => AsyncStorage),
-      onRehydrateStorage: () => (state) => {
-        // hydration 후 메시지가 없으면 초기 인사 메시지 세팅
-        if (state && state.messages.length === 0) {
-          state.setMessages(buildInitialMessages());
-        }
-      },
+      partialize: (state) => ({ threadIdsByUserId: state.threadIdsByUserId }),
+      merge: (persisted, current) => ({
+        ...current,
+        threadIdsByUserId:
+          (persisted as Partial<ChatState> | undefined)?.threadIdsByUserId ??
+          current.threadIdsByUserId,
+      }),
     }
   )
 );

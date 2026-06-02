@@ -4,6 +4,7 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 
 import { login, AuthApiError } from '../api/authApi';
 import { useAuthStore } from '../stores/authStore';
+import { useOnboardingStore } from '../stores/onboardingStore';
 import type { AuthStackParamList } from '../navigation/AuthNavigator';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 import { resetToRecommendLoading } from '../utils/navigateToRecommendLoading';
@@ -55,6 +56,7 @@ export function useLoginViewModel(
       if (data.onboardingCompleted) {
         resetToRecommendLoading(rootNavigation);
       } else {
+        useOnboardingStore.getState().resetOnboarding();
         rootNavigation.reset({
           index: 0,
           routes: [{ name: 'Onboarding' }],

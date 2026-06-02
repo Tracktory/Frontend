@@ -20,7 +20,7 @@ export function useRecommendLoadingViewModel() {
   const accessToken = useAuthStore((s) => s.accessToken);
   const setRecommendResult = useRecommendStore((s) => s.setRecommendResult);
 
-  const forceRefresh = route.params?.forceRefresh ?? true;
+  const forceRefresh = route.params?.forceRefresh ?? false;
 
   const [isError, setIsError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');

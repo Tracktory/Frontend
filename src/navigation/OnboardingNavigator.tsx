@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
+
+import { useOnboardingStore } from '../stores/onboardingStore';
 
 import { NamePage } from '@/src/pages/onboarding/NamePage';
 import { AdmissionYearPage } from '@/src/pages/onboarding/AdmissionYearPage';
@@ -28,6 +30,12 @@ export type OnboardingStackParamList = {
 const Stack = createStackNavigator<OnboardingStackParamList>();
 
 export function OnboardingNavigator() {
+  const resetOnboarding = useOnboardingStore((s) => s.resetOnboarding);
+
+  useEffect(() => {
+    resetOnboarding();
+  }, [resetOnboarding]);
+
   return (
     <Stack.Navigator
       initialRouteName="Name"
