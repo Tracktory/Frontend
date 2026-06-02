@@ -1,72 +1,51 @@
 import React from 'react';
-import {
-  Alert,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
-import * as Print from 'expo-print';
-import * as Sharing from 'expo-sharing';
-import * as FileSystem from 'expo-file-system';
-
 import { colors } from '../../styles/colors';
 import { useRecommendResultViewModel } from '../../hooks/useRecommendResultViewModel';
+import { useRecommendStore } from '../../stores/recommendStore';
 import { useOnboardingStore } from '../../stores/onboardingStore';
+import { useProfileStore } from '../../stores/profileStore';
+import { useAuthStore } from '../../stores/authStore';
 import { SegmentTab } from './components/SegmentTab';
 import { JobCard } from './components/JobCard';
 import { TrackRecommendPanel } from './components/TrackRecommendPanel';
 import { RoadmapPanel } from './components/RoadmapPanel';
-import { generateRecommendPdf } from '../../utils/generateRecommendPdf';
+import { printAndShareRecommendPdfFromOptions } from '../../utils/printRecommendPdf';
 import type { MainStackParamList } from '../../navigation/MainStackNavigator';
 
 export function RecommendResultPage() {
   const vm = useRecommendResultViewModel();
   const navigation = useNavigation<StackNavigationProp<MainStackParamList>>();
+  const recommendResult = useRecommendStore((s) => s.result);
   const completedCourses = useOnboardingStore((s) => s.completedCourses);
   const grade = useOnboardingStore((s) => s.grade);
+  const profile = useProfileStore((s) => s.profile);
+  const userName = useAuthStore((s) => s.userName);
+  const profileCurrentYear = profile?.profile.currentYear;
+  const studentGrade = profileCurrentYear ?? grade;
 
   const handleSavePdf = async () => {
+    if (vm.isError) return;
+
+    if (!recommendResult) {
+      Alert.alert('알림', '저장할 추천 결과가 없습니다.');
+      return;
+    }
+
     try {
-      const html = generateRecommendPdf({
-        jobs: vm.jobs,
-        trackRecommend: vm.trackRecommend,
-        roadmap: vm.roadmap,
+      await printAndShareRecommendPdfFromOptions({
+        jobs: recommendResult.jobs,
+        trackRecommend: recommendResult.trackRecommend,
+        roadmap: recommendResult.roadmap,
         completedCourses,
-        studentGrade: grade,
+        studentGrade,
+        studentName: profile?.profile.name ?? userName ?? undefined,
+        generatedAt: new Date().toISOString(),
       });
-
-      const { uri } = await Print.printToFileAsync({ html });
-
-      if (Platform.OS === 'android') {
-        const perms =
-          await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
-        if (!perms.granted) return;
-        const base64 = await FileSystem.readAsStringAsync(uri, {
-          encoding: FileSystem.EncodingType.Base64,
-        });
-        const dest = await FileSystem.StorageAccessFramework.createFileAsync(
-          perms.directoryUri,
-          'tracktory_recommendation.pdf',
-          'application/pdf'
-        );
-        await FileSystem.writeAsStringAsync(dest, base64, {
-          encoding: FileSystem.EncodingType.Base64,
-        });
-        Alert.alert('저장 완료', '선택한 폴더에 PDF가 저장되었습니다.');
-      } else {
-        // iOS: 공유 시트 → "파일에 저장" 으로 기기 저장
-        await Sharing.shareAsync(uri, {
-          mimeType: 'application/pdf',
-          dialogTitle: '추천 결과 PDF 저장',
-        });
-      }
     } catch {
       Alert.alert('저장 실패', '다시 시도해주세요.');
     }

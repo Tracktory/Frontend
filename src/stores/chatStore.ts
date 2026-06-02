@@ -65,8 +65,8 @@ export function buildInitialMessages(): ChatMessage[] {
       '아래 주제 중 관심 있는 것을 선택해 보세요.',
       {
         chips: [
-          { id: 'track-intro', label: '트랙 소개' },
-          { id: 'next-courses', label: '다음 수강과목 추천' },
+          { id: 'track-intro', label: '어떤 트랙 고르면 좋을까?' },
+          { id: 'next-courses', label: '1학년 2학기에 어떤 과목 들어야 해?' },
         ],
       }
     ),
