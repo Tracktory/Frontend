@@ -2,9 +2,13 @@ import React, { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '../../../styles/colors';
-import type { RoadmapPayload, SemesterTiming } from '../../../data/mockRoadmapData';
+import type { RoadmapPayload } from '../../../data/mockRoadmapData';
 import { useOnboardingStore } from '../../../stores/onboardingStore';
-import { applyStudentGradeToSemesterSteps } from '../../../utils/roadmapTiming';
+import { useProfileStore } from '../../../stores/profileStore';
+import {
+  applyStudentGradeToSemesterSteps,
+  computeRemainingSemestersFromCurrentYear,
+} from '../../../utils/roadmapTiming';
 import { RoadmapConnectionCard } from './RoadmapConnectionCard';
 import { RoadmapSemesterCard } from './RoadmapSemesterCard';
 import { CourseDetailModal } from './CourseDetailModal';
@@ -20,6 +24,7 @@ interface RoadmapPanelProps {
 export function RoadmapPanel({ roadmap, isLoading, isError, onRetry }: RoadmapPanelProps) {
   const completedCourses = useOnboardingStore((s) => s.completedCourses);
   const grade = useOnboardingStore((s) => s.grade);
+  const profileCurrentYear = useProfileStore((s) => s.profile?.profile.currentYear);
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
 
   const hasCompletedCourses = completedCourses.length > 0;
@@ -29,35 +34,12 @@ export function RoadmapPanel({ roadmap, isLoading, isError, onRetry }: RoadmapPa
     return applyStudentGradeToSemesterSteps(roadmap.semesterSteps, grade);
   }, [roadmap, grade]);
 
-  const isCourseIncomplete = (
-    course: { name: string; completed?: boolean },
-    stepTiming: SemesterTiming
-  ) => {
-    if (stepTiming !== 'past') {
-      return !completedCourses.includes(course.name);
-    }
-    if (course.completed === true) return false;
-    if (course.completed === false) return true;
-    return !completedCourses.includes(course.name);
-  };
+  const currentYear = profileCurrentYear ?? grade;
 
-  const { remainingSemesters, semesterRange } = useMemo(() => {
-    if (!roadmap) return { remainingSemesters: 0, semesterRange: '' };
-    const steps = semesterSteps;
-    const incompleteSteps = steps.filter(
-      (step) =>
-        step.timing !== 'past' &&
-        step.courses.some((c) => isCourseIncomplete(c, step.timing))
-    );
-    const count = incompleteSteps.length;
-    const first = incompleteSteps[0];
-    const last = incompleteSteps[incompleteSteps.length - 1];
-    const range =
-      first && last
-        ? `${first.year}학년 ${first.semester}학기 ~ ${last.year}학년 ${last.semester}학기`
-        : '';
-    return { remainingSemesters: count, semesterRange: range };
-  }, [roadmap, semesterSteps, completedCourses]);
+  const { remainingSemesters, semesterRange } = useMemo(
+    () => computeRemainingSemestersFromCurrentYear(currentYear),
+    [currentYear]
+  );
 
   if (isLoading) {
     return <RoadmapSkeleton />;

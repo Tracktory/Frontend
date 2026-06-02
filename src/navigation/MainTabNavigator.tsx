@@ -46,7 +46,7 @@ export function MainTabNavigator() {
           tabPress: () => {
             const parent =
               navigation.getParent<StackNavigationProp<MainStackParamList>>();
-            parent?.navigate('RecommendLoading', { forceRefresh: false });
+            parent?.navigate('RecommendLoading', { forceRefresh: true });
           },
         })}
         options={{

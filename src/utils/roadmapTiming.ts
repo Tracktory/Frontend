@@ -1,5 +1,36 @@
 import type { SemesterStep, SemesterTiming } from '../data/mockRoadmapData';
 
+const MAX_GRADE_YEAR = 4;
+const SEMESTERS_PER_YEAR = 2;
+
+export type RemainingSemestersInfo = {
+  remainingSemesters: number;
+  semesterRange: string;
+};
+
+/** profile.currentYear 기준 잔여 학기 (4학년 2학기까지, 현재 학기 포함) */
+export function computeRemainingSemestersFromCurrentYear(
+  currentYear: number | null | undefined,
+  currentSemester: 1 | 2 = 1
+): RemainingSemestersInfo {
+  if (
+    currentYear == null ||
+    currentYear < 1 ||
+    currentYear > MAX_GRADE_YEAR ||
+    currentSemester < 1 ||
+    currentSemester > SEMESTERS_PER_YEAR
+  ) {
+    return { remainingSemesters: 0, semesterRange: '' };
+  }
+
+  const startIndex = (currentYear - 1) * SEMESTERS_PER_YEAR + currentSemester;
+  const endIndex = MAX_GRADE_YEAR * SEMESTERS_PER_YEAR;
+  const remainingSemesters = endIndex - startIndex + 1;
+  const semesterRange = `${currentYear}학년 ${currentSemester}학기 ~ ${MAX_GRADE_YEAR}학년 2학기`;
+
+  return { remainingSemesters, semesterRange };
+}
+
 function resolveSemesterTiming(
   year: number,
   semester: number,

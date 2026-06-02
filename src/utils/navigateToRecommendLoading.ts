@@ -17,7 +17,7 @@ export function resetToRecommendLoading(
       {
         name: 'Main',
         state: {
-          routes: [{ name: 'RecommendLoading', params: { forceRefresh: false } }],
+          routes: [{ name: 'RecommendLoading', params: { forceRefresh: true } }],
         },
       },
     ],
@@ -27,6 +27,6 @@ export function resetToRecommendLoading(
 export function navigateToRecommendLoading(navigation: NavigationWithParent) {
   const parent = navigation.getParent<StackNavigationProp<MainStackParamList>>();
   if (parent) {
-    parent.navigate('RecommendLoading', { forceRefresh: false });
+    parent.navigate('RecommendLoading', { forceRefresh: true });
   }
 }
