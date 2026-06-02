@@ -6,8 +6,6 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 
 
 
-import { useOnboardingStore } from '../stores/onboardingStore';
-
 import { useRecommendStore } from '../stores/recommendStore';
 
 import type { TabKey } from '../pages/recommendation/components/SegmentTab';
@@ -27,18 +25,6 @@ export function useRecommendResultViewModel() {
 
 
   const result = useRecommendStore((s) => s.result);
-
-
-
-  const interests = useOnboardingStore((s) => s.interests);
-
-  const developmentFields = useOnboardingStore((s) => s.developmentFields);
-
-  const preferredCompanyTypes = useOnboardingStore((s) => s.preferredCompanyTypes);
-
-  const employmentValues = useOnboardingStore((s) => s.employmentValues);
-
-
 
   const goToRecommendLoading = useCallback(() => {
 
@@ -65,28 +51,6 @@ export function useRecommendResultViewModel() {
     }
 
   }, [result, goToRecommendLoading]);
-
-
-
-  // onboardingStore 변경 시 재조회 (초기 마운트 제외)
-
-  const isFirstRender = useRef(true);
-
-  useEffect(() => {
-
-    if (isFirstRender.current) {
-
-      isFirstRender.current = false;
-
-      return;
-
-    }
-
-    goToRecommendLoading();
-
-  }, [interests, developmentFields, preferredCompanyTypes, employmentValues, goToRecommendLoading]);
-
-
 
   const jobs = result?.jobs ?? [];
 
