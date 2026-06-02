@@ -13,7 +13,7 @@ import {
   COMPANY_TYPE_ID_MAP,
   WORK_VALUE_ID_MAP,
   TECH_STACK_ID_MAP,
-  DEPARTMENT_ID_MAP,
+  COLLEGE_DEFAULT_DEPARTMENT_ID_MAP,
   resolveDepartmentIdForTrack,
   resolveTrackId,
 } from '../pages/onboarding/data/idMappings';
@@ -81,7 +81,7 @@ export function useOnboardingConfirmViewModel(navigation: Navigation) {
 
     const tracks: { trackId: number; trackOrder: 1 | 2 }[] = [];
     if (affiliation === '1학년' && college) {
-      const deptId = DEPARTMENT_ID_MAP[college];
+      const deptId = COLLEGE_DEFAULT_DEPARTMENT_ID_MAP[college];
       if (deptId) tracks.push({ trackId: deptId, trackOrder: 1 });
     } else {
       if (track1) {
@@ -96,7 +96,7 @@ export function useOnboardingConfirmViewModel(navigation: Navigation) {
 
     const departmentId =
       affiliation === '1학년'
-        ? (college ? (DEPARTMENT_ID_MAP[college] ?? 0) : 0)
+        ? (college ? (COLLEGE_DEFAULT_DEPARTMENT_ID_MAP[college] ?? 0) : 0)
         : (track1 ? (resolveDepartmentIdForTrack(track1) ?? 0) : 0);
 
     const body = {

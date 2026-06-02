@@ -19,6 +19,7 @@ import {
   TECH_TAG_OPTIONS,
 } from '../../onboarding/data/onboardingOptions';
 import { colors } from '../../../styles/colors';
+import { splitExperiencedFields } from '../../../utils/techStackLabels';
 
 type EditableSection = 'tracks' | 'interests' | 'development' | 'experience' | 'employment';
 
@@ -123,8 +124,9 @@ export function MyInfoEditModal({
     setDraftTrack2(currentTrack2);
     setDraftInterests(currentInterests);
     setDraftDevelopmentFields(currentDevelopmentFields);
-    setDraftExperienceTags(currentExperiencedFields);
-    setDraftExperienceInput('');
+    const { chipLabels, customLabels } = splitExperiencedFields(currentExperiencedFields);
+    setDraftExperienceTags(chipLabels);
+    setDraftExperienceInput(customLabels.join(', '));
     setDraftCompanyTypes(currentPreferredCompanyTypes);
     setDraftEmploymentValues(currentEmploymentValues);
   }, [

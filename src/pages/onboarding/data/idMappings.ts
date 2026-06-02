@@ -143,14 +143,66 @@ export const TECH_STACK_ID_MAP: Record<string, number> = {
   Flutter: 60,
 };
 
-export const DEPARTMENT_ID_MAP: Record<string, number> = {
-  'IT공과대학': 1,
-  '크리에이티브인문예술대학': 2,
+/** DB college.name → id */
+export const COLLEGE_ID_MAP: Record<string, number> = {
+  '미래플러스대학(계약학과)': 1,
+  '미래플러스대학': 1,
+  'IT공과대학': 2,
   '창의융합대학': 3,
-  '미래융합사회과학대학': 4,
+  '글로벌인재대학': 4,
   '디자인대학': 5,
-  '미래플러스대학': 6,
-  '글로벌인재대학': 7,
+  '미래융합사회과학대학': 6,
+  '상상력교양대학': 7,
+  '크리에이티브인문예술대학': 8,
+};
+
+/** DB department.name → id */
+export const DEPARTMENT_ID_MAP: Record<string, number> = {
+  '미래플러스대학': 1,
+  '기계전자공학부': 2,
+  '창의융합대학': 3,
+  '글로벌인재대학': 4,
+  'ICT디자인학부': 5,
+  '사회과학부': 6,
+  '기초교양학부': 7,
+  '예술학부': 8,
+  '크리에이티브인문학부': 9,
+  '컴퓨터공학부': 10,
+  '뷰티디자인매니지먼트학과': 11,
+  '산업시스템공학부': 12,
+  '소양핵심교양학부': 13,
+  '자율교양학부': 14,
+  '글로벌패션산업학부': 15,
+};
+
+/** departmentId → college_id (DB department.college_id) */
+export const DEPARTMENT_TO_COLLEGE_ID_MAP: Record<number, number> = {
+  1: 1,
+  2: 2,
+  3: 3,
+  4: 4,
+  5: 5,
+  6: 6,
+  7: 7,
+  8: 8,
+  9: 8,
+  10: 2,
+  11: 5,
+  12: 2,
+  13: 7,
+  14: 7,
+  15: 5,
+};
+
+/** UI 단과대 → 1학년 기본 departmentId */
+export const COLLEGE_DEFAULT_DEPARTMENT_ID_MAP: Record<string, number> = {
+  '미래플러스대학': 1,
+  'IT공과대학': 10,
+  '창의융합대학': 3,
+  '글로벌인재대학': 4,
+  '디자인대학': 5,
+  '미래융합사회과학대학': 6,
+  '크리에이티브인문예술대학': 9,
 };
 
 export const TRACK_ID_MAP: Record<string, number> = {
@@ -318,6 +370,7 @@ export const ID_TO_INTEREST_LABEL = invertMap(INTEREST_ID_MAP);
 export const ID_TO_DEV_FIELD_LABEL = invertMap(DEV_FIELD_ID_MAP);
 export const ID_TO_COMPANY_TYPE_LABEL = invertMap(COMPANY_TYPE_ID_MAP);
 export const ID_TO_WORK_VALUE_LABEL = invertMap(WORK_VALUE_ID_MAP);
+export const ID_TO_COLLEGE_LABEL = invertMap(COLLEGE_ID_MAP);
 export const ID_TO_DEPARTMENT_LABEL = invertMap(DEPARTMENT_ID_MAP);
 export const ID_TO_TECH_STACK_LABEL = invertMap(TECH_STACK_ID_MAP);
 export const ID_TO_TRACK_LABEL = invertMap(TRACK_ID_MAP);
