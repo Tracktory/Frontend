@@ -59,7 +59,12 @@ export function useOnboardingConfirmViewModel(navigation: Navigation) {
         .filter(Boolean)
     : [];
   const allExperiencedFields = [...new Set([...inputTags, ...experiencedFields])];
-  const techStackCustoms = inputTags.filter((t) => TECH_STACK_ID_MAP[t] === undefined);
+  const catalogExperiencedFields = allExperiencedFields.filter(
+    (t) => TECH_STACK_ID_MAP[t] !== undefined
+  );
+  const techStackCustoms = allExperiencedFields.filter(
+    (t) => TECH_STACK_ID_MAP[t] === undefined
+  );
 
   const employmentChips = [...preferredCompanyTypes, ...employmentValues];
 
@@ -105,7 +110,7 @@ export function useOnboardingConfirmViewModel(navigation: Navigation) {
       devFieldIds: toIds(developmentFields, DEV_FIELD_ID_MAP),
       companyTypeIds: toIds(preferredCompanyTypes, COMPANY_TYPE_ID_MAP),
       workValueIds: toIds(employmentValues, WORK_VALUE_ID_MAP),
-      techStackIds: toIds(experiencedFields, TECH_STACK_ID_MAP),
+      techStackIds: toIds(catalogExperiencedFields, TECH_STACK_ID_MAP),
       techStackCustoms,
       completedSubjects: [], // TODO: subjectId 매핑 확보 후 구현
     };

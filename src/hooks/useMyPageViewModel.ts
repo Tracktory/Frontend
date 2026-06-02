@@ -23,7 +23,6 @@ import {
   TECH_STACK_ID_MAP,
   resolveTrackId,
 } from '../pages/onboarding/data/idMappings';
-import { TECH_TAG_OPTIONS } from '../pages/onboarding/data/onboardingOptions';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 
 const EMPTY_PLACEHOLDER = '선택 없음';
@@ -227,12 +226,8 @@ export function useMyPageViewModel() {
 
   const updateExperience = async (next: string[]): Promise<boolean> => {
     const unique = [...new Set(next.map((s) => s.trim()).filter(Boolean))];
-    const catalogTags = unique.filter((t) =>
-      (TECH_TAG_OPTIONS as readonly string[]).includes(t)
-    );
-    const customTags = unique.filter(
-      (t) => !(TECH_TAG_OPTIONS as readonly string[]).includes(t)
-    );
+    const catalogTags = unique.filter((t) => TECH_STACK_ID_MAP[t] !== undefined);
+    const customTags = unique.filter((t) => TECH_STACK_ID_MAP[t] === undefined);
     return runPatch({
       techStackIds: toIds(catalogTags, TECH_STACK_ID_MAP),
       techStackCustoms: customTags,
