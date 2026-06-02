@@ -4,6 +4,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { colors } from '../../../styles/colors';
 import type { RoadmapPayload } from '../../../data/mockRoadmapData';
 import { useOnboardingStore } from '../../../stores/onboardingStore';
+import { applyStudentGradeToSemesterSteps } from '../../../utils/roadmapTiming';
 import { RoadmapConnectionCard } from './RoadmapConnectionCard';
 import { RoadmapSemesterCard } from './RoadmapSemesterCard';
 import { CourseDetailModal } from './CourseDetailModal';
@@ -18,9 +19,15 @@ interface RoadmapPanelProps {
 
 export function RoadmapPanel({ roadmap, isLoading, isError, onRetry }: RoadmapPanelProps) {
   const completedCourses = useOnboardingStore((s) => s.completedCourses);
+  const grade = useOnboardingStore((s) => s.grade);
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
 
   const hasCompletedCourses = completedCourses.length > 0;
+
+  const semesterSteps = useMemo(() => {
+    if (!roadmap) return [];
+    return applyStudentGradeToSemesterSteps(roadmap.semesterSteps, grade);
+  }, [roadmap, grade]);
 
   const isCourseIncomplete = (course: { name: string; completed?: boolean }) => {
     if (course.completed === true) return false;
@@ -30,7 +37,7 @@ export function RoadmapPanel({ roadmap, isLoading, isError, onRetry }: RoadmapPa
 
   const { remainingSemesters, semesterRange } = useMemo(() => {
     if (!roadmap) return { remainingSemesters: 0, semesterRange: '' };
-    const steps = roadmap.semesterSteps;
+    const steps = semesterSteps;
     const incompleteSteps = steps.filter(
       (step) =>
         step.timing !== 'past' &&
@@ -44,7 +51,7 @@ export function RoadmapPanel({ roadmap, isLoading, isError, onRetry }: RoadmapPa
         ? `${first.year}학년 ${first.semester}학기 ~ ${last.year}학년 ${last.semester}학기`
         : '';
     return { remainingSemesters: count, semesterRange: range };
-  }, [roadmap, completedCourses]);
+  }, [roadmap, semesterSteps, completedCourses]);
 
   if (isLoading) {
     return <RoadmapSkeleton />;
@@ -75,7 +82,7 @@ export function RoadmapPanel({ roadmap, isLoading, isError, onRetry }: RoadmapPa
       />
 
       {/* 학기별 카드 */}
-      {roadmap.semesterSteps.map((step) => (
+      {semesterSteps.map((step) => (
         <RoadmapSemesterCard
           key={`${step.year}-${step.semester}`}
           step={step}

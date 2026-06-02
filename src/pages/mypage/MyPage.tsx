@@ -7,7 +7,6 @@ import { useMyPageViewModel } from '../../hooks/useMyPageViewModel';
 import { MyProfileSection } from './components/MyProfileSection';
 import { MyOnboardingInfoCard } from './components/MyOnboardingInfoCard';
 import { MyCompletedCoursesSection } from './components/MyCompletedCoursesSection';
-import { MyRecommendationHistoryCard } from './components/MyRecommendationHistoryCard';
 import { MyInfoEditModal } from './components/MyInfoEditModal';
 
 type EditableSection = 'tracks' | 'interests' | 'development' | 'experience' | 'employment';
@@ -53,10 +52,6 @@ export function MyPage() {
           onRemoveCourse={vm.removeCompletedCourse}
         />
 
-        <MyRecommendationHistoryCard
-          items={vm.recommendationHistory}
-          onItemPress={vm.handleHistoryPress}
-        />
         <MyInfoEditModal
           visible={editingSection != null}
           section={editingSection}

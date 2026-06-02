@@ -1,12 +1,14 @@
 import type { JobRecommendation } from '../data/mockRecommendData';
 import type { TrackRecommendPayload } from '../data/mockTrackRecommendData';
 import type { RoadmapPayload } from '../data/mockRoadmapData';
+import { applyStudentGradeToSemesterSteps } from './roadmapTiming';
 
 export interface GeneratePdfOptions {
   jobs: JobRecommendation[];
   trackRecommend: TrackRecommendPayload | null;
   roadmap: RoadmapPayload | null;
   completedCourses: string[];
+  studentGrade?: number | null;
 }
 
 const STAGE_COLORS: Record<number, string> = {
@@ -132,9 +134,14 @@ function buildTrackPage(track: TrackRecommendPayload): string {
 
 function buildRoadmapPage(
   roadmap: RoadmapPayload,
-  completedCourses: string[]
+  completedCourses: string[],
+  studentGrade: number | null | undefined
 ): string {
-  const semesterCards = roadmap.semesterSteps
+  const steps = applyStudentGradeToSemesterSteps(
+    roadmap.semesterSteps,
+    studentGrade ?? null
+  );
+  const semesterCards = steps
     .map((step) => {
       const stageColor = STAGE_COLORS[step.stageNumber] ?? '#888';
       const isPast = step.timing === 'past';
@@ -260,11 +267,12 @@ export function generateRecommendPdf({
   trackRecommend,
   roadmap,
   completedCourses,
+  studentGrade,
 }: GeneratePdfOptions): string {
   const pages = [
     buildJobsPage(jobs),
     trackRecommend ? buildTrackPage(trackRecommend) : '',
-    roadmap ? buildRoadmapPage(roadmap, completedCourses) : '',
+    roadmap ? buildRoadmapPage(roadmap, completedCourses, studentGrade) : '',
   ]
     .filter(Boolean)
     .join('\n');

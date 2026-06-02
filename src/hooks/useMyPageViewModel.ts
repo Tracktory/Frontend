@@ -11,8 +11,6 @@ import {
 import { useOnboardingStore } from '../stores/onboardingStore';
 import { useProfileStore } from '../stores/profileStore';
 import { useAuthStore } from '../stores/authStore';
-import { MOCK_RECOMMENDATION_HISTORY } from '../data/mockMyPageData';
-import type { RecommendationHistoryItem } from '../data/mockMyPageData';
 import { hansungCourseData } from '../data/hansungCourseData';
 import type { HansungCourse } from '../data/hansungCourseData';
 import {
@@ -80,7 +78,6 @@ export function useMyPageViewModel() {
 
   const completedCourses = useOnboardingStore((s) => s.completedCourses);
 
-  const recommendationHistory: RecommendationHistoryItem[] = MOCK_RECOMMENDATION_HISTORY;
   const courseCatalog: HansungCourse[] = hansungCourseData;
 
   const defaultCompletedYear = profile?.profile.currentYear ?? grade ?? 1;
@@ -291,10 +288,6 @@ export function useMyPageViewModel() {
     }
   };
 
-  const handleHistoryPress = (_item: RecommendationHistoryItem) => {
-    Alert.alert('알림', '추천 결과 상세는 추후 제공됩니다.');
-  };
-
   return {
     displayName,
     profileInitial,
@@ -314,7 +307,6 @@ export function useMyPageViewModel() {
     employmentLine,
     completedCourses,
     courseCatalog,
-    recommendationHistory,
     isSaving,
     isAddingCourse,
     removingCourseName,
@@ -325,6 +317,5 @@ export function useMyPageViewModel() {
     updateEmployment,
     addCompletedCourse,
     removeCompletedCourse,
-    handleHistoryPress,
   };
 }

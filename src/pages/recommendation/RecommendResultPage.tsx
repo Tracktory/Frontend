@@ -30,6 +30,7 @@ export function RecommendResultPage() {
   const vm = useRecommendResultViewModel();
   const navigation = useNavigation<StackNavigationProp<MainStackParamList>>();
   const completedCourses = useOnboardingStore((s) => s.completedCourses);
+  const grade = useOnboardingStore((s) => s.grade);
 
   const handleSavePdf = async () => {
     try {
@@ -38,6 +39,7 @@ export function RecommendResultPage() {
         trackRecommend: vm.trackRecommend,
         roadmap: vm.roadmap,
         completedCourses,
+        studentGrade: grade,
       });
 
       const { uri } = await Print.printToFileAsync({ html });
