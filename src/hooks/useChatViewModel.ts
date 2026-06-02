@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 
 import { useChatStore, createMessage } from '../stores/chatStore';
-import { sendChatMessage, sendFeedback } from '../api/chatApi';
+import { sendChatMessage } from '../api/chatApi';
 import { AuthApiError } from '../api/authApi';
 import { useAuthStore } from '../stores/authStore';
 import type { RootStackParamList } from '../navigation/RootNavigator';
@@ -142,10 +142,6 @@ export function useChatViewModel() {
     setMessages(recent);
   };
 
-  const handleFeedback = (messageId: string, type: 'like' | 'dislike') => {
-    sendFeedback(messageId, type);
-  };
-
   return {
     messages,
     inputText,
@@ -155,6 +151,5 @@ export function useChatViewModel() {
     handleChip,
     handleReset,
     handleLoadHistory,
-    handleFeedback,
   };
 };

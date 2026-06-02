@@ -67,18 +67,3 @@ export async function saveChatHistory(messages: ChatMessage[]): Promise<void> {
     // 저장 실패는 UX를 방해하지 않음
   }
 }
-
-/**
- * API-018: 메시지 피드백 전송
- * - 실패 시 UX 방해 없이 조용히 무시한다.
- */
-export async function sendFeedback(
-  messageId: string,
-  type: 'like' | 'dislike'
-): Promise<void> {
-  try {
-    await post('/api/chat/feedback', { messageId, type });
-  } catch {
-    // 피드백 전송 실패는 조용히 무시
-  }
-}

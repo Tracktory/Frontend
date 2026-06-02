@@ -126,7 +126,6 @@ export function ChatContent({
               key={msg.id}
               message={msg}
               onChipPress={onboardingRequired ? undefined : handleChip}
-              onFeedback={onboardingRequired ? undefined : vm.handleFeedback}
             />
           ))}
           {vm.isTyping && <ChatTypingBubble />}
