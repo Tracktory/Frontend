@@ -24,9 +24,15 @@ interface ApiRelatedTrack {
   description: string;
 }
 
+interface ApiSubjectRef {
+  code?: string;
+  name: string;
+}
+
 interface ApiJobItem {
   jobId?: number;
   id?: number;
+  code?: string;
   name: string;
   score: number;
   description?: string;
@@ -47,6 +53,7 @@ interface ApiPrimaryTrack {
   score?: number;
   reasoning?: string | null;
   primary?: boolean;
+  mainSubjects?: ApiSubjectRef[];
   coreSubjects?: string[];
   relatedJobs?: string[];
 }
@@ -171,14 +178,24 @@ const STAGE_LABEL_MAP: Record<string, string> = {
 
 // ---------- Mapper functions ----------
 
+function mapSubjectNames(
+  mainSubjects?: ApiSubjectRef[],
+  coreSubjects?: string[]
+): string[] {
+  if (mainSubjects?.length) {
+    return mainSubjects.map((s) => s.name).filter(Boolean);
+  }
+  return coreSubjects ?? [];
+}
+
 function mapJobs(items: ApiJobItem[]): JobRecommendation[] {
   return items.map((item, index) => ({
-    id: String(item.jobId ?? item.id ?? index + 1),
+    id: String(item.jobId ?? item.id ?? item.code ?? index + 1),
     title: item.name,
     description: item.description ?? '',
     reasoning: item.reasoning ?? '',
     matchScore: item.score ?? 0,
-    techStack: item.techStacks ?? [],
+    techStack: (item.techStacks ?? []).slice(0, 4),
     techStackReady: item.techStackReady ?? (item.techStacks?.length ?? 0) > 0,
     detailedDescription: item.detailedDescription ?? item.description ?? '',
     coreSkills: item.coreSkills ?? [],
@@ -198,7 +215,7 @@ function mapTracks(tracks: ApiTracksPayload): TrackRecommendPayload {
       rankLabel,
       score: t.score ?? null,
       reasoning: t.reasoning?.trim() || null,
-      coreSubjects: t.coreSubjects ?? [],
+      coreSubjects: mapSubjectNames(t.mainSubjects, t.coreSubjects),
       relatedJobs: t.relatedJobs ?? [],
     };
   });
@@ -229,7 +246,9 @@ function mapTracks(tracks: ApiTracksPayload): TrackRecommendPayload {
     secondary,
     llmSynergy: combinationReasoning || combinationSummary,
     trackDescription: tracks.trackDescription ?? combinationSummary,
-    requiredCourses: tracks.requiredCourses ?? tracks.primary[0]?.coreSubjects ?? [],
+    requiredCourses:
+      tracks.requiredCourses ??
+      mapSubjectNames(tracks.primary[0]?.mainSubjects, tracks.primary[0]?.coreSubjects),
     prerequisiteNote: tracks.prerequisiteNote ?? '',
   };
 }

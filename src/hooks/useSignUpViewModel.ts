@@ -60,13 +60,8 @@ export function useSignUpViewModel(navigation: AuthNavigation) {
     setIsSubmitting(true);
     try {
       await signUp(email, password);
-      Alert.alert('회원가입 완료', '로그인 후 온보딩을 진행해주세요.', [
-        {
-          text: '확인',
-          onPress: () =>
-            navigation.reset({ index: 0, routes: [{ name: 'Login' }] }),
-        },
-      ]);
+      navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+      Alert.alert('회원가입 완료', '로그인 후 온보딩을 진행해주세요.');
     } catch (err) {
       if (err instanceof AuthApiError) {
         switch (err.code) {
