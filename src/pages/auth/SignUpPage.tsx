@@ -10,14 +10,16 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StackScreenProps } from '@react-navigation/stack';
-import { Ionicons } from '@expo/vector-icons';
 
 import { Button } from '@/src/components/Button';
+import Logo from '@/src/assets/images/Logo.svg';
 import { colors } from '@/src/styles/colors';
 import { useSignUpViewModel } from '@/src/hooks/useSignUpViewModel';
 import type { AuthStackParamList } from '@/src/navigation/AuthNavigator';
 
 type Props = StackScreenProps<AuthStackParamList, 'SignUp'>;
+
+const AUTH_BG = '#F0FDFA';
 
 export function SignUpPage({ navigation }: Props) {
   const vm = useSignUpViewModel(navigation);
@@ -25,90 +27,86 @@ export function SignUpPage({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <View style={styles.flex}>
-        {/* 헤더 */}
-        <View style={styles.header}>
-          <Pressable onPress={() => navigation.goBack()} hitSlop={8} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
-          </Pressable>
-          <Text style={styles.headerTitle}>회원가입</Text>
-          <View style={styles.headerSpacer} />
-        </View>
-
-        <ScrollView
-          style={styles.flex}
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          {/* 입력 영역 */}
-          <View style={styles.formArea}>
-            {/* 이메일 */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>이메일</Text>
-              <TextInput
-                style={[styles.input, vm.emailError ? styles.inputError : null]}
-                placeholder="이메일을 입력하세요"
-                placeholderTextColor={colors.textHint}
-                value={vm.email}
-                onChangeText={vm.setEmail}
-                onBlur={vm.handleEmailBlur}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                editable={!vm.isSubmitting}
-              />
-              <View style={styles.errorSlot}>
-                {vm.emailError ? (
-                  <Text style={styles.errorText}>{vm.emailError}</Text>
-                ) : null}
-              </View>
-            </View>
-
-            {/* 비밀번호 */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>비밀번호</Text>
-              <TextInput
-                style={[styles.input, vm.passwordError ? styles.inputError : null]}
-                placeholder="8~64자, 영문·숫자·특수문자 각 1개 이상"
-                placeholderTextColor={colors.textHint}
-                value={vm.password}
-                onChangeText={vm.setPassword}
-                onBlur={vm.handlePasswordBlur}
-                secureTextEntry
-                autoCapitalize="none"
-                editable={!vm.isSubmitting}
-              />
-              <View style={styles.errorSlot}>
-                {vm.passwordError ? (
-                  <Text style={styles.errorText}>{vm.passwordError}</Text>
-                ) : null}
-              </View>
-            </View>
-
-            {/* 비밀번호 확인 */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>비밀번호 확인</Text>
-              <TextInput
-                style={[styles.input, vm.confirmPasswordError ? styles.inputError : null]}
-                placeholder="비밀번호를 다시 입력하세요"
-                placeholderTextColor={colors.textHint}
-                value={vm.confirmPassword}
-                onChangeText={vm.setConfirmPassword}
-                onBlur={vm.handleConfirmPasswordBlur}
-                secureTextEntry
-                autoCapitalize="none"
-                editable={!vm.isSubmitting}
-              />
-              <View style={styles.errorSlot}>
-                {vm.confirmPasswordError ? (
-                  <Text style={styles.errorText}>{vm.confirmPasswordError}</Text>
-                ) : null}
-              </View>
-            </View>
+        <View style={styles.screen}>
+          <View style={styles.logoArea}>
+            <Logo width={100} height={88} />
+            <Text style={styles.logoTitle}>Tracktory</Text>
+            <Text style={styles.logoSubtitle}>나만의 AI 학습경로 추천</Text>
           </View>
 
-          {/* 회원가입 버튼 */}
+          <ScrollView
+            style={styles.formScroll}
+            contentContainerStyle={styles.formScrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.formArea}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>이메일</Text>
+                <TextInput
+                  style={[styles.input, vm.emailError ? styles.inputError : null]}
+                  placeholder="이메일을 입력하세요"
+                  placeholderTextColor={colors.textHint}
+                  value={vm.email}
+                  onChangeText={vm.setEmail}
+                  onBlur={vm.handleEmailBlur}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  editable={!vm.isSubmitting}
+                />
+                <View style={styles.errorSlot}>
+                  {vm.emailError ? (
+                    <Text style={styles.errorText}>{vm.emailError}</Text>
+                  ) : null}
+                </View>
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>비밀번호</Text>
+                <TextInput
+                  style={[styles.input, vm.passwordError ? styles.inputError : null]}
+                  placeholder="8~64자, 영문·숫자·특수문자 각 1개 이상"
+                  placeholderTextColor={colors.textHint}
+                  value={vm.password}
+                  onChangeText={vm.setPassword}
+                  onBlur={vm.handlePasswordBlur}
+                  secureTextEntry
+                  autoCapitalize="none"
+                  editable={!vm.isSubmitting}
+                />
+                <View style={styles.errorSlot}>
+                  {vm.passwordError ? (
+                    <Text style={styles.errorText}>{vm.passwordError}</Text>
+                  ) : null}
+                </View>
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>비밀번호 확인</Text>
+                <TextInput
+                  style={[styles.input, vm.confirmPasswordError ? styles.inputError : null]}
+                  placeholder="비밀번호를 다시 입력하세요"
+                  placeholderTextColor={colors.textHint}
+                  value={vm.confirmPassword}
+                  onChangeText={vm.setConfirmPassword}
+                  onBlur={vm.handleConfirmPasswordBlur}
+                  secureTextEntry
+                  autoCapitalize="none"
+                  editable={!vm.isSubmitting}
+                />
+                <View style={styles.errorSlot}>
+                  {vm.confirmPasswordError ? (
+                    <Text style={styles.errorText}>{vm.confirmPasswordError}</Text>
+                  ) : null}
+                </View>
+              </View>
+            </View>
+          </ScrollView>
+
           <View style={styles.bottomArea}>
+            <View style={styles.submitErrorSlot} />
+
             {vm.isSubmitting ? (
               <View style={styles.loadingBtn}>
                 <ActivityIndicator color={colors.white} />
@@ -120,8 +118,15 @@ export function SignUpPage({ navigation }: Props) {
                 onPress={vm.handleSignUp}
               />
             )}
+
+            <View style={styles.loginRow}>
+              <Text style={styles.loginPrompt}>이미 계정이 있으신가요?</Text>
+              <Pressable onPress={() => navigation.goBack()} hitSlop={8}>
+                <Text style={styles.loginLink}>로그인</Text>
+              </Pressable>
+            </View>
           </View>
-        </ScrollView>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -130,36 +135,42 @@ export function SignUpPage({ navigation }: Props) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: AUTH_BG,
   },
   flex: {
     flex: 1,
   },
-  header: {
-    height: 52,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
-  },
-  backBtn: {
-    padding: 4,
-  },
-  headerTitle: {
+  screen: {
     flex: 1,
-    textAlign: 'center',
-    fontSize: 17,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  headerSpacer: {
-    width: 32,
-  },
-  scrollContent: {
     paddingHorizontal: 24,
-    paddingTop: 28,
+    paddingTop: 48,
     paddingBottom: 28,
+    justifyContent: 'space-between',
+  },
+  logoArea: {
+    alignItems: 'center',
+    paddingTop: 24,
+    paddingBottom: 32,
+    gap: 8,
+  },
+  logoTitle: {
+    marginTop: 4,
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#111827',
+    letterSpacing: -0.5,
+  },
+  logoSubtitle: {
+    marginTop: 8,
+    fontSize: 15,
+    color: colors.textSecondary,
+    fontWeight: '500',
+  },
+  formScroll: {
+    flex: 1,
+  },
+  formScrollContent: {
+    flexGrow: 1,
   },
   formArea: {
     gap: 4,
@@ -186,7 +197,6 @@ const styles = StyleSheet.create({
     borderColor: colors.stageCap,
     backgroundColor: '#FFF5F5',
   },
-  /** 에러 슬롯: 항상 height 18을 점유해 레이아웃 이동 방지 */
   errorSlot: {
     height: 18,
     justifyContent: 'center',
@@ -197,7 +207,12 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   bottomArea: {
-    paddingTop: 16,
+    gap: 16,
+    paddingTop: 8,
+  },
+  submitErrorSlot: {
+    minHeight: 20,
+    alignItems: 'center',
   },
   loadingBtn: {
     height: 52,
@@ -205,5 +220,20 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  loginRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
+  },
+  loginPrompt: {
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+  loginLink: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.primary,
   },
 });
