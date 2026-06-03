@@ -1,49 +1,51 @@
-import React, { useCallback, useEffect, useRef } from 'react';
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import type { StackNavigationProp } from '@react-navigation/stack';
+import { Ionicons } from '@expo/vector-icons';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors } from '../../styles/colors';
 import type { MainStackParamList } from '../MainStackNavigator';
 import type { MainTabParamList } from '../MainTabNavigator';
+import {
+  DIAL_TAB_BAR_CONTENT_HEIGHT,
+  DIAL_TAB_BAR_PADDING_TOP,
+} from '../layout/tabBarLayout';
 
-import HomeIcon from '../../assets/images/Home.svg';
-import HomeActiveIcon from '../../assets/images/Home_Active.svg';
-import MyPageIcon from '../../assets/images/MyPage.svg';
-import MyPageActiveIcon from '../../assets/images/MyPage_active.svg';
-
-const DIAL_TABS: { name: keyof MainTabParamList; label: string; sub?: string }[] = [
+const DIAL_TABS: { name: keyof MainTabParamList; label: string; sub: string }[] = [
   { name: 'Home', label: '홈', sub: '추천 결과' },
   { name: 'MyPage', label: '마이', sub: '마이페이지' },
 ];
 
-const ITEM_WIDTH = 120;
+const DIAL_TRACK_WIDTH = 200;
+const DIAL_TRACK_HEIGHT = 46;
+const TAB_SLOT_WIDTH = DIAL_TRACK_WIDTH / 2;
+const PILL_SPRING = { damping: 25, stiffness: 300 };
 
 export function BottomDialTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  const scrollRef = useRef<ScrollView>(null);
   const lastHomePress = useRef(0);
+  const pillX = useSharedValue(0);
 
   const activeRouteName = state.routes[state.index]?.name;
-  const activeDialIndex = DIAL_TABS.findIndex((t) => t.name === activeRouteName);
-
-  const scrollToIndex = useCallback((index: number) => {
-    const x = Math.max(0, index * ITEM_WIDTH - ITEM_WIDTH * 0.5);
-    scrollRef.current?.scrollTo({ x, animated: true });
-  }, []);
+  const activeDialIndex = Math.max(
+    0,
+    DIAL_TABS.findIndex((t) => t.name === activeRouteName)
+  );
 
   useEffect(() => {
-    if (activeDialIndex >= 0) {
-      scrollToIndex(activeDialIndex);
-    }
-  }, [activeDialIndex, scrollToIndex]);
+    pillX.value = withSpring(activeDialIndex * TAB_SLOT_WIDTH, PILL_SPRING);
+  }, [activeDialIndex, pillX]);
+
+  const pillStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: pillX.value }],
+  }));
 
   const handlePress = (routeName: keyof MainTabParamList, isFocused: boolean) => {
     const route = state.routes.find((r) => r.name === routeName);
@@ -69,55 +71,57 @@ export function BottomDialTabBar({ state, navigation }: BottomTabBarProps) {
     }
   };
 
+  const bottomInset = Math.max(insets.bottom, 8);
+
   return (
-    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          paddingTop: DIAL_TAB_BAR_PADDING_TOP,
+          paddingBottom: bottomInset,
+          minHeight: DIAL_TAB_BAR_PADDING_TOP + DIAL_TAB_BAR_CONTENT_HEIGHT + bottomInset,
+        },
+      ]}
+    >
       <View style={styles.dotsLeft}>
-        <Text style={styles.decorDot}>•••</Text>
+        <View style={styles.dotRow}>
+          {[0, 1, 2].map((i) => (
+            <View key={i} style={styles.hintDot} />
+          ))}
+        </View>
       </View>
-      <ScrollView
-        ref={scrollRef}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        snapToInterval={ITEM_WIDTH}
-        decelerationRate="fast"
-      >
-        {DIAL_TABS.map((tab, index) => {
-          const isFocused = activeRouteName === tab.name;
-          return (
-            <Pressable
-              key={tab.name}
-              style={[
-                styles.item,
-                { width: ITEM_WIDTH },
-                isFocused ? styles.itemActive : styles.itemInactive,
-              ]}
-              onPress={() => handlePress(tab.name, isFocused)}
-            >
-              <View style={[styles.iconWrap, isFocused && styles.iconWrapActive]}>
-                {tab.name === 'Home' ? (
-                  isFocused ? (
-                    <HomeActiveIcon width={22} height={22} />
-                  ) : (
-                    <HomeIcon width={22} height={22} />
-                  )
-                ) : isFocused ? (
-                  <MyPageActiveIcon width={22} height={22} />
-                ) : (
-                  <MyPageIcon width={22} height={22} />
-                )}
-              </View>
-              <Text style={[styles.label, isFocused && styles.labelActive]}>{tab.label}</Text>
-              {tab.sub ? (
+
+      <View style={styles.dialWrap}>
+        <View style={styles.dialTrack}>
+          <Animated.View style={[styles.pill, pillStyle]} />
+          {DIAL_TABS.map((tab) => {
+            const isFocused = activeRouteName === tab.name;
+            return (
+              <Pressable
+                key={tab.name}
+                style={styles.tabSlot}
+                onPress={() => handlePress(tab.name, isFocused)}
+              >
+                <Ionicons
+                  name={tab.name === 'Home' ? 'home' : 'person'}
+                  size={20}
+                  color={isFocused ? '#FFFFFF' : '#9CA3AF'}
+                />
+                <Text style={[styles.label, isFocused && styles.labelActive]}>{tab.label}</Text>
                 <Text style={[styles.sub, isFocused && styles.subActive]}>{tab.sub}</Text>
-              ) : null}
-              {isFocused ? <View style={styles.dot} /> : null}
-            </Pressable>
-          );
-        })}
-      </ScrollView>
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
+
       <View style={styles.dotsRight}>
-        <Text style={styles.decorDot}>•••</Text>
+        <View style={styles.dotRow}>
+          {[0, 1, 2].map((i) => (
+            <View key={i} style={styles.hintDot} />
+          ))}
+        </View>
       </View>
     </View>
   );
@@ -126,79 +130,83 @@ export function BottomDialTabBar({ state, navigation }: BottomTabBarProps) {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    left: 16,
-    right: 16,
+    left: 0,
+    right: 0,
     bottom: 0,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
-    borderRadius: 28,
-    paddingTop: 8,
+    backgroundColor: 'rgba(255,255,255,0.96)',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
     zIndex: 35,
-    shadowColor: '#111827',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 12,
   },
   dotsLeft: {
-    paddingLeft: 12,
+    width: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   dotsRight: {
-    paddingRight: 12,
-  },
-  decorDot: {
-    fontSize: 10,
-    color: colors.textHint,
-    letterSpacing: 2,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 8,
-  },
-  item: {
+    width: 48,
     alignItems: 'center',
-    paddingVertical: 6,
+    justifyContent: 'center',
   },
-  itemActive: {
-    transform: [{ scale: 1.08 }],
+  dotRow: {
+    flexDirection: 'row',
+    gap: 4,
   },
-  itemInactive: {
-    transform: [{ scale: 0.92 }],
-    opacity: 0.85,
+  hintDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#D1D5DB',
   },
-  iconWrap: {
-    padding: 10,
-    borderRadius: 24,
-    marginBottom: 2,
+  dialWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  iconWrapActive: {
+  dialTrack: {
+    width: DIAL_TRACK_WIDTH,
+    height: DIAL_TRACK_HEIGHT,
+    borderRadius: DIAL_TRACK_HEIGHT / 2,
+    backgroundColor: '#F3F4F6',
+    flexDirection: 'row',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  pill: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    width: TAB_SLOT_WIDTH,
+    height: DIAL_TRACK_HEIGHT,
+    borderRadius: DIAL_TRACK_HEIGHT / 2,
     backgroundColor: colors.primary,
+  },
+  tabSlot: {
+    width: TAB_SLOT_WIDTH,
+    height: DIAL_TRACK_HEIGHT,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1,
+    paddingTop: 2,
   },
   label: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
     color: '#9CA3AF',
+    marginTop: 1,
   },
   labelActive: {
-    color: colors.primary,
-    fontSize: 14,
-    transform: [{ scale: 1.05 }],
+    color: '#FFFFFF',
   },
   sub: {
-    fontSize: 10,
-    color: '#9CA3AF',
-    marginTop: 2,
+    fontSize: 9,
+    color: '#D1D5DB',
+    marginTop: 1,
   },
   subActive: {
-    color: colors.primary,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.primary,
-    marginTop: 4,
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
 });

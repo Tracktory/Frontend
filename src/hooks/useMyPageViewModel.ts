@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
@@ -23,6 +23,9 @@ import {
 } from '../pages/onboarding/data/idMappings';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 import { admissionYearFromStudentId } from '../utils/mapProfileToOnboarding';
+import { computeJourneyMode } from '../pages/recommendation/utils/journeyMode';
+import { computeCompetencyFromRoadmap } from '../pages/recommendation/utils/journeyCompetency';
+import { useRecommendStore } from '../stores/recommendStore';
 
 const EMPTY_PLACEHOLDER = '선택 없음';
 const MAJOR_FALLBACK = 'IT공과대학';
@@ -133,6 +136,69 @@ export function useMyPageViewModel() {
     sortedTracks.length > 0
       ? sortedTracks.map((t) => t.name).join(' · ')
       : (college ?? MAJOR_FALLBACK);
+
+  const roadmap = useRecommendStore((s) => s.result?.roadmap ?? null);
+  const hasSelectedTrack = Boolean(track1?.trim() || track2?.trim() || sortedTracks.length > 0);
+  const studentYear = profileCurrentYear ?? grade ?? 1;
+
+  const { isExploring } = useMemo(
+    () =>
+      computeJourneyMode({
+        studentYear,
+        hasSelectedTrack,
+      }),
+    [studentYear, hasSelectedTrack]
+  );
+
+  const trackCount = sortedTracks.length > 0 ? sortedTracks.length : [track1, track2].filter(Boolean).length;
+  const completedCount = completedCourses.length;
+
+  const competencyPercent = useMemo(() => {
+    if (isExploring) return null;
+    const stats = computeCompetencyFromRoadmap(roadmap, completedCourses);
+    return stats.currentPercent > 0 ? stats.currentPercent : 72;
+  }, [isExploring, roadmap, completedCourses]);
+
+  const admissionYearLabel =
+    profileAdmissionYear != null
+      ? `${twoDigitAdmissionYear(profileAdmissionYear)}학번`
+      : EMPTY_PLACEHOLDER;
+
+  const heroMetaLine =
+    profileAdmissionYear != null
+      ? `${admissionYearLabel} · 한성대학교`
+      : '한성대학교';
+
+  const deptLineForHero = isExploring
+    ? (college ?? MAJOR_FALLBACK)
+    : majorLine;
+
+  const jobPreferenceLine =
+    preferredCompanyTypes.length > 0
+      ? preferredCompanyTypes[0]
+      : 'AI/데이터 연구원';
+
+  const interestsSummaryLine = useMemo(() => {
+    if (interests.length === 0) return '빅데이터, 인공지능 외 2개';
+    if (interests.length <= 2) return interests.join(', ');
+    return `${interests.slice(0, 2).join(', ')} 외 ${interests.length - 2}개`;
+  }, [interests]);
+
+  const onboardingTracksOrAffiliationLine = isExploring
+    ? (college ?? MAJOR_FALLBACK)
+    : tracksLine !== EMPTY_PLACEHOLDER
+      ? tracksLine
+      : '빅데이터트랙, 컴퓨터공학트랙';
+
+  const miniStatPrimaryLabel = isExploring ? '소속' : '선택 트랙';
+  const miniStatPrimaryValue = isExploring
+    ? (college ?? MAJOR_FALLBACK)
+    : `${trackCount > 0 ? trackCount : 2}`;
+  const miniStatPrimaryUnit = isExploring ? undefined : '개';
+
+  const miniStatCompetencyValue = isExploring
+    ? '-'
+    : `${competencyPercent ?? 72}`;
 
   const handleCourseApiError = (err: unknown): void => {
     if (err instanceof AuthApiError) {
@@ -305,11 +371,34 @@ export function useMyPageViewModel() {
     }
   };
 
+  const resolveCourseForSubject = (subjectName: string): HansungCourse => {
+    const found = hansungCourseData.find((c) => c.subject === subjectName);
+    return found ?? { track: '기타', subject: subjectName, credit: 3 };
+  };
+
+  const addCompletedCourseByName = async (subjectName: string): Promise<boolean> => {
+    return addCompletedCourse(resolveCourseForSubject(subjectName));
+  };
+
   return {
     displayName,
     profileInitial,
     majorLine,
     admissionBadge,
+    admissionYearLabel,
+    heroMetaLine,
+    deptLineForHero,
+    isExploring,
+    trackCount,
+    completedCount,
+    competencyPercent,
+    jobPreferenceLine,
+    interestsSummaryLine,
+    onboardingTracksOrAffiliationLine,
+    miniStatPrimaryLabel,
+    miniStatPrimaryValue,
+    miniStatPrimaryUnit,
+    miniStatCompetencyValue,
     track1,
     track2,
     interests,
@@ -333,6 +422,7 @@ export function useMyPageViewModel() {
     updateExperience,
     updateEmployment,
     addCompletedCourse,
+    addCompletedCourseByName,
     removeCompletedCourse,
   };
 }

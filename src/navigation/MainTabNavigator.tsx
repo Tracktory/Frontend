@@ -21,6 +21,7 @@ export function MainTabNavigator() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: { display: 'none' },
+        animation: 'shift',
       }}
     >
       <Tab.Screen name="Home" component={RecommendResultPage} />

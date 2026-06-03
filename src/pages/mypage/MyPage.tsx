@@ -1,76 +1,93 @@
 import React from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors } from '../../styles/colors';
 import { useMyPageViewModel } from '../../hooks/useMyPageViewModel';
-import { MyProfileSection } from './components/MyProfileSection';
-import { MyOnboardingInfoCard } from './components/MyOnboardingInfoCard';
-import { MyCompletedCoursesSection } from './components/MyCompletedCoursesSection';
+import { getBottomTabBarClearance } from '../../navigation/layout/tabBarLayout';
+import { MyPageHeader } from './components/MyPageHeader';
+import { MyProfileHeroCard } from './components/MyProfileHeroCard';
+import { MyOnboardingParamsCard } from './components/MyOnboardingParamsCard';
+import { MyInterestChipsSection } from './components/MyInterestChipsSection';
+import { MyCompletedCoursesEditableSection } from './components/MyCompletedCoursesEditableSection';
+import { MyRecommendationHistorySection } from './components/MyRecommendationHistorySection';
+import { MySettingsSection } from './components/MySettingsSection';
 import { MyInfoEditModal } from './components/MyInfoEditModal';
 
 type EditableSection = 'tracks' | 'interests' | 'development' | 'experience' | 'employment';
 
+const MYPAGE_BG = '#F0FDFA';
+
 export function MyPage() {
+  const insets = useSafeAreaInsets();
   const vm = useMyPageViewModel();
   const [editingSection, setEditingSection] = React.useState<EditableSection | null>(null);
+  const tabBarClearance = getBottomTabBarClearance(insets);
+
+  const tracksOrAffiliationLabel = vm.isExploring ? '소속' : '선택 트랙';
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarClearance + 20 }]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <MyProfileSection
+        <MyPageHeader />
+
+        <MyProfileHeroCard
+          deptLine={vm.deptLineForHero}
           displayName={vm.displayName}
-          profileInitial={vm.profileInitial}
-          majorLine={vm.majorLine}
-          admissionBadge={vm.admissionBadge}
+          metaLine={vm.heroMetaLine}
+          miniStatPrimaryLabel={vm.miniStatPrimaryLabel}
+          miniStatPrimaryValue={vm.miniStatPrimaryValue}
+          miniStatPrimaryUnit={vm.miniStatPrimaryUnit}
+          completedCount={vm.completedCount}
+          miniStatCompetencyValue={vm.miniStatCompetencyValue}
         />
 
-        <MyOnboardingInfoCard
-          tracksLine={vm.tracksLine}
-          interestsLine={vm.interestsLine}
-          developmentLine={vm.developmentLine}
-          experiencedLine={vm.experiencedLine}
-          employmentLine={vm.employmentLine}
-          onEditTracks={() => setEditingSection('tracks')}
-          onEditInterests={() => setEditingSection('interests')}
-          onEditDevelopment={() => setEditingSection('development')}
-          onEditExperience={() => setEditingSection('experience')}
-          onEditEmployment={() => setEditingSection('employment')}
+        <MyOnboardingParamsCard
+          admissionYearLabel={vm.admissionYearLabel}
+          tracksOrAffiliationLabel={tracksOrAffiliationLabel}
+          tracksOrAffiliationValue={vm.onboardingTracksOrAffiliationLine}
+          jobPreferenceLine={vm.jobPreferenceLine}
+          interestsSummaryLine={vm.interestsSummaryLine}
+          onPressEditInfo={() => setEditingSection('tracks')}
         />
 
-        <MyCompletedCoursesSection
+        <MyInterestChipsSection interests={vm.interests} />
+
+        <MyCompletedCoursesEditableSection
           courses={vm.completedCourses}
-          catalog={vm.courseCatalog}
           isAddingCourse={vm.isAddingCourse}
           removingCourseName={vm.removingCourseName}
-          onAddCourse={vm.addCompletedCourse}
+          onAddCourse={vm.addCompletedCourseByName}
           onRemoveCourse={vm.removeCompletedCourse}
         />
 
-        <MyInfoEditModal
-          visible={editingSection != null}
-          section={editingSection}
-          isSaving={vm.isSaving}
-          currentTrack1={vm.track1}
-          currentTrack2={vm.track2}
-          currentInterests={vm.interests}
-          currentDevelopmentFields={vm.developmentFields}
-          currentExperiencedFields={vm.experiencedFields}
-          currentPreferredCompanyTypes={vm.preferredCompanyTypes}
-          currentEmploymentValues={vm.employmentValues}
-          onClose={() => setEditingSection(null)}
-          onSaveTracks={vm.updateTracks}
-          onSaveInterests={vm.updateInterests}
-          onSaveDevelopmentFields={vm.updateDevelopmentFields}
-          onSaveExperience={vm.updateExperience}
-          onSaveEmployment={vm.updateEmployment}
-        />
+        <MyRecommendationHistorySection />
+
+        <MySettingsSection />
       </ScrollView>
+
+      <MyInfoEditModal
+        visible={editingSection != null}
+        section={editingSection}
+        isSaving={vm.isSaving}
+        currentTrack1={vm.track1}
+        currentTrack2={vm.track2}
+        currentInterests={vm.interests}
+        currentDevelopmentFields={vm.developmentFields}
+        currentExperiencedFields={vm.experiencedFields}
+        currentPreferredCompanyTypes={vm.preferredCompanyTypes}
+        currentEmploymentValues={vm.employmentValues}
+        onClose={() => setEditingSection(null)}
+        onSaveTracks={vm.updateTracks}
+        onSaveInterests={vm.updateInterests}
+        onSaveDevelopmentFields={vm.updateDevelopmentFields}
+        onSaveExperience={vm.updateExperience}
+        onSaveEmployment={vm.updateEmployment}
+      />
     </SafeAreaView>
   );
 }
@@ -78,14 +95,13 @@ export function MyPage() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: MYPAGE_BG,
   },
   scroll: {
     flex: 1,
+    backgroundColor: MYPAGE_BG,
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 100,
+    flexGrow: 1,
   },
 });
