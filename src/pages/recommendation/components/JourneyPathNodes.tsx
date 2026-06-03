@@ -5,6 +5,7 @@ import Animated, {
   useSharedValue,
   withDelay,
   withRepeat,
+  withSequence,
   withTiming,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
@@ -43,6 +44,7 @@ function nodeIcon(name: string): keyof typeof Ionicons.glyphMap {
 }
 
 const RIPPLE_DURATION = 1400;
+const RIPPLE_PAUSE_MS = 1000;
 const RIPPLE_MAX_SCALE = 1.75;
 const RIPPLE_START_OPACITY = 0.45;
 
@@ -54,7 +56,10 @@ function RippleRing({ delayMs }: { delayMs: number }) {
     scale.value = withDelay(
       delayMs,
       withRepeat(
-        withTiming(RIPPLE_MAX_SCALE, { duration: RIPPLE_DURATION }),
+        withSequence(
+          withTiming(RIPPLE_MAX_SCALE, { duration: RIPPLE_DURATION }),
+          withDelay(RIPPLE_PAUSE_MS, withTiming(1, { duration: 0 })),
+        ),
         -1,
         false,
       ),
@@ -62,7 +67,10 @@ function RippleRing({ delayMs }: { delayMs: number }) {
     opacity.value = withDelay(
       delayMs,
       withRepeat(
-        withTiming(0, { duration: RIPPLE_DURATION }),
+        withSequence(
+          withTiming(0, { duration: RIPPLE_DURATION }),
+          withDelay(RIPPLE_PAUSE_MS, withTiming(RIPPLE_START_OPACITY, { duration: 0 })),
+        ),
         -1,
         false,
       ),

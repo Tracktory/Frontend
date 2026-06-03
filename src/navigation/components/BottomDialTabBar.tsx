@@ -18,9 +18,9 @@ import {
   DIAL_TAB_BAR_PADDING_TOP,
 } from '../layout/tabBarLayout';
 
-const DIAL_TABS: { name: keyof MainTabParamList; label: string; sub: string }[] = [
-  { name: 'Home', label: '홈', sub: '추천 결과' },
-  { name: 'MyPage', label: '마이', sub: '마이페이지' },
+const DIAL_TABS: { name: keyof MainTabParamList; label: string }[] = [
+  { name: 'Home', label: '홈' },
+  { name: 'MyPage', label: '마이' },
 ];
 
 const DIAL_TRACK_WIDTH = 228;
@@ -102,7 +102,6 @@ export function BottomDialTabBar({ state, navigation }: BottomTabBarProps) {
                   color={isFocused ? '#FFFFFF' : '#9CA3AF'}
                 />
                 <Text style={[styles.label, isFocused && styles.labelActive]}>{tab.label}</Text>
-                <Text style={[styles.sub, isFocused && styles.subActive]}>{tab.sub}</Text>
               </Pressable>
             );
           })}
@@ -164,14 +163,5 @@ const styles = StyleSheet.create({
   },
   labelActive: {
     color: '#FFFFFF',
-  },
-  sub: {
-    fontSize: 10,
-    color: '#D1D5DB',
-    marginTop: 1,
-  },
-  subActive: {
-    color: '#FFFFFF',
-    fontWeight: '700',
   },
 });

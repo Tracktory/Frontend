@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 import { MySectionCard } from './MySectionCard';
 
@@ -7,9 +8,10 @@ interface ParamRowProps {
   label: string;
   value: string;
   showDivider?: boolean;
+  onPressEdit: () => void;
 }
 
-function ParamRow({ label, value, showDivider = true }: ParamRowProps) {
+function ParamRow({ label, value, showDivider = true, onPressEdit }: ParamRowProps) {
   return (
     <View>
       <View style={styles.row}>
@@ -17,6 +19,15 @@ function ParamRow({ label, value, showDivider = true }: ParamRowProps) {
         <Text style={styles.rowValue} numberOfLines={2}>
           {value}
         </Text>
+        <Pressable
+          style={({ pressed }) => [styles.editCol, pressed && styles.editColPressed]}
+          onPress={onPressEdit}
+          hitSlop={6}
+          accessibilityLabel={`${label} 수정`}
+          accessibilityRole="button"
+        >
+          <Ionicons name="pencil" size={15} color="#14B8A6" />
+        </Pressable>
       </View>
       {showDivider ? <View style={styles.divider} /> : null}
     </View>
@@ -27,32 +38,63 @@ interface MyOnboardingParamsCardProps {
   gradeLabel: string;
   tracksOrAffiliationLabel: string;
   tracksOrAffiliationValue: string;
-  jobPreferenceLine: string;
   interestsSummaryLine: string;
-  onPressEditInfo: () => void;
+  developmentLine: string;
+  experiencedLine: string;
+  employmentLine: string;
+  onPressEditGrade: () => void;
+  onPressEditTracksOrAffiliation: () => void;
+  onPressEditInterests: () => void;
+  onPressEditDevelopment: () => void;
+  onPressEditExperience: () => void;
+  onPressEditEmployment: () => void;
 }
 
 export function MyOnboardingParamsCard({
   gradeLabel,
   tracksOrAffiliationLabel,
   tracksOrAffiliationValue,
-  jobPreferenceLine,
   interestsSummaryLine,
-  onPressEditInfo,
+  developmentLine,
+  experiencedLine,
+  employmentLine,
+  onPressEditGrade,
+  onPressEditTracksOrAffiliation,
+  onPressEditInterests,
+  onPressEditDevelopment,
+  onPressEditExperience,
+  onPressEditEmployment,
 }: MyOnboardingParamsCardProps) {
   return (
     <View style={styles.wrap}>
-      <MySectionCard title="온보딩 파라미터" iconName="book-outline">
-        <ParamRow label="학년" value={gradeLabel} />
-        <ParamRow label={tracksOrAffiliationLabel} value={tracksOrAffiliationValue} />
-        <ParamRow label="희망 직무" value={jobPreferenceLine} />
-        <ParamRow label="관심 분야" value={interestsSummaryLine} showDivider={false} />
-        <Pressable
-          style={({ pressed }) => [styles.editBtn, pressed && styles.editBtnPressed]}
-          onPress={onPressEditInfo}
-        >
-          <Text style={styles.editBtnText}>정보 수정</Text>
-        </Pressable>
+      <MySectionCard title="내정보" iconName="person-outline">
+        <ParamRow label="학년" value={gradeLabel} onPressEdit={onPressEditGrade} />
+        <ParamRow
+          label={tracksOrAffiliationLabel}
+          value={tracksOrAffiliationValue}
+          onPressEdit={onPressEditTracksOrAffiliation}
+        />
+        <ParamRow
+          label="관심 분야"
+          value={interestsSummaryLine}
+          onPressEdit={onPressEditInterests}
+        />
+        <ParamRow
+          label="흥미 개발 분야"
+          value={developmentLine}
+          onPressEdit={onPressEditDevelopment}
+        />
+        <ParamRow
+          label="공부해본 분야"
+          value={experiencedLine}
+          onPressEdit={onPressEditExperience}
+        />
+        <ParamRow
+          label="취업 선호"
+          value={employmentLine}
+          showDivider={false}
+          onPressEdit={onPressEditEmployment}
+        />
       </MySectionCard>
     </View>
   );
@@ -64,39 +106,35 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'flex-start',
-    gap: 12,
+    gap: 8,
     paddingVertical: 10,
+  },
+  editCol: {
+    width: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 1,
+  },
+  editColPressed: {
+    opacity: 0.7,
   },
   rowLabel: {
     fontSize: 13,
     color: '#9CA3AF',
-    flex: 0.4,
+    width: 88,
+    paddingTop: 2,
   },
   rowValue: {
+    flex: 1,
     fontSize: 13,
     color: '#374151',
-    flex: 0.6,
     textAlign: 'right',
     fontWeight: '500',
+    paddingRight: 4,
   },
   divider: {
     height: 1,
     backgroundColor: '#F3F4F6',
-  },
-  editBtn: {
-    marginTop: 12,
-    alignSelf: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-  },
-  editBtnPressed: {
-    opacity: 0.7,
-  },
-  editBtnText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#14B8A6',
   },
 });

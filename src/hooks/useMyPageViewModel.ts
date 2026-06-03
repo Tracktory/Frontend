@@ -20,6 +20,7 @@ import {
   WORK_VALUE_ID_MAP,
   TECH_STACK_ID_MAP,
   resolveTrackId,
+  resolveDepartmentIdForTrack,
 } from '../pages/onboarding/data/idMappings';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 import { computeJourneyMode } from '../pages/recommendation/utils/journeyMode';
@@ -241,6 +242,11 @@ export function useMyPageViewModel() {
     }
   };
 
+  const updateGrade = async (grade: number): Promise<boolean> => {
+    const next = grade >= 1 && grade <= 4 ? grade : 1;
+    return runPatch({ profile: { currentYear: next } });
+  };
+
   const updateInterests = async (next: string[]): Promise<boolean> => {
     return runPatch({
       interestIds: toIds(next.slice(0, 5), INTEREST_ID_MAP),
@@ -276,7 +282,11 @@ export function useMyPageViewModel() {
       Alert.alert('입력 오류', '1트랙을 선택해주세요.');
       return false;
     }
-    return runPatch({ tracks });
+    const departmentId = resolveDepartmentIdForTrack(next.track1.trim());
+    return runPatch({
+      ...(departmentId != null ? { profile: { departmentId } } : {}),
+      tracks,
+    });
   };
 
   const updateExperience = async (next: string[]): Promise<boolean> => {
@@ -365,6 +375,8 @@ export function useMyPageViewModel() {
     miniStatPrimaryValue,
     miniStatPrimaryUnit,
     miniStatCompetencyValue,
+    profileCurrentYear,
+    college,
     track1,
     track2,
     interests,
@@ -382,6 +394,7 @@ export function useMyPageViewModel() {
     isSaving,
     isAddingCourse,
     removingCourseName,
+    updateGrade,
     updateTracks,
     updateInterests,
     updateDevelopmentFields,

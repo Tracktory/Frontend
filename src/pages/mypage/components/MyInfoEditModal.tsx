@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Modal,
   Pressable,
   ScrollView,
@@ -11,22 +12,34 @@ import {
 } from 'react-native';
 
 import {
-  ALL_TRACK_OPTIONS,
+  COLLEGE_OPTIONS,
+  COLLEGE_TRACK_MAP,
   COMPANY_TYPE_OPTIONS,
   DEVELOPMENT_FIELD_OPTIONS,
   EMPLOYMENT_VALUE_OPTIONS,
   INTEREST_OPTIONS,
   TECH_TAG_OPTIONS,
+  findCollegeForTrack,
 } from '../../onboarding/data/onboardingOptions';
 import { colors } from '../../../styles/colors';
 import { splitExperiencedFields } from '../../../utils/techStackLabels';
 
-type EditableSection = 'tracks' | 'interests' | 'development' | 'experience' | 'employment';
+const GRADE_OPTIONS = [1, 2, 3, 4] as const;
+
+export type EditableSection =
+  | 'grade'
+  | 'tracks'
+  | 'interests'
+  | 'development'
+  | 'experience'
+  | 'employment';
 
 interface MyInfoEditModalProps {
   visible: boolean;
   section: EditableSection | null;
   isSaving?: boolean;
+  currentGrade: number;
+  currentCollege: string | null;
   currentTrack1: string;
   currentTrack2: string;
   currentInterests: string[];
@@ -35,6 +48,7 @@ interface MyInfoEditModalProps {
   currentPreferredCompanyTypes: string[];
   currentEmploymentValues: string[];
   onClose: () => void;
+  onSaveGrade: (grade: number) => Promise<boolean>;
   onSaveTracks: (next: { track1: string; track2: string }) => Promise<boolean>;
   onSaveInterests: (next: string[]) => Promise<boolean>;
   onSaveDevelopmentFields: (next: string[]) => Promise<boolean>;
@@ -62,11 +76,13 @@ function toggleWithLimit(
 function TrackPicker({
   label,
   value,
+  options,
   disabled,
   onSelect,
 }: {
   label: string;
   value: string;
+  options: string[];
   disabled: boolean;
   onSelect: (track: string) => void;
 }) {
@@ -74,7 +90,7 @@ function TrackPicker({
     <>
       <Text style={styles.groupTitle}>{label}</Text>
       <View style={styles.chipWrap}>
-        {ALL_TRACK_OPTIONS.map((option) => (
+        {options.map((option) => (
           <Pressable
             key={`${label}-${option}`}
             disabled={disabled}
@@ -91,10 +107,21 @@ function TrackPicker({
   );
 }
 
+function resolveInitialCollege(
+  college: string | null,
+  track1: string,
+  track2: string
+): string | null {
+  if (college) return college;
+  return findCollegeForTrack(track1) ?? findCollegeForTrack(track2);
+}
+
 export function MyInfoEditModal({
   visible,
   section,
   isSaving = false,
+  currentGrade,
+  currentCollege,
   currentTrack1,
   currentTrack2,
   currentInterests,
@@ -103,12 +130,15 @@ export function MyInfoEditModal({
   currentPreferredCompanyTypes,
   currentEmploymentValues,
   onClose,
+  onSaveGrade,
   onSaveTracks,
   onSaveInterests,
   onSaveDevelopmentFields,
   onSaveExperience,
   onSaveEmployment,
 }: MyInfoEditModalProps) {
+  const [draftGrade, setDraftGrade] = useState(1);
+  const [draftCollege, setDraftCollege] = useState<string | null>(null);
   const [draftTrack1, setDraftTrack1] = useState('');
   const [draftTrack2, setDraftTrack2] = useState('');
   const [draftInterests, setDraftInterests] = useState<string[]>([]);
@@ -120,6 +150,8 @@ export function MyInfoEditModal({
 
   useEffect(() => {
     if (!visible) return;
+    setDraftGrade(currentGrade >= 1 && currentGrade <= 4 ? currentGrade : 1);
+    setDraftCollege(resolveInitialCollege(currentCollege, currentTrack1, currentTrack2));
     setDraftTrack1(currentTrack1);
     setDraftTrack2(currentTrack2);
     setDraftInterests(currentInterests);
@@ -131,6 +163,8 @@ export function MyInfoEditModal({
     setDraftEmploymentValues(currentEmploymentValues);
   }, [
     visible,
+    currentGrade,
+    currentCollege,
     currentTrack1,
     currentTrack2,
     currentInterests,
@@ -141,13 +175,34 @@ export function MyInfoEditModal({
   ]);
 
   const sectionTitle = useMemo(() => {
+    if (section === 'grade') return '학년 수정';
     if (section === 'tracks') return '트랙 정보 수정';
-    if (section === 'interests') return '관심사 수정';
+    if (section === 'interests') return '관심 분야 수정';
     if (section === 'development') return '흥미 개발 분야 수정';
     if (section === 'experience') return '공부해본 분야 수정';
-    if (section === 'employment') return '취업 선호도 수정';
+    if (section === 'employment') return '취업 선호 수정';
     return '';
   }, [section]);
+
+  const draftCollegeTracks = useMemo(
+    () => (draftCollege ? (COLLEGE_TRACK_MAP[draftCollege] ?? []) : []),
+    [draftCollege]
+  );
+
+  const handleCollegeSelect = (option: string) => {
+    const nextCollege = draftCollege === option ? null : option;
+    setDraftCollege(nextCollege);
+
+    if (!nextCollege) {
+      setDraftTrack1('');
+      setDraftTrack2('');
+      return;
+    }
+
+    const tracks = COLLEGE_TRACK_MAP[nextCollege] ?? [];
+    setDraftTrack1((prev) => (tracks.includes(prev) ? prev : ''));
+    setDraftTrack2((prev) => (tracks.includes(prev) ? prev : ''));
+  };
 
   const draftExperienceAll = useMemo(() => {
     const inputTags = draftExperienceInput
@@ -160,10 +215,20 @@ export function MyInfoEditModal({
   }, [draftExperienceTags, draftExperienceInput]);
 
   const handleSave = async () => {
-    if (isSaving) return;
+    if (isSaving || section == null) return;
 
     let ok = true;
-    if (section === 'tracks') {
+    if (section === 'grade') {
+      ok = await onSaveGrade(draftGrade);
+    } else if (section === 'tracks') {
+      if (!draftCollege) {
+        Alert.alert('입력 오류', '단과대를 선택해주세요.');
+        return;
+      }
+      if (!draftTrack1.trim()) {
+        Alert.alert('입력 오류', '1트랙을 선택해주세요.');
+        return;
+      }
       ok = await onSaveTracks({ track1: draftTrack1, track2: draftTrack2 });
     } else if (section === 'interests') {
       ok = await onSaveInterests(draftInterests);
@@ -194,22 +259,70 @@ export function MyInfoEditModal({
           <Text style={styles.title}>{sectionTitle}</Text>
 
           <ScrollView showsVerticalScrollIndicator={false}>
+            {section === 'grade' ? (
+              <View style={styles.gradeRow}>
+                {GRADE_OPTIONS.map((year) => (
+                  <Pressable
+                    key={year}
+                    disabled={isSaving}
+                    onPress={() => setDraftGrade(year)}
+                    style={[styles.gradeChip, draftGrade === year && styles.chipActive]}
+                  >
+                    <Text
+                      style={[styles.chipText, draftGrade === year && styles.chipTextActive]}
+                    >
+                      {year}학년
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            ) : null}
+
             {section === 'tracks' ? (
               <>
-                <Text style={styles.helper}>1트랙은 필수, 2트랙은 선택입니다.</Text>
-                <TrackPicker
-                  label="1트랙 (주전공)"
-                  value={draftTrack1}
-                  disabled={isSaving}
-                  onSelect={setDraftTrack1}
-                />
-                <View style={styles.groupGap} />
-                <TrackPicker
-                  label="2트랙 (선택)"
-                  value={draftTrack2}
-                  disabled={isSaving}
-                  onSelect={setDraftTrack2}
-                />
+                <Text style={styles.groupTitle}>단과대</Text>
+                <Text style={styles.helper}>단과대를 먼저 선택해주세요.</Text>
+                <View style={styles.chipWrap}>
+                  {COLLEGE_OPTIONS.map((option) => (
+                    <Pressable
+                      key={option}
+                      disabled={isSaving}
+                      onPress={() => handleCollegeSelect(option)}
+                      style={[styles.chip, draftCollege === option && styles.chipActive]}
+                    >
+                      <Text
+                        style={[
+                          styles.chipText,
+                          draftCollege === option && styles.chipTextActive,
+                        ]}
+                      >
+                        {option}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+
+                {draftCollege ? (
+                  <>
+                    <View style={styles.groupGap} />
+                    <Text style={styles.helper}>1트랙은 필수, 2트랙은 선택입니다.</Text>
+                    <TrackPicker
+                      label="1트랙 (주전공)"
+                      value={draftTrack1}
+                      options={draftCollegeTracks}
+                      disabled={isSaving}
+                      onSelect={setDraftTrack1}
+                    />
+                    <View style={styles.groupGap} />
+                    <TrackPicker
+                      label="2트랙 (선택)"
+                      value={draftTrack2}
+                      options={draftCollegeTracks}
+                      disabled={isSaving}
+                      onSelect={setDraftTrack2}
+                    />
+                  </>
+                ) : null}
               </>
             ) : null}
 
@@ -437,6 +550,19 @@ const styles = StyleSheet.create({
   },
   groupGap: {
     marginTop: 14,
+  },
+  gradeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  gradeChip: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    backgroundColor: colors.white,
   },
   textInput: {
     backgroundColor: colors.white,

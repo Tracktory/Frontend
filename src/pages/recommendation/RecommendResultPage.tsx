@@ -184,8 +184,8 @@ export function RecommendResultPage() {
         </>
       ) : null}
 
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
-        <View style={styles.content}>
+      <SafeAreaView style={styles.safeArea} edges={['top']} pointerEvents="box-none">
+        <View style={styles.content} pointerEvents="box-none">
           <View style={styles.headerWrap}>
             <JourneyHeader
               displayName={displayName}

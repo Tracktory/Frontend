@@ -10,9 +10,10 @@ import { MyOnboardingParamsCard } from './components/MyOnboardingParamsCard';
 import { MyInterestChipsSection } from './components/MyInterestChipsSection';
 import { MyCompletedCoursesEditableSection } from './components/MyCompletedCoursesEditableSection';
 import { MySettingsSection } from './components/MySettingsSection';
-import { MyInfoEditModal } from './components/MyInfoEditModal';
-
-type EditableSection = 'tracks' | 'interests' | 'development' | 'experience' | 'employment';
+import {
+  MyInfoEditModal,
+  type EditableSection,
+} from './components/MyInfoEditModal';
 
 const MYPAGE_BG = '#F0FDFA';
 
@@ -49,9 +50,16 @@ export function MyPage() {
           gradeLabel={vm.gradeLabel}
           tracksOrAffiliationLabel={tracksOrAffiliationLabel}
           tracksOrAffiliationValue={vm.onboardingTracksOrAffiliationLine}
-          jobPreferenceLine={vm.jobPreferenceLine}
           interestsSummaryLine={vm.interestsSummaryLine}
-          onPressEditInfo={() => setEditingSection('tracks')}
+          developmentLine={vm.developmentLine}
+          experiencedLine={vm.experiencedLine}
+          employmentLine={vm.employmentLine}
+          onPressEditGrade={() => setEditingSection('grade')}
+          onPressEditTracksOrAffiliation={() => setEditingSection('tracks')}
+          onPressEditInterests={() => setEditingSection('interests')}
+          onPressEditDevelopment={() => setEditingSection('development')}
+          onPressEditExperience={() => setEditingSection('experience')}
+          onPressEditEmployment={() => setEditingSection('employment')}
         />
 
         <MyInterestChipsSection interests={vm.interests} />
@@ -72,6 +80,8 @@ export function MyPage() {
         visible={editingSection != null}
         section={editingSection}
         isSaving={vm.isSaving}
+        currentGrade={vm.profileCurrentYear ?? 1}
+        currentCollege={vm.college}
         currentTrack1={vm.track1}
         currentTrack2={vm.track2}
         currentInterests={vm.interests}
@@ -80,6 +90,7 @@ export function MyPage() {
         currentPreferredCompanyTypes={vm.preferredCompanyTypes}
         currentEmploymentValues={vm.employmentValues}
         onClose={() => setEditingSection(null)}
+        onSaveGrade={vm.updateGrade}
         onSaveTracks={vm.updateTracks}
         onSaveInterests={vm.updateInterests}
         onSaveDevelopmentFields={vm.updateDevelopmentFields}

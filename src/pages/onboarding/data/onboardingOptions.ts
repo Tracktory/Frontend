@@ -140,3 +140,16 @@ export const ALL_TRACK_OPTIONS = [
 export function normalizeTrackName(name: string): string {
   return name.replace(/·/g, 'ㆍ').replace(/VMD·/g, 'VMDㆍ');
 }
+
+export function findCollegeForTrack(trackName: string): string | null {
+  const trimmed = trackName.trim();
+  if (!trimmed) return null;
+
+  const normalized = normalizeTrackName(trimmed);
+  for (const [college, tracks] of Object.entries(COLLEGE_TRACK_MAP)) {
+    if (tracks.some((track) => normalizeTrackName(track) === normalized)) {
+      return college;
+    }
+  }
+  return null;
+}

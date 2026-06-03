@@ -20,7 +20,7 @@ export function WelcomePage({ navigation }: Props) {
           <Text style={styles.title}>Tracktory</Text>
           <Text style={styles.subtitlePrimary}>AI 기반 맞춤 학습경로 추천</Text>
           <Text style={styles.subtitleSecondary}>
-            한성대학교 IT융합공학부 자율전공생을 위한{'\n'}나만의 커리어 로드맵을 만들어보세요
+            한성대학교 학생들을 위한{'\n'}나만의 커리어 로드맵을 만들어보세요
           </Text>
         </View>
 
