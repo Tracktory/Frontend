@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,8 +14,9 @@ import type { MainStackParamList } from '../../navigation/MainStackNavigator';
 import { JourneyHeader } from './components/JourneyHeader';
 import { JourneyMountainBackground } from './components/JourneyMountainBackground';
 import { JourneyPathNodes } from './components/JourneyPathNodes';
-import { JourneyStatusCard } from './components/JourneyStatusCard';
+import { GlanceCard } from './components/GlanceCard';
 import { JourneyBottomSheet } from './components/JourneyBottomSheet';
+import { computeCompetencyFromRoadmap } from './utils/journeyCompetency';
 import { JourneyCompetencySheet } from './components/sheets/JourneyCompetencySheet';
 import { JourneyJobMatchingSheet } from './components/sheets/JourneyJobMatchingSheet';
 import { JourneyCurrentStatusSheet } from './components/sheets/JourneyCurrentStatusSheet';
@@ -23,10 +24,16 @@ import { JourneyRoadmapSheet } from './components/sheets/JourneyRoadmapSheet';
 import { JourneyTrackSynergySheet } from './components/sheets/JourneyTrackSynergySheet';
 import { ChatFab } from '../../components/ChatFab';
 import { ChatOverlayModal } from '../../components/chat/ChatOverlayModal';
+import { getBottomTabBarClearance } from '../../navigation/layout/tabBarLayout';
 
-const TAB_BAR_CLEARANCE = 100;
+const GLANCE_CARD_GAP = 15;
+/** Approx. GlanceCard height (2-row climbing layout). */
+const GLANCE_CARD_HEIGHT = 88;
+const CHAT_FAB_ABOVE_GLANCE = 16;
 
 export function RecommendResultPage() {
+  const insets = useSafeAreaInsets();
+  const tabBarClearance = getBottomTabBarClearance(insets);
   const vm = useRecommendResultViewModel();
   const navigation = useNavigation<StackNavigationProp<MainStackParamList>>();
   const completedCourses = useOnboardingStore((s) => s.completedCourses);
@@ -39,6 +46,19 @@ export function RecommendResultPage() {
   const profileCurrentYear = profile?.profile.currentYear;
   const displayName = profile?.profile.name ?? userName ?? '';
   const profileInitial = displayName ? displayName.charAt(0) : '?';
+
+  const studentYear = profileCurrentYear ?? grade ?? 1;
+  const hasSelectedTrack = Boolean(track1?.trim());
+  const showFullMountainBackground = studentYear !== 1 && hasSelectedTrack;
+  const isExploring = !showFullMountainBackground;
+
+  const competencyPercent = useMemo(
+    () => computeCompetencyFromRoadmap(vm.roadmap, completedCourses).currentPercent,
+    [vm.roadmap, completedCourses]
+  );
+
+  const targetJob = vm.jobs[0]?.title ?? '직무 미정';
+  const jobCandidateCount = vm.jobs.length;
 
   const [mapSize, setMapSize] = useState({ width: 0, height: 320 });
   const [chatVisible, setChatVisible] = useState(false);
@@ -98,7 +118,7 @@ export function RecommendResultPage() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <View style={styles.screen}>
+      <View style={[styles.screen, { paddingBottom: tabBarClearance }]}>
         <JourneyHeader
           displayName={displayName}
           profileInitial={profileInitial}
@@ -117,19 +137,34 @@ export function RecommendResultPage() {
           <>
             <View style={styles.mapArea} onLayout={onMapLayout}>
               {mapSize.width > 0 ? (
-                <JourneyMountainBackground width={mapSize.width} height={mapSize.height} />
+                <JourneyMountainBackground
+                  width={mapSize.width}
+                  height={mapSize.height}
+                  showFullMountainBackground={showFullMountainBackground}
+                />
               ) : null}
               <JourneyPathNodes
+                mapWidth={mapSize.width}
                 mapHeight={mapSize.height}
+                alignToTrail={showFullMountainBackground}
                 onOpenSheet={vm.openSheet}
               />
             </View>
 
-            <JourneyStatusCard
-              roadmap={vm.roadmap}
-              completedCourses={completedCourses}
-              onPress={() => vm.openSheet('current')}
-            />
+            <View
+              style={[styles.glanceWrap, { bottom: tabBarClearance + GLANCE_CARD_GAP }]}
+              pointerEvents="box-none"
+            >
+              <GlanceCard
+                isExploring={isExploring}
+                targetJob={targetJob}
+                competencyPercent={competencyPercent}
+                jobCandidateCount={jobCandidateCount}
+                onPress={() =>
+                  vm.openSheet(isExploring ? 'job' : 'competency')
+                }
+              />
+            </View>
           </>
         )}
 
@@ -141,7 +176,15 @@ export function RecommendResultPage() {
           {renderSheetContent()}
         </JourneyBottomSheet>
 
-        <ChatFab onPress={() => setChatVisible(true)} />
+        <ChatFab
+          onPress={() => setChatVisible(true)}
+          bottomOffset={
+            tabBarClearance +
+            GLANCE_CARD_GAP +
+            GLANCE_CARD_HEIGHT +
+            CHAT_FAB_ABOVE_GLANCE
+          }
+        />
         <ChatOverlayModal visible={chatVisible} onClose={() => setChatVisible(false)} />
       </View>
     </SafeAreaView>
@@ -157,14 +200,20 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
     paddingTop: 8,
-    paddingBottom: TAB_BAR_CLEARANCE,
   },
   mapArea: {
     flex: 1,
     minHeight: 280,
-    marginBottom: 12,
     borderRadius: 12,
     overflow: 'hidden',
+    backgroundColor: '#F0FDFA',
+    paddingBottom: 88,
+  },
+  glanceWrap: {
+    position: 'absolute',
+    left: 4,
+    right: 4,
+    zIndex: 10,
   },
   errorContainer: {
     flex: 1,

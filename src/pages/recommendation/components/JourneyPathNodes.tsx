@@ -4,10 +4,15 @@ import { Ionicons } from '@expo/vector-icons';
 
 import type { JourneySheetKey } from '../../../hooks/useRecommendResultViewModel';
 import { colors } from '../../../styles/colors';
-import { JOURNEY_NODE_LAYOUT } from './JourneyLayout';
+import { JOURNEY_NODE_LAYOUT, JOURNEY_VIEWBOX } from './JourneyLayout';
+
+const NODE_SIZE = 52;
 
 interface JourneyPathNodesProps {
+  mapWidth: number;
   mapHeight: number;
+  /** 등반형: 길 위 좌표 / 탐색형: 가로 중앙 + y 비율 */
+  alignToTrail: boolean;
   onOpenSheet: (key: NonNullable<JourneySheetKey>) => void;
 }
 
@@ -22,15 +27,26 @@ function nodeIcon(name: string): keyof typeof Ionicons.glyphMap {
   return map[name] ?? 'ellipse';
 }
 
-export function JourneyPathNodes({ mapHeight, onOpenSheet }: JourneyPathNodesProps) {
+export function JourneyPathNodes({
+  mapWidth,
+  mapHeight,
+  alignToTrail,
+  onOpenSheet,
+}: JourneyPathNodesProps) {
   return (
-    <View style={[styles.wrap, { height: mapHeight }]} pointerEvents="box-none">
+    <View style={[styles.wrap, { width: mapWidth, height: mapHeight }]} pointerEvents="box-none">
       {JOURNEY_NODE_LAYOUT.map((node) => {
-        const top = mapHeight * node.yRatio - 28;
+        const left = alignToTrail
+          ? (node.x / JOURNEY_VIEWBOX.width) * mapWidth - NODE_SIZE / 2
+          : mapWidth / 2 - 50;
+        const top = alignToTrail
+          ? (node.y / JOURNEY_VIEWBOX.height) * mapHeight - NODE_SIZE / 2
+          : (node.y / JOURNEY_VIEWBOX.height) * mapHeight - 28;
+
         return (
           <Pressable
             key={node.key}
-            style={[styles.nodeWrap, { top }]}
+            style={[styles.nodeWrap, { left, top, width: alignToTrail ? NODE_SIZE : 100 }]}
             onPress={() => onOpenSheet(node.key!)}
             accessibilityLabel={node.label}
           >
@@ -46,7 +62,9 @@ export function JourneyPathNodes({ mapHeight, onOpenSheet }: JourneyPathNodesPro
                 color={colors.white}
               />
             </View>
-            <Text style={styles.nodeLabel}>{node.label}</Text>
+            <Text style={[styles.nodeLabel, alignToTrail && styles.nodeLabelTrail]}>
+              {node.label}
+            </Text>
           </Pressable>
         );
       })}
@@ -58,13 +76,12 @@ const styles = StyleSheet.create({
   wrap: {
     position: 'absolute',
     left: 0,
-    right: 0,
-    alignItems: 'center',
+    top: 0,
+    zIndex: 15,
   },
   nodeWrap: {
     position: 'absolute',
     alignItems: 'center',
-    width: 100,
   },
   nodeCircle: {
     width: 52,
@@ -89,5 +106,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.textPrimary,
     textAlign: 'center',
+  },
+  nodeLabelTrail: {
+    position: 'absolute',
+    top: 54,
+    width: 88,
+    marginTop: 0,
   },
 });
