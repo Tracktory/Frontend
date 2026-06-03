@@ -2,9 +2,9 @@ import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import type { RoadmapPayload } from '../../../../data/mockRoadmapData';
-import { colors } from '../../../../styles/colors';
-import { computeCompetencyFromRoadmap } from '../../utils/journeyCompetency';
 import { applyStudentGradeToSemesterSteps } from '../../../../utils/roadmapTiming';
+import { buildCurrentStatusNextAction } from '../../utils/buildCurrentStatusNextAction';
+import { computeCompetencyFromRoadmap } from '../../utils/journeyCompetency';
 
 interface JourneyCurrentStatusSheetProps {
   roadmap: RoadmapPayload | null;
@@ -13,6 +13,10 @@ interface JourneyCurrentStatusSheetProps {
   profileCurrentYear: number | null | undefined;
   track1: string;
   track2: string;
+}
+
+function formatTrackChipLabel(track: string): string {
+  return track.replace(/트랙$/, '').trim();
 }
 
 export function JourneyCurrentStatusSheet({
@@ -26,7 +30,7 @@ export function JourneyCurrentStatusSheet({
   const studentGrade = profileCurrentYear ?? grade;
   const stats = useMemo(
     () => computeCompetencyFromRoadmap(roadmap, completedCourses),
-    [roadmap, completedCourses]
+    [roadmap, completedCourses],
   );
 
   const currentSemesterLabel = useMemo(() => {
@@ -50,45 +54,49 @@ export function JourneyCurrentStatusSheet({
     return n || completedCourses.length;
   }, [roadmap, completedCourses]);
 
-  const tracks = [track1, track2].filter(Boolean);
+  const nextActionMessage = useMemo(
+    () => buildCurrentStatusNextAction(currentSemesterLabel, stats),
+    [currentSemesterLabel, stats],
+  );
+
+  const tracks = [track1, track2].filter(Boolean).map(formatTrackChipLabel);
 
   return (
     <View style={styles.wrap}>
       <View style={styles.metricsBox}>
-        <View style={styles.metric}>
-          <Text style={styles.metricLabel}>현재 학기</Text>
-          <Text style={styles.metricValue}>{currentSemesterLabel}</Text>
-        </View>
-        <View style={styles.metric}>
-          <Text style={styles.metricLabel}>핵심 역량</Text>
-          <Text style={styles.metricValue}>{stats.currentPercent}%</Text>
-        </View>
-        <View style={styles.metric}>
-          <Text style={styles.metricLabel}>이수 과목</Text>
-          <Text style={styles.metricValue}>{completedCount}개</Text>
+        <Text style={styles.metricsTitle}>현재 학습 진행 상황</Text>
+        <View style={styles.metricsRow}>
+          <View style={styles.metric}>
+            <Text style={styles.metricLabel}>현재 학기</Text>
+            <Text style={styles.metricValue}>{currentSemesterLabel}</Text>
+          </View>
+          <View style={styles.metric}>
+            <Text style={styles.metricLabel}>핵심 역량</Text>
+            <Text style={styles.metricValue}>{stats.currentPercent}%</Text>
+          </View>
+          <View style={styles.metric}>
+            <Text style={styles.metricLabel}>이수 과목</Text>
+            <Text style={styles.metricValue}>{completedCount}개</Text>
+          </View>
         </View>
       </View>
 
       <View style={styles.actionBox}>
         <Text style={styles.actionTitle}>다음 액션</Text>
-        <Text style={styles.actionBody}>
-          {stats.remainingCourses[0]
-            ? `${stats.remainingCourses[0].name} 등 추천 과목을 다음 학기에 수강해 보세요.`
-            : '학습 로드맵에서 다음 학기 추천 과목을 확인해 보세요.'}
-        </Text>
+        <Text style={styles.actionBody}>{nextActionMessage}</Text>
       </View>
 
       {tracks.length > 0 ? (
-        <>
+        <View style={styles.tracksSection}>
           <Text style={styles.trackLabel}>선택 트랙</Text>
           <View style={styles.trackRow}>
             {tracks.map((t) => (
               <View key={t} style={styles.trackChip}>
-                <Text style={styles.trackChipText}>{t.replace(/트랙$/, '')}</Text>
+                <Text style={styles.trackChipText}>{t}</Text>
               </View>
             ))}
           </View>
-        </>
+        </View>
       ) : null}
     </View>
   );
@@ -99,53 +107,64 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   metricsBox: {
-    flexDirection: 'row',
-    borderWidth: 1,
-    borderColor: colors.primaryLight,
-    borderRadius: 14,
-    paddingVertical: 16,
-    paddingHorizontal: 8,
+    backgroundColor: '#F0FDFA',
+    borderWidth: 1.5,
+    borderColor: '#CCFBF1',
+    borderRadius: 24,
+    padding: 20,
     marginBottom: 16,
-    backgroundColor: colors.profileSurface,
+  },
+  metricsTitle: {
+    fontSize: 13,
+    color: '#4B5563',
+    marginBottom: 12,
+  },
+  metricsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   metric: {
     flex: 1,
     alignItems: 'center',
   },
   metricLabel: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginBottom: 6,
+    fontSize: 11,
+    color: '#9CA3AF',
+    marginBottom: 4,
   },
   metricValue: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '700',
-    color: colors.primary,
+    color: '#14B8A6',
   },
   actionBox: {
-    borderWidth: 1,
-    borderColor: colors.warningBorder,
-    backgroundColor: colors.warningBackground,
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 16,
+    backgroundColor: '#FFFBEB',
+    borderWidth: 1.5,
+    borderColor: '#FDE68A',
+    borderRadius: 24,
+    padding: 16,
+    marginBottom: 12,
   },
   actionTitle: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '700',
-    color: colors.warningText,
-    marginBottom: 8,
+    color: '#D97706',
+    marginBottom: 6,
   },
   actionBody: {
-    fontSize: 14,
-    lineHeight: 22,
-    color: colors.textPrimary,
+    fontSize: 13,
+    lineHeight: 21,
+    color: '#78716C',
+  },
+  tracksSection: {
+    gap: 8,
   },
   trackLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.textSecondary,
-    marginBottom: 10,
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#9CA3AF',
+    letterSpacing: 0.5,
+    marginBottom: 4,
   },
   trackRow: {
     flexDirection: 'row',
@@ -153,14 +172,14 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   trackChip: {
-    backgroundColor: colors.chipMintBg,
-    borderRadius: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
+    backgroundColor: '#CCFBF1',
+    borderRadius: 999,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
   },
   trackChipText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
-    color: colors.primary,
+    color: '#0D9488',
   },
 });

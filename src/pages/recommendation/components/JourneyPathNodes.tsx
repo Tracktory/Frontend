@@ -1,18 +1,33 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 
 import type { JourneySheetKey } from '../../../hooks/useRecommendResultViewModel';
 import { colors } from '../../../styles/colors';
+import { CurrentPositionAvatar } from './CurrentPositionAvatar';
 import { JOURNEY_NODE_LAYOUT, JOURNEY_VIEWBOX } from './JourneyLayout';
 
-const NODE_SIZE = 52;
+const NODE_SIZE_DEFAULT = 52;
+const NODE_SIZE_CURRENT = 40;
+const COMPETENCY_KEY = 'competency';
+const JOB_KEY = 'job';
+const TRACK_KEY = 'trackSynergy';
+const ROADMAP_KEY = 'roadmap';
+const CURRENT_KEY = 'current';
+const TRAIL_NODE_SIZE = 40;
 
 interface JourneyPathNodesProps {
   mapWidth: number;
   mapHeight: number;
-  /** 등반형: 길 위 좌표 / 탐색형: 가로 중앙 + y 비율 */
   alignToTrail: boolean;
+  activeSheet: JourneySheetKey;
   onOpenSheet: (key: NonNullable<JourneySheetKey>) => void;
 }
 
@@ -27,26 +42,159 @@ function nodeIcon(name: string): keyof typeof Ionicons.glyphMap {
   return map[name] ?? 'ellipse';
 }
 
+function TrackPulseRing() {
+  const scale = useSharedValue(1);
+  const opacity = useSharedValue(0.6);
+
+  useEffect(() => {
+    scale.value = withRepeat(
+      withSequence(
+        withTiming(1.4, { duration: 1000 }),
+        withTiming(1, { duration: 1000 }),
+      ),
+      -1,
+      false,
+    );
+    opacity.value = withRepeat(
+      withSequence(
+        withTiming(0, { duration: 1000 }),
+        withTiming(0.6, { duration: 1000 }),
+      ),
+      -1,
+      false,
+    );
+  }, [scale, opacity]);
+
+  const pulseStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
+  }));
+
+  return (
+    <Animated.View
+      style={[styles.pulseRing, pulseStyle]}
+      pointerEvents="none"
+    />
+  );
+}
+
+function TrailNodeButton({
+  isActive,
+  nodeColor,
+  icon,
+  label,
+  onPress,
+  showPulse = true,
+}: {
+  isActive: boolean;
+  nodeColor: string;
+  icon: string;
+  label: string;
+  onPress: () => void;
+  showPulse?: boolean;
+}) {
+  const scale = useSharedValue(1);
+
+  useEffect(() => {
+    scale.value = withTiming(isActive ? 1.15 : 1, { duration: 200 });
+  }, [isActive, scale]);
+
+  const circleStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <Pressable
+      style={styles.trackNodeWrap}
+      onPress={onPress}
+      accessibilityLabel={label}
+    >
+      {showPulse ? <TrackPulseRing /> : null}
+      <Animated.View
+        style={[
+          styles.trackNodeCircle,
+          { backgroundColor: nodeColor },
+          isActive ? styles.trackNodeCircleActive : styles.trackNodeCircleDefault,
+          circleStyle,
+        ]}
+      >
+        <Ionicons name={nodeIcon(icon)} size={16} color={colors.white} />
+      </Animated.View>
+      <View style={styles.trackLabelPill}>
+        <Text style={styles.trackLabelText}>{label}</Text>
+      </View>
+    </Pressable>
+  );
+}
+
 export function JourneyPathNodes({
   mapWidth,
   mapHeight,
   alignToTrail,
+  activeSheet,
   onOpenSheet,
 }: JourneyPathNodesProps) {
   return (
     <View style={[styles.wrap, { width: mapWidth, height: mapHeight }]} pointerEvents="box-none">
       {JOURNEY_NODE_LAYOUT.map((node) => {
+        const isTrack = node.key === TRACK_KEY;
+        const isRoadmap = node.key === ROADMAP_KEY;
+        const isCurrent = node.key === CURRENT_KEY;
+        const isJob = node.key === JOB_KEY;
+        const isCompetency = node.key === COMPETENCY_KEY;
+        const isTrailNode =
+          alignToTrail && (isCompetency || isJob || isTrack || isRoadmap);
+        const nodeSize = isTrailNode || isCurrent ? TRAIL_NODE_SIZE : NODE_SIZE_DEFAULT;
+        const positionSize = isCurrent ? NODE_SIZE_CURRENT : nodeSize;
         const left = alignToTrail
-          ? (node.x / JOURNEY_VIEWBOX.width) * mapWidth - NODE_SIZE / 2
+          ? (node.x / JOURNEY_VIEWBOX.width) * mapWidth - positionSize / 2
           : mapWidth / 2 - 50;
         const top = alignToTrail
-          ? (node.y / JOURNEY_VIEWBOX.height) * mapHeight - NODE_SIZE / 2
+          ? (node.y / JOURNEY_VIEWBOX.height) * mapHeight - positionSize / 2
           : (node.y / JOURNEY_VIEWBOX.height) * mapHeight - 28;
+
+        if (isCurrent && alignToTrail) {
+          return (
+            <View
+              key={node.key}
+              style={[styles.nodePosition, { left, top, width: NODE_SIZE_CURRENT }]}
+              pointerEvents="box-none"
+            >
+              <CurrentPositionAvatar
+                isActive={activeSheet === CURRENT_KEY}
+                label={node.label}
+                onPress={() => onOpenSheet(CURRENT_KEY)}
+              />
+            </View>
+          );
+        }
+
+        if (isTrailNode) {
+          return (
+            <View
+              key={node.key}
+              style={[styles.nodePosition, { left, top, width: TRAIL_NODE_SIZE }]}
+              pointerEvents="box-none"
+            >
+              <TrailNodeButton
+                isActive={activeSheet === node.key}
+                nodeColor={node.nodeColor}
+                icon={node.icon}
+                label={node.label}
+                onPress={() => onOpenSheet(node.key!)}
+                showPulse
+              />
+            </View>
+          );
+        }
 
         return (
           <Pressable
             key={node.key}
-            style={[styles.nodeWrap, { left, top, width: alignToTrail ? NODE_SIZE : 100 }]}
+            style={[
+              styles.nodeWrap,
+              { left, top, width: alignToTrail ? nodeSize : 100 },
+            ]}
             onPress={() => onOpenSheet(node.key!)}
             accessibilityLabel={node.label}
           >
@@ -78,6 +226,51 @@ const styles = StyleSheet.create({
     left: 0,
     top: 0,
     zIndex: 15,
+  },
+  nodePosition: {
+    position: 'absolute',
+    alignItems: 'center',
+  },
+  trackNodeWrap: {
+    alignItems: 'center',
+    width: 40,
+  },
+  pulseRing: {
+    position: 'absolute',
+    top: 0,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#14B8A6',
+  },
+  trackNodeCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  trackNodeCircleDefault: {
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.6)',
+  },
+  trackNodeCircleActive: {
+    borderWidth: 3,
+    borderColor: colors.white,
+  },
+  trackLabelPill: {
+    marginTop: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.85)',
+  },
+  trackLabelText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#0D9488',
+    textAlign: 'center',
   },
   nodeWrap: {
     position: 'absolute',

@@ -35,7 +35,7 @@ export function computeCompetencyFromRoadmap(
       if (isDone) {
         done += 1;
       } else if (remaining.length < 6) {
-        remaining.push({ name: course.name, gainLabel: '+7%' });
+        remaining.push({ name: course.name, gainLabel: '+7-8%' });
       }
     }
   }

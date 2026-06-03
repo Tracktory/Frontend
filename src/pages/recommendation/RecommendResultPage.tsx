@@ -1,8 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 
 import { colors } from '../../styles/colors';
@@ -10,14 +8,15 @@ import { useRecommendResultViewModel } from '../../hooks/useRecommendResultViewM
 import { useOnboardingStore } from '../../stores/onboardingStore';
 import { useProfileStore } from '../../stores/profileStore';
 import { useAuthStore } from '../../stores/authStore';
-import type { MainStackParamList } from '../../navigation/MainStackNavigator';
 import { JourneyHeader } from './components/JourneyHeader';
 import { JourneyMountainBackground } from './components/JourneyMountainBackground';
 import { JourneyPathNodes } from './components/JourneyPathNodes';
 import { GlanceCard } from './components/GlanceCard';
 import { JourneyBottomSheet } from './components/JourneyBottomSheet';
 import { computeCompetencyFromRoadmap } from './utils/journeyCompetency';
+import { JourneyAnalysisReportModal } from './components/JourneyAnalysisReportModal';
 import { JourneyCompetencySheet } from './components/sheets/JourneyCompetencySheet';
+import { JourneyAIBriefingSheet } from './components/sheets/JourneyAIBriefingSheet';
 import { JourneyJobMatchingSheet } from './components/sheets/JourneyJobMatchingSheet';
 import { JourneyCurrentStatusSheet } from './components/sheets/JourneyCurrentStatusSheet';
 import { JourneyRoadmapSheet } from './components/sheets/JourneyRoadmapSheet';
@@ -35,7 +34,6 @@ export function RecommendResultPage() {
   const insets = useSafeAreaInsets();
   const tabBarClearance = getBottomTabBarClearance(insets);
   const vm = useRecommendResultViewModel();
-  const navigation = useNavigation<StackNavigationProp<MainStackParamList>>();
   const completedCourses = useOnboardingStore((s) => s.completedCourses);
   const grade = useOnboardingStore((s) => s.grade);
   const track1 = useOnboardingStore((s) => s.track1);
@@ -62,6 +60,8 @@ export function RecommendResultPage() {
 
   const [mapSize, setMapSize] = useState({ width: 0, height: 320 });
   const [chatVisible, setChatVisible] = useState(false);
+  const [briefingVisible, setBriefingVisible] = useState(false);
+  const [reportVisible, setReportVisible] = useState(false);
 
   const onMapLayout = (e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout;
@@ -77,6 +77,10 @@ export function RecommendResultPage() {
           <JourneyCompetencySheet
             roadmap={vm.roadmap}
             completedCourses={completedCourses}
+            onShowReport={() => {
+              vm.closeSheet();
+              setReportVisible(true);
+            }}
           />
         );
       case 'job':
@@ -84,8 +88,10 @@ export function RecommendResultPage() {
           <JourneyJobMatchingSheet
             jobs={vm.jobs}
             hasJobData={vm.hasJobData}
-            navigation={navigation}
-            onSelectJob={vm.handleSelectJob}
+            onShowBriefing={() => {
+              vm.closeSheet();
+              setBriefingVisible(true);
+            }}
           />
         );
       case 'current':
@@ -147,6 +153,7 @@ export function RecommendResultPage() {
                 mapWidth={mapSize.width}
                 mapHeight={mapSize.height}
                 alignToTrail={showFullMountainBackground}
+                activeSheet={vm.activeSheet}
                 onOpenSheet={vm.openSheet}
               />
             </View>
@@ -176,16 +183,34 @@ export function RecommendResultPage() {
           {renderSheetContent()}
         </JourneyBottomSheet>
 
-        <ChatFab
-          onPress={() => setChatVisible(true)}
-          bottomOffset={
-            tabBarClearance +
-            GLANCE_CARD_GAP +
-            GLANCE_CARD_HEIGHT +
-            CHAT_FAB_ABOVE_GLANCE
-          }
-        />
+        <JourneyBottomSheet
+          visible={briefingVisible}
+          titleOverride="AI 직무 브리핑"
+          onClose={() => setBriefingVisible(false)}
+        >
+          <JourneyAIBriefingSheet isFirstYear={studentYear === 1} />
+        </JourneyBottomSheet>
+
+        {vm.activeSheet == null && !briefingVisible ? (
+          <ChatFab
+            onPress={() => setChatVisible(true)}
+            bottomOffset={
+              tabBarClearance +
+              GLANCE_CARD_GAP +
+              GLANCE_CARD_HEIGHT +
+              CHAT_FAB_ABOVE_GLANCE
+            }
+          />
+        ) : null}
         <ChatOverlayModal visible={chatVisible} onClose={() => setChatVisible(false)} />
+
+        <JourneyAnalysisReportModal
+          visible={reportVisible}
+          onClose={() => setReportVisible(false)}
+          roadmap={vm.roadmap}
+          completedCourses={completedCourses}
+          jobs={vm.jobs}
+        />
       </View>
     </SafeAreaView>
   );
@@ -200,6 +225,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
     paddingTop: 8,
+    overflow: 'visible',
   },
   mapArea: {
     flex: 1,

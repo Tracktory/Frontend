@@ -13,6 +13,7 @@ export interface SecondaryTrack {
   name: string;
   score?: number | null;
   reasoning?: string | null;
+  isCrossCombination?: boolean;
 }
 
 export interface TrackRecommendPayload {
@@ -53,21 +54,31 @@ export const MOCK_TRACK_RECOMMEND: TrackRecommendPayload = {
   secondary: [
     {
       id: 's1',
-      name: '한국어교육 트랙 × 빅데이터',
+      name: '국어교육 × 빅데이터',
       score: 75,
-      reasoning: '자연어처리 특화 조합',
+      reasoning: '한글 NLP 직무',
+      isCrossCombination: true,
     },
     {
       id: 's2',
-      name: '디지털마케팅 트랙',
-      score: 68,
-      reasoning: '데이터 기반 마케터로 확장',
+      name: '경영학 × 컴퓨터공학',
+      score: 72,
+      reasoning: '핀테크 개발',
+      isCrossCombination: true,
     },
     {
       id: 's3',
-      name: '데이터사이언스 트랙',
-      score: 65,
-      reasoning: '통계·분석 역량 강화',
+      name: '심리학 × AI',
+      score: 70,
+      reasoning: 'HCI/UX 직무',
+      isCrossCombination: true,
+    },
+    {
+      id: 's4',
+      name: '수학 × 컴퓨터공학',
+      score: 68,
+      reasoning: '알고리즘 엔지니어',
+      isCrossCombination: true,
     },
   ],
   llmSynergy:

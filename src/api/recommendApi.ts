@@ -205,6 +205,9 @@ function mapJobs(items: ApiJobItem[]): JobRecommendation[] {
 }
 
 function mapTracks(tracks: ApiTracksPayload): TrackRecommendPayload {
+  const combinationScore =
+    tracks.combination?.score ?? tracks.combinationScore;
+
   const primary = tracks.primary.map((t, index) => {
     const rank = (t.trackOrder ?? (index === 0 ? 1 : 2)) as 1 | 2;
     const rankLabel = rank === 1 ? '1트랙·주전공' : '2트랙';
@@ -213,7 +216,7 @@ function mapTracks(tracks: ApiTracksPayload): TrackRecommendPayload {
       rank,
       title: t.name,
       rankLabel,
-      score: t.score ?? null,
+      score: t.score ?? combinationScore ?? null,
       reasoning: t.reasoning?.trim() || null,
       coreSubjects: mapSubjectNames(t.mainSubjects, t.coreSubjects),
       relatedJobs: t.relatedJobs ?? [],
@@ -226,18 +229,17 @@ function mapTracks(tracks: ApiTracksPayload): TrackRecommendPayload {
     name: t.name,
     score: t.score ?? null,
     reasoning: t.reasoning?.trim() || null,
+    isCrossCombination: t.isCrossCombination ?? false,
   }));
 
-  const combinationReasoning =
-    tracks.combination?.reasoning ??
-    tracks.combinationReasoning ??
-    '';
   const combinationSummary =
     tracks.combination?.summary ??
     tracks.combinationSummary ??
     '';
-  const combinationScore =
-    tracks.combination?.score ?? tracks.combinationScore;
+  const combinationReasoning =
+    tracks.combination?.reasoning ??
+    tracks.combinationReasoning ??
+    combinationSummary;
 
   return {
     combinationScore,
