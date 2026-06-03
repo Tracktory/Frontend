@@ -31,6 +31,12 @@ export function CollegeSelectPage({ navigation }: Props) {
       onPrimaryPress={vm.handleNext}
       scrollable
     >
+      <View style={styles.tipBox}>
+        <Text style={styles.tipText}>
+          💡 관심사 기반으로 트랙을 추천해드릴게요
+        </Text>
+      </View>
+
       {COLLEGE_OPTIONS.map((item) => (
         <Pressable
           key={item}
@@ -70,6 +76,20 @@ export function CollegeSelectPage({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
+  tipBox: {
+    backgroundColor: '#FFFBEB',
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginBottom: 16,
+  },
+  tipText: {
+    fontSize: 13,
+    color: '#92400E',
+    lineHeight: 20,
+  },
   collegeRow: {
     width: '100%',
     borderRadius: 12,

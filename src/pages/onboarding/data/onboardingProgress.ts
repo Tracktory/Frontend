@@ -12,6 +12,7 @@ export type OnboardingRouteName =
   | 'CompanyTypeSelect'
   | 'EmploymentValueSelect'
   | 'GoalSelect'
+  | 'OnboardingPreview'
   | 'OnboardingConfirm';
 
 const FIRST_YEAR_STEPS: OnboardingRouteName[] = [
@@ -24,6 +25,7 @@ const FIRST_YEAR_STEPS: OnboardingRouteName[] = [
   'CompanyTypeSelect',
   'EmploymentValueSelect',
   'GoalSelect',
+  'OnboardingPreview',
   'OnboardingConfirm',
 ];
 
@@ -38,6 +40,7 @@ const UPPER_YEAR_STEPS: OnboardingRouteName[] = [
   'CompanyTypeSelect',
   'EmploymentValueSelect',
   'GoalSelect',
+  'OnboardingPreview',
   'OnboardingConfirm',
 ];
 

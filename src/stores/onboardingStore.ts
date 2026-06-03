@@ -63,6 +63,7 @@ export type OnboardingState = OnboardingDataState & {
   setCollege: CollegeSlice['setCollege'];
   addCompletedCourse: CompletedCoursesSlice['addCompletedCourse'];
   removeCompletedCourse: CompletedCoursesSlice['removeCompletedCourse'];
+  setCompletedCourses: CompletedCoursesSlice['setCompletedCourses'];
   setTrack1: TrackSlice['setTrack1'];
   setTrack2: TrackSlice['setTrack2'];
   toggleInterest: InterestSlice['toggleInterest'];

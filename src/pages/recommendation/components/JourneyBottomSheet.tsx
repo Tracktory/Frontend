@@ -66,6 +66,8 @@ function resolveSheetTitle(
 
   if (sheetKey === 'competency') return '🏆 최종 역량 커버리지';
 
+  if (sheetKey === 'register') return '📋 이수 과목 등록';
+
   return SHEET_TITLES[sheetKey];
 
 }

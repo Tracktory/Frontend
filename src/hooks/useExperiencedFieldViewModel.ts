@@ -11,11 +11,11 @@ export function useExperiencedFieldViewModel(navigation: Navigation) {
   const setExperiencedFieldInput = useOnboardingStore((s) => s.setExperiencedFieldInput);
 
   const handleNext = () => {
-    navigation.navigate('OnboardingConfirm');
+    navigation.navigate('OnboardingPreview');
   };
 
   const handleSkip = () => {
-    navigation.navigate('OnboardingConfirm');
+    navigation.navigate('OnboardingPreview');
   };
 
   return {

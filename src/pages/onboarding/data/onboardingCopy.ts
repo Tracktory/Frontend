@@ -12,6 +12,7 @@ export type OnboardingScreenKey =
   | 'companyTypeSelect'
   | 'employmentValueSelect'
   | 'experiencedField'
+  | 'preview'
   | 'confirm';
 
 export const ONBOARDING_COPY: Record<
@@ -41,8 +42,13 @@ export const ONBOARDING_COPY: Record<
     ctaDisabledHint: '하나만 골라주세요',
   },
   collegeSelect: {
-    title: '어느 단과대에 속해 있나요?',
-    subtitle: '아직 트랙을 안 골랐어도 괜찮아요. 단과대만 알려주세요',
+    title: '소속 학부를 선택하세요',
+    subtitle: '아직 트랙을 정하지 않아도 괜찮아요',
+    ctaPrimary: '다음',
+  },
+  preview: {
+    title: '거의 다 왔어요',
+    subtitle: 'AI가 준비한 맞춤 결과를 미리 볼 수 있어요',
     ctaPrimary: '다음',
   },
   track1Select: {

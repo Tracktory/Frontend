@@ -62,4 +62,5 @@ export const SHEET_TITLES: Record<NonNullable<JourneySheetKey>, string> = {
   current: '현재 학습 현황',
   roadmap: '학습 로드맵',
   trackSynergy: '트랙 시너지',
+  register: '이수 과목 등록',
 };

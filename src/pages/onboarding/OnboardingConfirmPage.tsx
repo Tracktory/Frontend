@@ -40,12 +40,13 @@ export function OnboardingConfirmPage({ navigation }: Props) {
   const affiliation = useOnboardingStore((s) => s.affiliation);
   const copy = ONBOARDING_COPY.confirm;
 
-  const affiliationValue =
-    vm.affiliation === '1학년'
-      ? vm.college ?? '선택 안 함'
-      : vm.track1
-        ? `${vm.track1}${vm.track2 ? ` / ${vm.track2}` : ''}`
-        : '선택 안 함';
+  const isFirstYearAffiliation = vm.affiliation === '1학년';
+  const affiliationLabel = isFirstYearAffiliation ? '소속' : '선택 트랙';
+  const affiliationValue = isFirstYearAffiliation
+    ? vm.college ?? '선택 안 함'
+    : vm.track1
+      ? `${vm.track1}${vm.track2 ? ` / ${vm.track2}` : ''}`
+      : '선택 안 함';
 
   return (
     <OnboardingStepLayout
@@ -60,7 +61,7 @@ export function OnboardingConfirmPage({ navigation }: Props) {
     >
       <ConfirmRow label="이름" value={vm.name || '선택 안 함'} />
       <ConfirmRow label="입학·학년" value={vm.admissionYearLabel ?? '선택 안 함'} />
-      <ConfirmRow label="소속" value={affiliationValue} />
+      <ConfirmRow label={affiliationLabel} value={affiliationValue} />
       <ConfirmChips label="관심 분야" items={vm.interests} />
       <ConfirmChips label="개발 분야" items={vm.developmentFields} />
       <ConfirmChips label="취업 선호" items={vm.employmentChips} />

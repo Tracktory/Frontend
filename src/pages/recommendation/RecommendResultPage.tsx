@@ -14,6 +14,9 @@ import { JourneyPathNodes } from './components/JourneyPathNodes';
 import { GlanceCard } from './components/GlanceCard';
 import { JourneyBottomSheet } from './components/JourneyBottomSheet';
 import { computeCompetencyFromRoadmap } from './utils/journeyCompetency';
+import { computeJourneyMode } from './utils/journeyMode';
+import { FirstYearHero } from './components/exploration/FirstYearHero';
+import { JourneyCourseRegisterSheet } from './components/sheets/JourneyCourseRegisterSheet';
 import { JourneyAnalysisReportOverlay } from './components/analysisReport/JourneyAnalysisReportOverlay';
 import { JourneyCompetencySheet } from './components/sheets/JourneyCompetencySheet';
 import { JourneyAIBriefingSheet } from './components/sheets/JourneyAIBriefingSheet';
@@ -27,7 +30,8 @@ import { getBottomTabBarClearance } from '../../navigation/layout/tabBarLayout';
 
 const GLANCE_CARD_GAP = 15;
 /** Approx. GlanceCard height (2-row climbing layout). */
-const GLANCE_CARD_HEIGHT = 88;
+const GLANCE_CARD_HEIGHT_CLIMBING = 88;
+const GLANCE_CARD_HEIGHT_EXPLORING = 56;
 const CHAT_FAB_ABOVE_GLANCE = 16;
 
 export function RecommendResultPage() {
@@ -48,8 +52,13 @@ export function RecommendResultPage() {
 
   const studentYear = profileCurrentYear ?? grade ?? 1;
   const hasSelectedTrack = Boolean(track1?.trim());
-  const showFullMountainBackground = studentYear !== 1 && hasSelectedTrack;
-  const isExploring = !showFullMountainBackground;
+  const { isExploring, showFullMountainBackground } = computeJourneyMode({
+    studentYear,
+    hasSelectedTrack,
+  });
+  const glanceCardHeight = isExploring
+    ? GLANCE_CARD_HEIGHT_EXPLORING
+    : GLANCE_CARD_HEIGHT_CLIMBING;
 
   const competencyPercent = useMemo(
     () => computeCompetencyFromRoadmap(vm.roadmap, completedCourses).currentPercent,
@@ -118,6 +127,15 @@ export function RecommendResultPage() {
         return (
           <JourneyTrackSynergySheet data={vm.trackRecommend} />
         );
+      case 'register':
+        return (
+          <JourneyCourseRegisterSheet
+            onComplete={() => {
+              vm.closeSheet();
+              vm.refresh();
+            }}
+          />
+        );
       default:
         return null;
     }
@@ -129,7 +147,7 @@ export function RecommendResultPage() {
         <JourneyHeader
           displayName={displayName}
           profileInitial={profileInitial}
-          onBriefingPress={vm.refresh}
+          onBriefingPress={() => setBriefingVisible(true)}
         />
 
         {vm.isError ? (
@@ -150,13 +168,21 @@ export function RecommendResultPage() {
                   showFullMountainBackground={showFullMountainBackground}
                 />
               ) : null}
-              <JourneyPathNodes
-                mapWidth={mapSize.width}
-                mapHeight={mapSize.height}
-                alignToTrail={showFullMountainBackground}
-                activeSheet={vm.activeSheet}
-                onOpenSheet={vm.openSheet}
-              />
+              {isExploring ? (
+                <FirstYearHero
+                  jobs={vm.jobs}
+                  onOpenTrack={() => vm.openSheet('trackSynergy')}
+                  onOpenRegister={() => vm.openSheet('register')}
+                />
+              ) : (
+                <JourneyPathNodes
+                  mapWidth={mapSize.width}
+                  mapHeight={mapSize.height}
+                  alignToTrail={showFullMountainBackground}
+                  activeSheet={vm.activeSheet}
+                  onOpenSheet={vm.openSheet}
+                />
+              )}
             </View>
 
             <View
@@ -189,7 +215,7 @@ export function RecommendResultPage() {
           titleOverride="AI 직무 브리핑"
           onClose={() => setBriefingVisible(false)}
         >
-          <JourneyAIBriefingSheet isFirstYear={studentYear === 1} />
+          <JourneyAIBriefingSheet isFirstYear={isExploring} />
         </JourneyBottomSheet>
 
         {vm.activeSheet == null && !briefingVisible ? (
@@ -198,7 +224,7 @@ export function RecommendResultPage() {
             bottomOffset={
               tabBarClearance +
               GLANCE_CARD_GAP +
-              GLANCE_CARD_HEIGHT +
+              glanceCardHeight +
               CHAT_FAB_ABOVE_GLANCE
             }
           />

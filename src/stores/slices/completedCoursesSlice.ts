@@ -6,6 +6,7 @@ export interface CompletedCoursesSlice {
   completedCourses: string[];
   addCompletedCourse: (name: string) => boolean;
   removeCompletedCourse: (name: string) => void;
+  setCompletedCourses: (names: string[]) => void;
 }
 
 export const createCompletedCoursesSlice: StateCreator<CompletedCoursesSlice> = (set, get) => ({
@@ -23,5 +24,12 @@ export const createCompletedCoursesSlice: StateCreator<CompletedCoursesSlice> = 
     set((state) => ({
       completedCourses: state.completedCourses.filter((c) => c !== name),
     }));
+  },
+  setCompletedCourses: (names: string[]) => {
+    const unique = [...new Set(names.map((n) => n.trim()).filter(Boolean))].slice(
+      0,
+      MAX_COMPLETED_COURSES,
+    );
+    set({ completedCourses: unique });
   },
 });

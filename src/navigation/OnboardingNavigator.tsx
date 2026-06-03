@@ -15,6 +15,7 @@ import { EmploymentValueSelectPage } from '@/src/pages/onboarding/EmploymentValu
 import { ExperiencedFieldPage } from '@/src/pages/onboarding/ExperiencedFieldPage';
 import { InterestSelectPage } from '@/src/pages/onboarding/InterestSelectPage';
 import { OnboardingConfirmPage } from '@/src/pages/onboarding/OnboardingConfirmPage';
+import { OnboardingPreviewPage } from '@/src/pages/onboarding/OnboardingPreviewPage';
 
 export type OnboardingStackParamList = {
   Name: undefined;
@@ -28,6 +29,7 @@ export type OnboardingStackParamList = {
   CompanyTypeSelect: undefined;
   EmploymentValueSelect: undefined;
   GoalSelect: undefined;
+  OnboardingPreview: undefined;
   OnboardingConfirm: undefined;
 };
 
@@ -58,6 +60,7 @@ export function OnboardingNavigator() {
       <Stack.Screen name="CompanyTypeSelect" component={CompanyTypeSelectPage} />
       <Stack.Screen name="EmploymentValueSelect" component={EmploymentValueSelectPage} />
       <Stack.Screen name="GoalSelect" component={ExperiencedFieldPage} />
+      <Stack.Screen name="OnboardingPreview" component={OnboardingPreviewPage} />
       <Stack.Screen name="OnboardingConfirm" component={OnboardingConfirmPage} />
     </Stack.Navigator>
   );
