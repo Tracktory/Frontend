@@ -4,6 +4,7 @@ import {
   LayoutAnimation,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -20,6 +21,8 @@ const PRIORITY_TRACKS = [
   '빅데이터트랙',
   '디지털콘텐츠ㆍ가상현실트랙',
 ] as const;
+
+const LIST_VIEW_HEIGHT = 320;
 
 const PRIORITY_TRACK_RANK = new Map<string, number>(
   PRIORITY_TRACKS.map((track, index) => [track, index]),
@@ -57,6 +60,29 @@ function resetPickerState(
   setPickerStep('tracks');
   setSelectedTrack(null);
   setSearchQuery('');
+}
+
+function PickerListFrame({
+  header,
+  children,
+}: {
+  header?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <View style={styles.listBlock}>
+      {header}
+      <ScrollView
+        style={styles.listScroll}
+        contentContainerStyle={styles.listScrollContent}
+        nestedScrollEnabled
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {children}
+      </ScrollView>
+    </View>
+  );
 }
 
 export function MyCompletedCoursesEditableSection({
@@ -142,8 +168,83 @@ export function MyCompletedCoursesEditableSection({
     await onAddCourse(course);
   };
 
+  const renderCourseRow = (course: HansungCourse, meta?: string) => (
+    <Pressable
+      key={`${course.track}-${course.subject}`}
+      style={({ pressed }) => [styles.courseRow, pressed && styles.rowPressed]}
+      disabled={isAddingCourse}
+      onPress={() => handleAdd(course)}
+    >
+      <View style={styles.courseRowText}>
+        <Text style={styles.courseSubject} numberOfLines={2}>
+          {course.subject}
+        </Text>
+        <Text style={styles.courseMeta}>
+          {meta ?? `${course.track} · ${course.credit}학점`}
+        </Text>
+      </View>
+      {isAddingCourse ? (
+        <ActivityIndicator size="small" color="#14B8A6" />
+      ) : (
+        <Ionicons name="add-circle" size={22} color="#14B8A6" />
+      )}
+    </Pressable>
+  );
+
   const renderAddPanel = () => {
     if (!isEditing) return null;
+
+    let listContent: React.ReactNode;
+    let listHeader: React.ReactNode;
+
+    if (hasSearch) {
+      listHeader = undefined;
+      listContent =
+        searchResults.length === 0 ? (
+          <Text style={styles.emptyPicker}>검색 결과가 없습니다.</Text>
+        ) : (
+          searchResults.map((course) => renderCourseRow(course))
+        );
+    } else if (pickerStep === 'courses' && selectedTrack) {
+      listHeader = (
+        <Pressable style={styles.backRow} onPress={goBackToTracks}>
+          <Ionicons name="chevron-back" size={18} color="#14B8A6" />
+          <Text style={styles.backText} numberOfLines={1}>
+            {selectedTrack}
+          </Text>
+        </Pressable>
+      );
+      listContent =
+        coursesInTrack.length === 0 ? (
+          <Text style={styles.emptyPicker}>추가할 수 있는 과목이 없어요.</Text>
+        ) : (
+          coursesInTrack.map((course) =>
+            renderCourseRow(course, `${course.credit}학점`),
+          )
+        );
+    } else {
+      listHeader = undefined;
+      listContent =
+        trackEntries.length === 0 ? (
+          <Text style={styles.emptyPicker}>추가할 수 있는 과목이 없어요.</Text>
+        ) : (
+          trackEntries.map(({ track, count }) => (
+            <Pressable
+              key={track}
+              style={({ pressed }) => [styles.trackRow, pressed && styles.rowPressed]}
+              onPress={() => selectTrack(track)}
+            >
+              <Text style={styles.trackLabel} numberOfLines={2}>
+                {track}
+              </Text>
+              <View style={styles.trackCountPill}>
+                <Text style={styles.trackCountText}>{count}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color="#14B8A6" />
+            </Pressable>
+          ))
+        );
+    }
 
     return (
       <View style={styles.addPanel}>
@@ -158,97 +259,7 @@ export function MyCompletedCoursesEditableSection({
           editable={!isAddingCourse}
         />
 
-        {hasSearch ? (
-          <View style={styles.listBlock}>
-            {searchResults.length === 0 ? (
-              <Text style={styles.emptyPicker}>검색 결과가 없습니다.</Text>
-            ) : (
-              searchResults.map((course) => (
-                <Pressable
-                  key={`${course.track}-${course.subject}`}
-                  style={({ pressed }) => [
-                    styles.courseRow,
-                    pressed && styles.rowPressed,
-                  ]}
-                  disabled={isAddingCourse}
-                  onPress={() => handleAdd(course)}
-                >
-                  <View style={styles.courseRowText}>
-                    <Text style={styles.courseSubject} numberOfLines={2}>
-                      {course.subject}
-                    </Text>
-                    <Text style={styles.courseMeta}>
-                      {course.track} · {course.credit}학점
-                    </Text>
-                  </View>
-                  {isAddingCourse ? (
-                    <ActivityIndicator size="small" color="#14B8A6" />
-                  ) : (
-                    <Ionicons name="add-circle" size={22} color="#14B8A6" />
-                  )}
-                </Pressable>
-              ))
-            )}
-          </View>
-        ) : pickerStep === 'courses' && selectedTrack ? (
-          <View style={styles.listBlock}>
-            <Pressable style={styles.backRow} onPress={goBackToTracks}>
-              <Ionicons name="chevron-back" size={18} color="#14B8A6" />
-              <Text style={styles.backText} numberOfLines={1}>
-                {selectedTrack}
-              </Text>
-            </Pressable>
-            {coursesInTrack.length === 0 ? (
-              <Text style={styles.emptyPicker}>추가할 수 있는 과목이 없어요.</Text>
-            ) : (
-              coursesInTrack.map((course) => (
-                <Pressable
-                  key={`${course.track}-${course.subject}`}
-                  style={({ pressed }) => [
-                    styles.courseRow,
-                    pressed && styles.rowPressed,
-                  ]}
-                  disabled={isAddingCourse}
-                  onPress={() => handleAdd(course)}
-                >
-                  <View style={styles.courseRowText}>
-                    <Text style={styles.courseSubject} numberOfLines={2}>
-                      {course.subject}
-                    </Text>
-                    <Text style={styles.courseMeta}>{course.credit}학점</Text>
-                  </View>
-                  {isAddingCourse ? (
-                    <ActivityIndicator size="small" color="#14B8A6" />
-                  ) : (
-                    <Ionicons name="add-circle" size={22} color="#14B8A6" />
-                  )}
-                </Pressable>
-              ))
-            )}
-          </View>
-        ) : (
-          <View style={styles.listBlock}>
-            {trackEntries.length === 0 ? (
-              <Text style={styles.emptyPicker}>추가할 수 있는 과목이 없어요.</Text>
-            ) : (
-              trackEntries.map(({ track, count }) => (
-                <Pressable
-                  key={track}
-                  style={({ pressed }) => [styles.trackRow, pressed && styles.rowPressed]}
-                  onPress={() => selectTrack(track)}
-                >
-                  <Text style={styles.trackLabel} numberOfLines={2}>
-                    {track}
-                  </Text>
-                  <View style={styles.trackCountPill}>
-                    <Text style={styles.trackCountText}>{count}</Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={18} color="#14B8A6" />
-                </Pressable>
-              ))
-            )}
-          </View>
-        )}
+        <PickerListFrame header={listHeader}>{listContent}</PickerListFrame>
       </View>
     );
   };
@@ -448,7 +459,15 @@ const styles = StyleSheet.create({
     color: '#111827',
   },
   listBlock: {
+    height: LIST_VIEW_HEIGHT,
+    overflow: 'hidden',
+  },
+  listScroll: {
+    flex: 1,
+  },
+  listScrollContent: {
     gap: 6,
+    flexGrow: 1,
   },
   trackRow: {
     flexDirection: 'row',
