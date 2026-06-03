@@ -13,12 +13,15 @@ import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 
 import { Button } from '@/src/components/Button';
+import Logo from '@/src/assets/images/Logo.svg';
 import { colors } from '@/src/styles/colors';
 import { useLoginViewModel } from '@/src/hooks/useLoginViewModel';
 import type { AuthStackParamList } from '@/src/navigation/AuthNavigator';
 import type { RootStackParamList } from '@/src/navigation/RootNavigator';
 
 type Props = StackScreenProps<AuthStackParamList, 'Login'>;
+
+const AUTH_BG = '#F0FDFA';
 
 export function LoginPage({ navigation }: Props) {
   const rootNavigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -30,6 +33,7 @@ export function LoginPage({ navigation }: Props) {
         <View style={styles.screen}>
           {/* 로고 영역 */}
           <View style={styles.logoArea}>
+            <Logo width={100} height={88} />
             <Text style={styles.logoTitle}>Tracktory</Text>
             <Text style={styles.logoSubtitle}>나만의 AI 학습경로 추천</Text>
           </View>
@@ -118,7 +122,7 @@ export function LoginPage({ navigation }: Props) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: AUTH_BG,
   },
   flex: {
     flex: 1,
@@ -132,13 +136,15 @@ const styles = StyleSheet.create({
   },
   logoArea: {
     alignItems: 'center',
-    paddingTop: 40,
-    paddingBottom: 48,
+    paddingTop: 24,
+    paddingBottom: 32,
+    gap: 8,
   },
   logoTitle: {
-    fontSize: 36,
+    marginTop: 4,
+    fontSize: 28,
     fontWeight: '800',
-    color: colors.primary,
+    color: '#111827',
     letterSpacing: -0.5,
   },
   logoSubtitle: {
