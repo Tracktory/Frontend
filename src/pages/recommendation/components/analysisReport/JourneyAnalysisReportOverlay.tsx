@@ -15,6 +15,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { JobRecommendation } from '../../../../data/mockRecommendData';
+import { getModalBottomTabBarClearance } from '../../../../navigation/layout/tabBarLayout';
 import type { RoadmapPayload } from '../../../../data/mockRoadmapData';
 import type { TrackRecommendPayload } from '../../../../data/mockTrackRecommendData';
 import { buildAnalysisReportModel } from '../../utils/buildAnalysisReportModel';
@@ -56,6 +57,7 @@ export function JourneyAnalysisReportOverlay({
   studentYear,
 }: JourneyAnalysisReportOverlayProps) {
   const insets = useSafeAreaInsets();
+  const tabBarClearance = getModalBottomTabBarClearance(insets);
   const { width: screenWidth } = useWindowDimensions();
   const [mounted, setMounted] = useState(false);
   const translateX = useSharedValue(screenWidth);
@@ -118,7 +120,7 @@ export function JourneyAnalysisReportOverlay({
           style={[
             styles.panel,
             panelStyle,
-            { paddingTop: insets.top, paddingBottom: insets.bottom },
+            { paddingTop: insets.top, paddingBottom: tabBarClearance },
           ]}
         >
           <ScrollView

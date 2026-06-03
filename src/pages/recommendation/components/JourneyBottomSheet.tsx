@@ -34,10 +34,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Ionicons } from '@expo/vector-icons';
 
-
-
 import type { JourneySheetKey } from '../../../hooks/useRecommendResultViewModel';
-
+import { getModalBottomTabBarClearance } from '../../../navigation/layout/tabBarLayout';
 import { colors } from '../../../styles/colors';
 
 import { SHEET_TITLES } from './JourneyLayout';
@@ -107,6 +105,7 @@ export function JourneyBottomSheet({
 }: JourneyBottomSheetProps) {
 
   const insets = useSafeAreaInsets();
+  const tabBarClearance = getModalBottomTabBarClearance(insets);
 
   const { height } = useWindowDimensions();
 
@@ -186,7 +185,7 @@ export function JourneyBottomSheet({
 
           sheetStyle,
 
-          { height: sheetHeight, paddingBottom: insets.bottom + 16 },
+          { height: sheetHeight, bottom: tabBarClearance, paddingBottom: 16 },
 
         ]}
 

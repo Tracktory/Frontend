@@ -3,6 +3,7 @@ import { Modal, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors } from '../../styles/colors';
+import { getModalBottomTabBarClearance } from '../../navigation/layout/tabBarLayout';
 import { ChatContent } from './ChatContent';
 import { useAuthStore } from '../../stores/authStore';
 import { useChatStore } from '../../stores/chatStore';
@@ -14,6 +15,7 @@ interface ChatOverlayModalProps {
 
 export function ChatOverlayModal({ visible, onClose }: ChatOverlayModalProps) {
   const insets = useSafeAreaInsets();
+  const tabBarClearance = getModalBottomTabBarClearance(insets);
   const userId = useAuthStore((s) => s.userId);
   const enterChatScreen = useChatStore((s) => s.enterChatScreen);
 
@@ -37,7 +39,7 @@ export function ChatOverlayModal({ visible, onClose }: ChatOverlayModalProps) {
             styles.sheet,
             {
               paddingTop: insets.top,
-              paddingBottom: insets.bottom,
+              marginBottom: tabBarClearance,
             },
           ]}
         >

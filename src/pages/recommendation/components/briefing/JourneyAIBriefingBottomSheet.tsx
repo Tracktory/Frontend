@@ -17,6 +17,8 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
+import { getModalBottomTabBarClearance } from '../../../navigation/layout/tabBarLayout';
+
 const SHEET_TIMING = { duration: 280, easing: Easing.out(Easing.cubic) };
 
 interface JourneyAIBriefingBottomSheetProps {
@@ -31,6 +33,7 @@ export function JourneyAIBriefingBottomSheet({
   children,
 }: JourneyAIBriefingBottomSheetProps) {
   const insets = useSafeAreaInsets();
+  const tabBarClearance = getModalBottomTabBarClearance(insets);
   const { height } = useWindowDimensions();
   const sheetHeight = height * 0.7;
 
@@ -67,7 +70,7 @@ export function JourneyAIBriefingBottomSheet({
         style={[
           styles.sheet,
           sheetStyle,
-          { height: sheetHeight, paddingBottom: insets.bottom + 16 },
+          { height: sheetHeight, bottom: tabBarClearance, paddingBottom: 16 },
         ]}
       >
         <View style={styles.handle} />
