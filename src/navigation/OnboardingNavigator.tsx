@@ -33,6 +33,8 @@ export type OnboardingStackParamList = {
 
 const Stack = createStackNavigator<OnboardingStackParamList>();
 
+const ONBOARDING_BG = '#F0FDFA';
+
 export function OnboardingNavigator() {
   const resetOnboarding = useOnboardingStore((s) => s.resetOnboarding);
 
@@ -45,6 +47,7 @@ export function OnboardingNavigator() {
       initialRouteName="Name"
       screenOptions={{
         headerShown: false,
+        cardStyle: { backgroundColor: ONBOARDING_BG },
       }}
     >
       <Stack.Screen name="Name" component={NamePage} />

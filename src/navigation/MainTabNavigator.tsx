@@ -22,6 +22,7 @@ export function MainTabNavigator() {
         headerShown: false,
         tabBarStyle: { display: 'none' },
         animation: 'shift',
+        sceneStyle: { backgroundColor: '#F0FDFA' },
       }}
     >
       <Tab.Screen name="Home" component={RecommendResultPage} />

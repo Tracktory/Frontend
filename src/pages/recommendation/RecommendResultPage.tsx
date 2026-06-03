@@ -34,6 +34,7 @@ const GLANCE_CARD_GAP = 15;
 const GLANCE_CARD_HEIGHT_CLIMBING = 88;
 const GLANCE_CARD_HEIGHT_EXPLORING = 56;
 const CHAT_FAB_ABOVE_GLANCE = 16;
+const HOME_BG = '#F0FDFA';
 
 export function RecommendResultPage() {
   const insets = useSafeAreaInsets();
@@ -69,15 +70,15 @@ export function RecommendResultPage() {
   const targetJob = vm.jobs[0]?.title ?? '직무 미정';
   const jobCandidateCount = vm.jobs.length;
 
-  const [mapSize, setMapSize] = useState({ width: 0, height: 320 });
+  const [screenSize, setScreenSize] = useState({ width: 0, height: 0 });
   const [chatVisible, setChatVisible] = useState(false);
   const [briefingVisible, setBriefingVisible] = useState(false);
   const [reportVisible, setReportVisible] = useState(false);
 
-  const onMapLayout = (e: LayoutChangeEvent) => {
+  const onScreenLayout = (e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout;
     if (width > 0 && height > 0) {
-      setMapSize({ width, height });
+      setScreenSize({ width, height });
     }
   };
 
@@ -144,12 +145,42 @@ export function RecommendResultPage() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <View style={[styles.screen, { paddingBottom: tabBarClearance }]}>
-        <JourneyHeader
-          displayName={displayName}
-          profileInitial={profileInitial}
-          onBriefingPress={() => setBriefingVisible(true)}
-        />
+      <View style={styles.screen} onLayout={onScreenLayout}>
+        {!vm.isError && screenSize.width > 0 ? (
+          <>
+            <JourneyMountainBackground
+              width={screenSize.width}
+              height={screenSize.height}
+              showFullMountainBackground={showFullMountainBackground}
+            />
+
+            <View style={styles.mapLayer} pointerEvents="box-none">
+              {isExploring ? (
+                <FirstYearHero
+                  jobs={vm.jobs}
+                  onOpenTrack={() => vm.openSheet('trackSynergy')}
+                  onOpenRegister={() => vm.openSheet('register')}
+                />
+              ) : (
+                <JourneyPathNodes
+                  mapWidth={screenSize.width}
+                  mapHeight={screenSize.height}
+                  alignToTrail={showFullMountainBackground}
+                  activeSheet={vm.activeSheet}
+                  onOpenSheet={vm.openSheet}
+                />
+              )}
+            </View>
+          </>
+        ) : null}
+
+        <View style={styles.headerWrap}>
+          <JourneyHeader
+            displayName={displayName}
+            profileInitial={profileInitial}
+            onBriefingPress={() => setBriefingVisible(true)}
+          />
+        </View>
 
         {vm.isError ? (
           <View style={styles.errorContainer}>
@@ -160,47 +191,20 @@ export function RecommendResultPage() {
             </Pressable>
           </View>
         ) : (
-          <>
-            <View style={styles.mapArea} onLayout={onMapLayout}>
-              {mapSize.width > 0 ? (
-                <JourneyMountainBackground
-                  width={mapSize.width}
-                  height={mapSize.height}
-                  showFullMountainBackground={showFullMountainBackground}
-                />
-              ) : null}
-              {isExploring ? (
-                <FirstYearHero
-                  jobs={vm.jobs}
-                  onOpenTrack={() => vm.openSheet('trackSynergy')}
-                  onOpenRegister={() => vm.openSheet('register')}
-                />
-              ) : (
-                <JourneyPathNodes
-                  mapWidth={mapSize.width}
-                  mapHeight={mapSize.height}
-                  alignToTrail={showFullMountainBackground}
-                  activeSheet={vm.activeSheet}
-                  onOpenSheet={vm.openSheet}
-                />
-              )}
-            </View>
-
-            <View
-              style={[styles.glanceWrap, { bottom: tabBarClearance + GLANCE_CARD_GAP }]}
-              pointerEvents="box-none"
-            >
-              <GlanceCard
-                isExploring={isExploring}
-                targetJob={targetJob}
-                competencyPercent={competencyPercent}
-                jobCandidateCount={jobCandidateCount}
-                onPress={() =>
-                  vm.openSheet(isExploring ? 'job' : 'competency')
-                }
-              />
-            </View>
-          </>
+          <View
+            style={[styles.glanceWrap, { bottom: tabBarClearance + GLANCE_CARD_GAP }]}
+            pointerEvents="box-none"
+          >
+            <GlanceCard
+              isExploring={isExploring}
+              targetJob={targetJob}
+              competencyPercent={competencyPercent}
+              jobCandidateCount={jobCandidateCount}
+              onPress={() =>
+                vm.openSheet(isExploring ? 'job' : 'competency')
+              }
+            />
+          </View>
         )}
 
         <JourneyBottomSheet
@@ -257,33 +261,32 @@ export function RecommendResultPage() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F0FDFA',
+    backgroundColor: HOME_BG,
   },
   screen: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 8,
     overflow: 'visible',
   },
-  mapArea: {
-    flex: 1,
-    minHeight: 280,
-    borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: '#F0FDFA',
-    paddingBottom: 88,
+  mapLayer: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  headerWrap: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    zIndex: 2,
   },
   glanceWrap: {
     position: 'absolute',
-    left: 4,
-    right: 4,
+    left: 16,
+    right: 16,
     zIndex: 10,
   },
   errorContainer: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
     gap: 12,
+    zIndex: 3,
   },
   errorText: {
     fontSize: 15,

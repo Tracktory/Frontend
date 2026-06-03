@@ -13,6 +13,8 @@ import { Button } from '../../../components/Button';
 import { ProgressBar } from '../../../components/ProgressBar';
 import { colors } from '../../../styles/colors';
 
+const ONBOARDING_BG = '#F0FDFA';
+
 interface OnboardingStepLayoutProps {
   progress: number;
   title: string;
@@ -108,7 +110,7 @@ export function OnboardingStepLayout({
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: ONBOARDING_BG,
     paddingHorizontal: 20,
     paddingTop: 48,
     paddingBottom: 28,
