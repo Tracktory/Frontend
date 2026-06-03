@@ -2,37 +2,22 @@ import React from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-const SETTINGS_ROWS = [
-  { id: 'notifications', emoji: '🔔', label: '알림 설정', danger: false },
-  { id: 'about', emoji: 'ℹ️', label: '앱 정보', danger: false },
-  { id: 'logout', emoji: '🚪', label: '로그아웃', danger: true },
-] as const;
-
 export function MySettingsSection() {
-  const handlePress = (id: string) => {
-    if (id === 'logout') {
-      Alert.alert('로그아웃', '로그아웃 기능은 준비 중입니다.');
-      return;
-    }
-    Alert.alert('안내', '해당 기능은 준비 중입니다.');
+  const handleLogout = () => {
+    Alert.alert('로그아웃', '로그아웃 기능은 준비 중입니다.');
   };
 
   return (
     <View style={styles.wrap}>
       <View style={styles.card}>
-        {SETTINGS_ROWS.map((row, index) => (
-          <View key={row.id}>
-            <Pressable
-              style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-              onPress={() => handlePress(row.id)}
-            >
-              <Text style={styles.emoji}>{row.emoji}</Text>
-              <Text style={[styles.label, row.danger && styles.labelDanger]}>{row.label}</Text>
-              <Ionicons name="chevron-forward" size={18} color="#D1D5DB" />
-            </Pressable>
-            {index < SETTINGS_ROWS.length - 1 ? <View style={styles.divider} /> : null}
-          </View>
-        ))}
+        <Pressable
+          style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+          onPress={handleLogout}
+        >
+          <Text style={styles.emoji}>🚪</Text>
+          <Text style={[styles.label, styles.labelDanger]}>로그아웃</Text>
+          <Ionicons name="chevron-forward" size={18} color="#D1D5DB" />
+        </Pressable>
       </View>
     </View>
   );
@@ -71,10 +56,5 @@ const styles = StyleSheet.create({
   },
   labelDanger: {
     color: '#EF4444',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#F3F4F6',
-    marginHorizontal: 20,
   },
 });

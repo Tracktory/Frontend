@@ -371,15 +371,6 @@ export function useMyPageViewModel() {
     }
   };
 
-  const resolveCourseForSubject = (subjectName: string): HansungCourse => {
-    const found = hansungCourseData.find((c) => c.subject === subjectName);
-    return found ?? { track: '기타', subject: subjectName, credit: 3 };
-  };
-
-  const addCompletedCourseByName = async (subjectName: string): Promise<boolean> => {
-    return addCompletedCourse(resolveCourseForSubject(subjectName));
-  };
-
   return {
     displayName,
     profileInitial,
@@ -422,7 +413,6 @@ export function useMyPageViewModel() {
     updateExperience,
     updateEmployment,
     addCompletedCourse,
-    addCompletedCourseByName,
     removeCompletedCourse,
   };
 }

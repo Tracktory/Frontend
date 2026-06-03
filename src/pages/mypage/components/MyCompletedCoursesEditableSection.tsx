@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   LayoutAnimation,
@@ -6,62 +6,251 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   UIManager,
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { MYPAGE_REGISTERABLE_TIERS } from '../data/mypageRegisterableTiers';
+import type { HansungCourse } from '../../../data/hansungCourseData';
+
+const PRIORITY_TRACKS = [
+  '모바일소프트웨어트랙',
+  '웹공학트랙',
+  '빅데이터트랙',
+  '디지털콘텐츠ㆍ가상현실트랙',
+] as const;
+
+const PRIORITY_TRACK_RANK = new Map<string, number>(
+  PRIORITY_TRACKS.map((track, index) => [track, index]),
+);
+
+function sortTrackEntries(entries: { track: string; count: number }[]) {
+  return [...entries].sort((a, b) => {
+    const aRank = PRIORITY_TRACK_RANK.get(a.track) ?? PRIORITY_TRACKS.length;
+    const bRank = PRIORITY_TRACK_RANK.get(b.track) ?? PRIORITY_TRACKS.length;
+    if (aRank !== bRank) return aRank - bRank;
+    return a.track.localeCompare(b.track, 'ko');
+  });
+}
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
+type PickerStep = 'tracks' | 'courses';
+
 interface MyCompletedCoursesEditableSectionProps {
   courses: string[];
+  catalog: HansungCourse[];
   isAddingCourse?: boolean;
   removingCourseName?: string | null;
-  onAddCourse: (subjectName: string) => Promise<boolean>;
+  onAddCourse: (course: HansungCourse) => Promise<boolean>;
   onRemoveCourse: (name: string) => void | Promise<void>;
+}
+
+function resetPickerState(
+  setPickerStep: (s: PickerStep) => void,
+  setSelectedTrack: (t: string | null) => void,
+  setSearchQuery: (q: string) => void,
+) {
+  setPickerStep('tracks');
+  setSelectedTrack(null);
+  setSearchQuery('');
 }
 
 export function MyCompletedCoursesEditableSection({
   courses,
+  catalog,
   isAddingCourse = false,
   removingCourseName = null,
   onAddCourse,
   onRemoveCourse,
 }: MyCompletedCoursesEditableSectionProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [expandedTierId, setExpandedTierId] = useState<string | null>(null);
+  const [pickerStep, setPickerStep] = useState<PickerStep>('tracks');
+  const [selectedTrack, setSelectedTrack] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const availableTiers = useMemo(
-    () =>
-      MYPAGE_REGISTERABLE_TIERS.map((tier) => ({
-        ...tier,
-        available: tier.courses.filter((c) => !courses.includes(c)),
-      })).filter((tier) => tier.available.length > 0),
-    [courses]
-  );
+  const completedSet = useMemo(() => new Set(courses), [courses]);
 
-  const allRegistered =
-    MYPAGE_REGISTERABLE_TIERS.every((tier) =>
-      tier.courses.every((c) => courses.includes(c))
+  const trackEntries = useMemo(() => {
+    const byTrack = new Map<string, number>();
+    for (const item of catalog) {
+      if (completedSet.has(item.subject)) continue;
+      byTrack.set(item.track, (byTrack.get(item.track) ?? 0) + 1);
+    }
+    return sortTrackEntries(
+      [...byTrack.entries()].map(([track, count]) => ({ track, count })),
     );
+  }, [catalog, completedSet]);
+
+  const coursesInTrack = useMemo(() => {
+    if (!selectedTrack) return [];
+    return catalog.filter(
+      (c) => c.track === selectedTrack && !completedSet.has(c.subject),
+    );
+  }, [catalog, selectedTrack, completedSet]);
+
+  const searchResults = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return [];
+    return catalog.filter(
+      (c) =>
+        !completedSet.has(c.subject) &&
+        (c.subject.toLowerCase().includes(q) || c.track.toLowerCase().includes(q)),
+    );
+  }, [catalog, searchQuery, completedSet]);
+
+  const hasSearch = searchQuery.trim().length > 0;
+
+  useEffect(() => {
+    if (
+      isEditing &&
+      !hasSearch &&
+      pickerStep === 'courses' &&
+      selectedTrack &&
+      coursesInTrack.length === 0
+    ) {
+      setPickerStep('tracks');
+      setSelectedTrack(null);
+    }
+  }, [isEditing, hasSearch, pickerStep, selectedTrack, coursesInTrack.length]);
 
   const toggleEditing = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    if (isEditing) {
+      resetPickerState(setPickerStep, setSelectedTrack, setSearchQuery);
+    }
     setIsEditing((v) => !v);
-    if (isEditing) setExpandedTierId(null);
   };
 
-  const toggleTier = (tierId: string) => {
+  const selectTrack = (track: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setExpandedTierId((prev) => (prev === tierId ? null : tierId));
+    setSelectedTrack(track);
+    setPickerStep('courses');
+    setSearchQuery('');
   };
 
-  const handleAdd = async (subjectName: string) => {
-    await onAddCourse(subjectName);
+  const goBackToTracks = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setPickerStep('tracks');
+    setSelectedTrack(null);
+  };
+
+  const handleAdd = async (course: HansungCourse) => {
+    await onAddCourse(course);
+  };
+
+  const renderAddPanel = () => {
+    if (!isEditing) return null;
+
+    return (
+      <View style={styles.addPanel}>
+        <Text style={styles.addPanelTitle}>과목 추가</Text>
+
+        <TextInput
+          style={styles.searchInput}
+          placeholder="과목명 또는 트랙 검색"
+          placeholderTextColor="#9CA3AF"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          editable={!isAddingCourse}
+        />
+
+        {hasSearch ? (
+          <View style={styles.listBlock}>
+            {searchResults.length === 0 ? (
+              <Text style={styles.emptyPicker}>검색 결과가 없습니다.</Text>
+            ) : (
+              searchResults.map((course) => (
+                <Pressable
+                  key={`${course.track}-${course.subject}`}
+                  style={({ pressed }) => [
+                    styles.courseRow,
+                    pressed && styles.rowPressed,
+                  ]}
+                  disabled={isAddingCourse}
+                  onPress={() => handleAdd(course)}
+                >
+                  <View style={styles.courseRowText}>
+                    <Text style={styles.courseSubject} numberOfLines={2}>
+                      {course.subject}
+                    </Text>
+                    <Text style={styles.courseMeta}>
+                      {course.track} · {course.credit}학점
+                    </Text>
+                  </View>
+                  {isAddingCourse ? (
+                    <ActivityIndicator size="small" color="#14B8A6" />
+                  ) : (
+                    <Ionicons name="add-circle" size={22} color="#14B8A6" />
+                  )}
+                </Pressable>
+              ))
+            )}
+          </View>
+        ) : pickerStep === 'courses' && selectedTrack ? (
+          <View style={styles.listBlock}>
+            <Pressable style={styles.backRow} onPress={goBackToTracks}>
+              <Ionicons name="chevron-back" size={18} color="#14B8A6" />
+              <Text style={styles.backText} numberOfLines={1}>
+                {selectedTrack}
+              </Text>
+            </Pressable>
+            {coursesInTrack.length === 0 ? (
+              <Text style={styles.emptyPicker}>추가할 수 있는 과목이 없어요.</Text>
+            ) : (
+              coursesInTrack.map((course) => (
+                <Pressable
+                  key={`${course.track}-${course.subject}`}
+                  style={({ pressed }) => [
+                    styles.courseRow,
+                    pressed && styles.rowPressed,
+                  ]}
+                  disabled={isAddingCourse}
+                  onPress={() => handleAdd(course)}
+                >
+                  <View style={styles.courseRowText}>
+                    <Text style={styles.courseSubject} numberOfLines={2}>
+                      {course.subject}
+                    </Text>
+                    <Text style={styles.courseMeta}>{course.credit}학점</Text>
+                  </View>
+                  {isAddingCourse ? (
+                    <ActivityIndicator size="small" color="#14B8A6" />
+                  ) : (
+                    <Ionicons name="add-circle" size={22} color="#14B8A6" />
+                  )}
+                </Pressable>
+              ))
+            )}
+          </View>
+        ) : (
+          <View style={styles.listBlock}>
+            {trackEntries.length === 0 ? (
+              <Text style={styles.emptyPicker}>추가할 수 있는 과목이 없어요.</Text>
+            ) : (
+              trackEntries.map(({ track, count }) => (
+                <Pressable
+                  key={track}
+                  style={({ pressed }) => [styles.trackRow, pressed && styles.rowPressed]}
+                  onPress={() => selectTrack(track)}
+                >
+                  <Text style={styles.trackLabel} numberOfLines={2}>
+                    {track}
+                  </Text>
+                  <View style={styles.trackCountPill}>
+                    <Text style={styles.trackCountText}>{count}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color="#14B8A6" />
+                </Pressable>
+              ))
+            )}
+          </View>
+        )}
+      </View>
+    );
   };
 
   return (
@@ -122,48 +311,7 @@ export function MyCompletedCoursesEditableSection({
           </View>
         )}
 
-        {isEditing ? (
-          <View style={styles.addPanel}>
-            <Text style={styles.addPanelTitle}>과목 추가</Text>
-            {allRegistered ? (
-              <Text style={styles.allDone}>모든 과목을 이수 등록했어요 🎉</Text>
-            ) : (
-              availableTiers.map((tier) => {
-                const expanded = expandedTierId === tier.id;
-                return (
-                  <View key={tier.id} style={styles.tierBlock}>
-                    <Pressable style={styles.tierHeader} onPress={() => toggleTier(tier.id)}>
-                      <Text style={styles.tierLabel}>{tier.label}</Text>
-                      <View style={styles.tierCountPill}>
-                        <Text style={styles.tierCountText}>{tier.available.length}</Text>
-                      </View>
-                      <Ionicons
-                        name={expanded ? 'chevron-up' : 'chevron-down'}
-                        size={18}
-                        color="#14B8A6"
-                      />
-                    </Pressable>
-                    {expanded ? (
-                      <View style={styles.tierCourses}>
-                        {tier.available.map((subject) => (
-                          <Pressable
-                            key={subject}
-                            style={styles.addPill}
-                            disabled={isAddingCourse}
-                            onPress={() => handleAdd(subject)}
-                          >
-                            <Ionicons name="add" size={14} color="#14B8A6" />
-                            <Text style={styles.addPillText}>{subject}</Text>
-                          </Pressable>
-                        ))}
-                      </View>
-                    ) : null}
-                  </View>
-                );
-              })
-            )}
-          </View>
-        ) : null}
+        {renderAddPanel()}
       </View>
     </View>
   );
@@ -289,58 +437,85 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#374151',
   },
-  allDone: {
-    fontSize: 13,
-    color: '#0D9488',
-    textAlign: 'center',
-    paddingVertical: 8,
+  searchInput: {
+    backgroundColor: '#F0FDFA',
+    borderWidth: 1,
+    borderColor: '#CCFBF1',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: '#111827',
   },
-  tierBlock: {
-    gap: 8,
+  listBlock: {
+    gap: 6,
   },
-  tierHeader: {
+  trackRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingVertical: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+    borderRadius: 12,
   },
-  tierLabel: {
+  trackLabel: {
     flex: 1,
     fontSize: 13,
     fontWeight: '600',
     color: '#14B8A6',
   },
-  tierCountPill: {
+  trackCountPill: {
     backgroundColor: '#F0FDFA',
     borderRadius: 999,
     paddingHorizontal: 8,
     paddingVertical: 2,
   },
-  tierCountText: {
+  trackCountText: {
     fontSize: 11,
     fontWeight: '700',
     color: '#0D9488',
   },
-  tierCourses: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    paddingLeft: 4,
-  },
-  addPill: {
+  backRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    borderWidth: 1,
-    borderColor: '#CCFBF1',
-    backgroundColor: '#F0FDFA',
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 6,
+    marginBottom: 4,
   },
-  addPillText: {
-    fontSize: 12,
-    color: '#0D9488',
-    fontWeight: '500',
+  backText: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#14B8A6',
+  },
+  courseRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+    borderRadius: 12,
+  },
+  courseRowText: {
+    flex: 1,
+    gap: 2,
+  },
+  courseSubject: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  courseMeta: {
+    fontSize: 11,
+    color: '#9CA3AF',
+  },
+  rowPressed: {
+    backgroundColor: '#F0FDFA',
+  },
+  emptyPicker: {
+    fontSize: 13,
+    color: '#9CA3AF',
+    textAlign: 'center',
+    paddingVertical: 12,
   },
 });

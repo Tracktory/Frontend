@@ -9,7 +9,6 @@ import { MyProfileHeroCard } from './components/MyProfileHeroCard';
 import { MyOnboardingParamsCard } from './components/MyOnboardingParamsCard';
 import { MyInterestChipsSection } from './components/MyInterestChipsSection';
 import { MyCompletedCoursesEditableSection } from './components/MyCompletedCoursesEditableSection';
-import { MyRecommendationHistorySection } from './components/MyRecommendationHistorySection';
 import { MySettingsSection } from './components/MySettingsSection';
 import { MyInfoEditModal } from './components/MyInfoEditModal';
 
@@ -59,13 +58,12 @@ export function MyPage() {
 
         <MyCompletedCoursesEditableSection
           courses={vm.completedCourses}
+          catalog={vm.courseCatalog}
           isAddingCourse={vm.isAddingCourse}
           removingCourseName={vm.removingCourseName}
-          onAddCourse={vm.addCompletedCourseByName}
+          onAddCourse={vm.addCompletedCourse}
           onRemoveCourse={vm.removeCompletedCourse}
         />
-
-        <MyRecommendationHistorySection />
 
         <MySettingsSection />
       </ScrollView>
