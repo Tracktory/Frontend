@@ -1,80 +1,42 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeInRight } from 'react-native-reanimated';
 
-export interface BriefingItem {
-  job: string;
-  headline: string;
-  summary: string;
-  source: string;
-}
+import { useAIBriefing } from '../../../../hooks/useAIBriefing';
+import type { BriefingItem } from '../../data/briefingMockData';
 
-const FIRST_YEAR_BRIEFINGS: BriefingItem[] = [
-  {
-    job: 'Data Scientist',
-    headline: 'AI 모델 해석 가능성이 핵심 이슈로 부상',
-    summary:
-      'XAI(설명 가능한 AI) 기술이 금융·의료 분야에서 필수 요건이 되고 있습니다. SHAP, LIME 등 모델 해석 도구 활용 능력이 중요해지는 추세입니다.',
-    source: 'Kaggle Survey · 2026',
-  },
-  {
-    job: 'Backend Developer',
-    headline: '서버리스 아키텍처 채택 급증',
-    summary:
-      'AWS Lambda, Vercel Edge Functions 등 서버리스 플랫폼이 빠르게 확산. 이벤트 기반 설계와 분산 시스템 이해가 필수 역량으로 자리잡고 있습니다.',
-    source: 'Stack Overflow · 2026',
-  },
-  {
-    job: 'UX Researcher',
-    headline: '행동 데이터 기반 리서치 방법론 주목',
-    summary:
-      '정성 조사와 정량 데이터 결합이 핵심. Amplitude, Mixpanel 등 분석 도구를 활용한 데이터 드리븐 UX 설계가 트렌드입니다.',
-    source: 'Nielsen Norman Group · 2026',
-  },
-];
-
-const CLIMBING_BRIEFINGS: BriefingItem[] = [
-  {
-    job: 'Backend',
-    headline: 'Kafka 기반 이벤트 스트리밍 수요 증가',
-    summary:
-      '대규모 실시간 데이터 처리에서 Kafka의 역할이 확대. MSA 환경에서 이벤트 소싱 패턴 적용이 표준화되고 있습니다.',
-    source: 'JetBrains Survey · 2026',
-  },
-  {
-    job: 'Data Eng',
-    headline: 'dbt + Snowflake 조합이 데이터 파이프라인 표준으로',
-    summary:
-      '데이터 변환 계층을 코드로 관리하는 dbt가 빠르게 확산. SQL 기반 데이터 모델링과 버전 관리가 핵심 스킬로 부상했습니다.',
-    source: 'Data Council · 2026',
-  },
-  {
-    job: 'AI',
-    headline: 'LLM 파인튜닝보다 RAG 아키텍처 선호',
-    summary:
-      '비용 효율적인 RAG(검색 증강 생성) 패턴이 주류로. 벡터 DB(Pinecone, Weaviate)와 임베딩 최적화 능력이 실무 핵심이 되고 있습니다.',
-    source: 'arXiv · 2026',
-  },
-];
+export type { BriefingItem };
 
 interface JourneyAIBriefingSheetProps {
   isFirstYear: boolean;
+  enabled?: boolean;
 }
 
-function BriefingTrendCard({ item }: { item: BriefingItem }) {
+function BriefingTrendCard({ item, index }: { item: BriefingItem; index: number }) {
   return (
-    <View style={styles.trendCard}>
+    <Animated.View
+      entering={FadeInRight.delay(index * 100).duration(350)}
+      style={styles.trendCard}
+    >
       <View style={styles.jobPill}>
         <Text style={styles.jobPillText}>{item.job}</Text>
       </View>
       <Text style={styles.headline}>{item.headline}</Text>
       <Text style={styles.summary}>{item.summary}</Text>
       <Text style={styles.source}>{item.source}</Text>
-    </View>
+    </Animated.View>
   );
 }
 
-export function JourneyAIBriefingSheet({ isFirstYear }: JourneyAIBriefingSheetProps) {
-  const briefings = isFirstYear ? FIRST_YEAR_BRIEFINGS : CLIMBING_BRIEFINGS;
+export function JourneyAIBriefingSheet({
+  isFirstYear,
+  enabled = true,
+}: JourneyAIBriefingSheetProps) {
+  const { cards, isLoading, isStreaming } = useAIBriefing({
+    isFirstYear,
+    enabled,
+  });
+
   const intro = isFirstYear
     ? '관심사 기반 추천 직무의 최신 트렌드를 확인해보세요.'
     : '선택한 직무 분야의 최신 트렌드와 필수 기술을 정리했어요.';
@@ -82,14 +44,22 @@ export function JourneyAIBriefingSheet({ isFirstYear }: JourneyAIBriefingSheetPr
   return (
     <View style={styles.wrap}>
       <Text style={styles.intro}>{intro}</Text>
+      {isLoading ? (
+        <View style={styles.loadingRow}>
+          {[0, 1, 2].map((i) => (
+            <View key={i} style={styles.skeletonCard} />
+          ))}
+        </View>
+      ) : null}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {briefings.map((item) => (
-          <BriefingTrendCard key={item.job + item.headline} item={item} />
+        {cards.map((item, index) => (
+          <BriefingTrendCard key={`${item.job}-${item.headline}`} item={item} index={index} />
         ))}
+        {isStreaming ? <View style={styles.streamingDot} /> : null}
       </ScrollView>
     </View>
   );
@@ -105,9 +75,22 @@ const styles = StyleSheet.create({
     lineHeight: 21,
     marginBottom: 20,
   },
+  loadingRow: {
+    flexDirection: 'row',
+    gap: 16,
+    marginBottom: 16,
+  },
+  skeletonCard: {
+    width: 300,
+    height: 160,
+    borderRadius: 24,
+    backgroundColor: '#F3F4F6',
+    opacity: 0.7,
+  },
   scrollContent: {
     gap: 16,
     paddingRight: 8,
+    alignItems: 'center',
   },
   trendCard: {
     width: 300,
@@ -146,5 +129,14 @@ const styles = StyleSheet.create({
   source: {
     fontSize: 11,
     color: '#9CA3AF',
+  },
+  streamingDot: {
+    width: 48,
+    height: 160,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: '#99F6E4',
+    marginLeft: 4,
   },
 });

@@ -19,6 +19,7 @@ import { FirstYearHero } from './components/exploration/FirstYearHero';
 import { JourneyCourseRegisterSheet } from './components/sheets/JourneyCourseRegisterSheet';
 import { JourneyAnalysisReportOverlay } from './components/analysisReport/JourneyAnalysisReportOverlay';
 import { JourneyCompetencySheet } from './components/sheets/JourneyCompetencySheet';
+import { JourneyAIBriefingBottomSheet } from './components/briefing/JourneyAIBriefingBottomSheet';
 import { JourneyAIBriefingSheet } from './components/sheets/JourneyAIBriefingSheet';
 import { JourneyJobMatchingSheet } from './components/sheets/JourneyJobMatchingSheet';
 import { JourneyCurrentStatusSheet } from './components/sheets/JourneyCurrentStatusSheet';
@@ -210,13 +211,15 @@ export function RecommendResultPage() {
           {renderSheetContent()}
         </JourneyBottomSheet>
 
-        <JourneyBottomSheet
+        <JourneyAIBriefingBottomSheet
           visible={briefingVisible}
-          titleOverride="AI 직무 브리핑"
           onClose={() => setBriefingVisible(false)}
         >
-          <JourneyAIBriefingSheet isFirstYear={isExploring} />
-        </JourneyBottomSheet>
+          <JourneyAIBriefingSheet
+            isFirstYear={isExploring}
+            enabled={briefingVisible}
+          />
+        </JourneyAIBriefingBottomSheet>
 
         {vm.activeSheet == null && !briefingVisible ? (
           <ChatFab

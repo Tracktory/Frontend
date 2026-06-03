@@ -23,8 +23,14 @@ export function JourneyHeader({
         {title}
       </Text>
       <View style={styles.actions}>
-        <Pressable style={styles.briefingBtn} onPress={onBriefingPress}>
-          <Ionicons name="sparkles" size={14} color={colors.primary} />
+        <Pressable
+          style={({ pressed }) => [
+            styles.briefingBtn,
+            pressed && styles.briefingBtnPressed,
+          ]}
+          onPress={onBriefingPress}
+        >
+          <Ionicons name="sparkles" size={14} color="#14B8A6" />
           <Text style={styles.briefingText}>AI 브리핑</Text>
         </Pressable>
         <View style={styles.avatar}>
@@ -58,18 +64,22 @@ const styles = StyleSheet.create({
   briefingBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    backgroundColor: colors.white,
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+    borderWidth: 1.5,
+    borderColor: '#CCFBF1',
+    backgroundColor: 'rgba(255,255,255,0.9)',
+  },
+  briefingBtnPressed: {
+    opacity: 0.93,
+    transform: [{ scale: 0.93 }],
   },
   briefingText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.primary,
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#0D9488',
   },
   avatar: {
     width: 36,
