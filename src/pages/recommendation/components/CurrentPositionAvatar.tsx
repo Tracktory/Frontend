@@ -10,6 +10,7 @@ import Animated, {
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 
 const AVATAR_SIZE = 40;
+const LAYOUT_WIDTH = 72;
 
 interface CurrentPositionAvatarProps {
   label?: string;
@@ -63,7 +64,9 @@ export function CurrentPositionAvatar({
         </View>
       </Animated.View>
       <View style={styles.labelPill}>
-        <Text style={styles.labelText}>{label}</Text>
+        <Text style={styles.labelText} numberOfLines={1}>
+          {label}
+        </Text>
       </View>
     </Pressable>
   );
@@ -72,12 +75,13 @@ export function CurrentPositionAvatar({
 const styles = StyleSheet.create({
   wrap: {
     alignItems: 'center',
-    width: AVATAR_SIZE,
+    width: LAYOUT_WIDTH,
   },
   avatarOuter: {
     width: AVATAR_SIZE,
     height: AVATAR_SIZE,
     borderRadius: AVATAR_SIZE / 2,
+    backgroundColor: '#14B8A6',
     shadowColor: '#111827',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
@@ -91,6 +95,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#14B8A6',
   },
   emoji: {
     position: 'absolute',
@@ -103,11 +108,14 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 999,
     backgroundColor: '#14B8A6',
+    maxWidth: LAYOUT_WIDTH,
+    alignSelf: 'center',
   },
   labelText: {
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: '600',
     color: '#FFFFFF',
     textAlign: 'center',
+    flexShrink: 0,
   },
 });

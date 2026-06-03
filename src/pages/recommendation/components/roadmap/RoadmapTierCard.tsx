@@ -34,6 +34,7 @@ const STATUS_STYLES = {
 export function RoadmapTierCard({ tier, completedCourses }: RoadmapTierCardProps) {
   const style = STATUS_STYLES[tier.status];
   const showWarning = shouldShowTierWarning(tier, tier.status, completedCourses);
+  const isFuture = tier.status === 'future';
 
   if (tier.courses.length === 0) return null;
 
@@ -51,6 +52,14 @@ export function RoadmapTierCard({ tier, completedCourses }: RoadmapTierCardProps
 
       <View style={styles.chipRow}>
         {tier.courses.map((course) => {
+          if (isFuture) {
+            return (
+              <View key={course} style={[styles.chip, styles.chipDisabled]}>
+                <Text style={[styles.chipText, styles.chipTextDisabled]}>{course}</Text>
+              </View>
+            );
+          }
+
           const done = completedCourses.includes(course);
           return (
             <View key={course} style={[styles.chip, done ? styles.chipDone : styles.chipPending]}>
@@ -123,6 +132,9 @@ const styles = StyleSheet.create({
   chipPending: {
     backgroundColor: '#FEE2E2',
   },
+  chipDisabled: {
+    backgroundColor: '#E5E7EB',
+  },
   chipText: {
     fontSize: 11,
     fontWeight: '500',
@@ -132,6 +144,9 @@ const styles = StyleSheet.create({
   },
   chipTextPending: {
     color: '#B91C1C',
+  },
+  chipTextDisabled: {
+    color: '#9CA3AF',
   },
   warningBox: {
     flexDirection: 'row',

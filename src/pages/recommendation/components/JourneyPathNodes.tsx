@@ -23,6 +23,7 @@ const TRACK_KEY = 'trackSynergy';
 const ROADMAP_KEY = 'roadmap';
 const CURRENT_KEY = 'current';
 const TRAIL_NODE_SIZE = 40;
+const TRAIL_NODE_LAYOUT_WIDTH = 72;
 
 interface JourneyPathNodesProps {
   mapWidth: number;
@@ -143,7 +144,9 @@ function TrailNodeButton({
         <Ionicons name={nodeIcon(icon)} size={16} color={colors.white} />
       </Animated.View>
       <View style={styles.trackLabelPill}>
-        <Text style={styles.trackLabelText}>{label}</Text>
+        <Text style={styles.trackLabelText} numberOfLines={1}>
+          {label}
+        </Text>
       </View>
     </Pressable>
   );
@@ -167,9 +170,11 @@ export function JourneyPathNodes({
         const isTrailNode =
           alignToTrail && (isCompetency || isJob || isTrack || isRoadmap);
         const nodeSize = isTrailNode || isCurrent ? TRAIL_NODE_SIZE : NODE_SIZE_DEFAULT;
+        const layoutWidth =
+          isCurrent || isTrailNode ? TRAIL_NODE_LAYOUT_WIDTH : alignToTrail ? nodeSize : 100;
         const positionSize = isCurrent ? NODE_SIZE_CURRENT : nodeSize;
         const left = alignToTrail
-          ? (node.x / JOURNEY_VIEWBOX.width) * mapWidth - positionSize / 2
+          ? (node.x / JOURNEY_VIEWBOX.width) * mapWidth - layoutWidth / 2
           : mapWidth / 2 - 50;
         const top = alignToTrail
           ? (node.y / JOURNEY_VIEWBOX.height) * mapHeight - positionSize / 2
@@ -179,7 +184,7 @@ export function JourneyPathNodes({
           return (
             <View
               key={node.key}
-              style={[styles.nodePosition, { left, top, width: NODE_SIZE_CURRENT }]}
+              style={[styles.nodePosition, { left, top, width: TRAIL_NODE_LAYOUT_WIDTH }]}
               pointerEvents="box-none"
             >
               <CurrentPositionAvatar
@@ -194,7 +199,7 @@ export function JourneyPathNodes({
           return (
             <View
               key={node.key}
-              style={[styles.nodePosition, { left, top, width: TRAIL_NODE_SIZE }]}
+              style={[styles.nodePosition, { left, top, width: TRAIL_NODE_LAYOUT_WIDTH }]}
               pointerEvents="box-none"
             >
               <TrailNodeButton
@@ -203,7 +208,7 @@ export function JourneyPathNodes({
                 icon={node.icon}
                 label={node.label}
                 onPress={() => onOpenSheet(node.key!)}
-                showPulse={activeSheet == null && node.key !== ROADMAP_KEY}
+                showPulse={activeSheet == null}
               />
             </View>
           );
@@ -231,7 +236,10 @@ export function JourneyPathNodes({
                 color={colors.white}
               />
             </View>
-            <Text style={[styles.nodeLabel, alignToTrail && styles.nodeLabelTrail]}>
+            <Text
+              style={[styles.nodeLabel, alignToTrail && styles.nodeLabelTrail]}
+              numberOfLines={1}
+            >
               {node.label}
             </Text>
           </Pressable>
@@ -251,17 +259,20 @@ const styles = StyleSheet.create({
   nodePosition: {
     position: 'absolute',
     alignItems: 'center',
+    overflow: 'visible',
   },
   trackNodeWrap: {
     alignItems: 'center',
-    width: 40,
+    width: TRAIL_NODE_LAYOUT_WIDTH,
+    overflow: 'visible',
   },
   pulseRing: {
     position: 'absolute',
     top: 0,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    left: (TRAIL_NODE_LAYOUT_WIDTH - TRAIL_NODE_SIZE) / 2,
+    width: TRAIL_NODE_SIZE,
+    height: TRAIL_NODE_SIZE,
+    borderRadius: TRAIL_NODE_SIZE / 2,
     borderWidth: 2,
     borderColor: '#14B8A6',
   },
@@ -286,12 +297,15 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 999,
     backgroundColor: 'rgba(255,255,255,0.85)',
+    maxWidth: TRAIL_NODE_LAYOUT_WIDTH,
+    alignSelf: 'center',
   },
   trackLabelText: {
     fontSize: 10,
     fontWeight: '600',
     color: '#0D9488',
     textAlign: 'center',
+    flexShrink: 0,
   },
   nodeWrap: {
     position: 'absolute',

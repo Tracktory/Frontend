@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Modal, StyleSheet, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors } from '../../styles/colors';
@@ -15,7 +15,9 @@ interface ChatOverlayModalProps {
 
 export function ChatOverlayModal({ visible, onClose }: ChatOverlayModalProps) {
   const insets = useSafeAreaInsets();
+  const { height } = useWindowDimensions();
   const tabBarClearance = getModalBottomTabBarClearance(insets);
+  const sheetHeight = height * 0.85;
   const userId = useAuthStore((s) => s.userId);
   const enterChatScreen = useChatStore((s) => s.enterChatScreen);
 
@@ -34,12 +36,14 @@ export function ChatOverlayModal({ visible, onClose }: ChatOverlayModalProps) {
       onShow={handleShow}
     >
       <View style={styles.backdrop}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
         <View
           style={[
             styles.sheet,
             {
+              height: sheetHeight,
+              bottom: tabBarClearance,
               paddingTop: insets.top,
-              marginBottom: tabBarClearance,
             },
           ]}
         >
@@ -53,11 +57,12 @@ export function ChatOverlayModal({ visible, onClose }: ChatOverlayModalProps) {
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    justifyContent: 'flex-end',
     backgroundColor: 'rgba(0,0,0,0.4)',
   },
   sheet: {
-    height: '85%',
+    position: 'absolute',
+    left: 0,
+    right: 0,
     backgroundColor: colors.background,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
