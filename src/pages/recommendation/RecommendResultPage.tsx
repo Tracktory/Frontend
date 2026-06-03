@@ -14,7 +14,7 @@ import { JourneyPathNodes } from './components/JourneyPathNodes';
 import { GlanceCard } from './components/GlanceCard';
 import { JourneyBottomSheet } from './components/JourneyBottomSheet';
 import { computeCompetencyFromRoadmap } from './utils/journeyCompetency';
-import { JourneyAnalysisReportModal } from './components/JourneyAnalysisReportModal';
+import { JourneyAnalysisReportOverlay } from './components/analysisReport/JourneyAnalysisReportOverlay';
 import { JourneyCompetencySheet } from './components/sheets/JourneyCompetencySheet';
 import { JourneyAIBriefingSheet } from './components/sheets/JourneyAIBriefingSheet';
 import { JourneyJobMatchingSheet } from './components/sheets/JourneyJobMatchingSheet';
@@ -43,6 +43,7 @@ export function RecommendResultPage() {
 
   const profileCurrentYear = profile?.profile.currentYear;
   const displayName = profile?.profile.name ?? userName ?? '';
+  const studentId = profile?.profile.studentId;
   const profileInitial = displayName ? displayName.charAt(0) : '?';
 
   const studentYear = profileCurrentYear ?? grade ?? 1;
@@ -204,12 +205,20 @@ export function RecommendResultPage() {
         ) : null}
         <ChatOverlayModal visible={chatVisible} onClose={() => setChatVisible(false)} />
 
-        <JourneyAnalysisReportModal
+        <JourneyAnalysisReportOverlay
           visible={reportVisible}
           onClose={() => setReportVisible(false)}
+          onOpenChat={() => {
+            setReportVisible(false);
+            setChatVisible(true);
+          }}
           roadmap={vm.roadmap}
           completedCourses={completedCourses}
           jobs={vm.jobs}
+          trackRecommend={vm.trackRecommend}
+          displayName={displayName}
+          studentId={studentId}
+          studentYear={studentYear}
         />
       </View>
     </SafeAreaView>
