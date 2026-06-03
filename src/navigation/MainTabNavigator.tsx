@@ -9,7 +9,7 @@ import { BottomDialTabBar } from './components/BottomDialTabBar';
 export type MainTabParamList = {
   Home: undefined;
   ChatBot: undefined;
-  MyPage: undefined;
+  MyPage: { openCompletedCoursesEditor?: boolean } | undefined;
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();

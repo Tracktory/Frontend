@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   Pressable,
   StyleSheet,
@@ -6,6 +6,8 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -14,6 +16,7 @@ import { useRecommendResultViewModel } from '../../hooks/useRecommendResultViewM
 import { useOnboardingStore } from '../../stores/onboardingStore';
 import { useProfileStore } from '../../stores/profileStore';
 import { useAuthStore } from '../../stores/authStore';
+import type { MainTabParamList } from '../../navigation/MainTabNavigator';
 import { JourneyHeader } from './components/JourneyHeader';
 import { JourneyMountainBackground } from './components/JourneyMountainBackground';
 import { JourneyPathNodes } from './components/JourneyPathNodes';
@@ -22,7 +25,6 @@ import { JourneyBottomSheet } from './components/JourneyBottomSheet';
 import { computeCompetencyFromRoadmap } from './utils/journeyCompetency';
 import { computeJourneyMode } from './utils/journeyMode';
 import { FirstYearHero } from './components/exploration/FirstYearHero';
-import { JourneyCourseRegisterSheet } from './components/sheets/JourneyCourseRegisterSheet';
 import { JourneyAnalysisReportOverlay } from './components/analysisReport/JourneyAnalysisReportOverlay';
 import { JourneyCompetencySheet } from './components/sheets/JourneyCompetencySheet';
 import { JourneyAIBriefingBottomSheet } from './components/briefing/JourneyAIBriefingBottomSheet';
@@ -46,6 +48,7 @@ export function RecommendResultPage() {
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const tabBarClearance = getBottomTabBarClearance(insets);
+  const navigation = useNavigation<BottomTabNavigationProp<MainTabParamList>>();
   const vm = useRecommendResultViewModel();
   const completedCourses = useOnboardingStore((s) => s.completedCourses);
   const grade = useOnboardingStore((s) => s.grade);
@@ -80,6 +83,15 @@ export function RecommendResultPage() {
   const [chatVisible, setChatVisible] = useState(false);
   const [briefingVisible, setBriefingVisible] = useState(false);
   const [reportVisible, setReportVisible] = useState(false);
+
+  const handleCloseSheet = () => {
+    vm.closeSheet();
+  };
+
+  const goToMyPageCompletedCourses = useCallback(() => {
+    vm.closeSheet();
+    navigation.navigate('MyPage', { openCompletedCoursesEditor: true });
+  }, [navigation, vm]);
 
   const isMapInteractive =
     vm.activeSheet == null && !briefingVisible && !reportVisible && !chatVisible;
@@ -122,23 +134,18 @@ export function RecommendResultPage() {
       case 'roadmap':
         return (
           <JourneyRoadmapSheet
+            track1={track1}
+            track2={track2}
+            targetJob={targetJob}
+            studentYear={studentYear}
+            completedCourses={completedCourses}
             roadmap={vm.roadmap}
-            isError={vm.isError}
-            onRetry={vm.refresh}
+            onRegister={goToMyPageCompletedCourses}
           />
         );
       case 'trackSynergy':
         return (
           <JourneyTrackSynergySheet data={vm.trackRecommend} />
-        );
-      case 'register':
-        return (
-          <JourneyCourseRegisterSheet
-            onComplete={() => {
-              vm.closeSheet();
-              vm.refresh();
-            }}
-          />
         );
       default:
         return null;
@@ -169,7 +176,7 @@ export function RecommendResultPage() {
               <FirstYearHero
                 jobs={vm.jobs}
                 onOpenTrack={() => vm.openSheet('trackSynergy')}
-                onOpenRegister={() => vm.openSheet('register')}
+                onOpenRegister={goToMyPageCompletedCourses}
               />
             ) : (
               <JourneyPathNodes
@@ -224,7 +231,7 @@ export function RecommendResultPage() {
       <JourneyBottomSheet
         visible={vm.activeSheet != null}
         sheetKey={vm.activeSheet}
-        onClose={vm.closeSheet}
+        onClose={handleCloseSheet}
       >
         {renderSheetContent()}
       </JourneyBottomSheet>

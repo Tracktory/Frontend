@@ -48,6 +48,8 @@ interface MyCompletedCoursesEditableSectionProps {
   catalog: HansungCourse[];
   isAddingCourse?: boolean;
   removingCourseName?: string | null;
+  autoOpenEditor?: boolean;
+  onEditorOpened?: () => void;
   onAddCourse: (course: HansungCourse) => Promise<boolean>;
   onRemoveCourse: (name: string) => void | Promise<void>;
 }
@@ -90,6 +92,8 @@ export function MyCompletedCoursesEditableSection({
   catalog,
   isAddingCourse = false,
   removingCourseName = null,
+  autoOpenEditor = false,
+  onEditorOpened,
   onAddCourse,
   onRemoveCourse,
 }: MyCompletedCoursesEditableSectionProps) {
@@ -129,6 +133,13 @@ export function MyCompletedCoursesEditableSection({
   }, [catalog, searchQuery, completedSet]);
 
   const hasSearch = searchQuery.trim().length > 0;
+
+  useEffect(() => {
+    if (!autoOpenEditor) return;
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setIsEditing(true);
+    onEditorOpened?.();
+  }, [autoOpenEditor, onEditorOpened]);
 
   useEffect(() => {
     if (

@@ -66,7 +66,7 @@ function resolveSheetTitle(
 
   if (sheetKey === 'competency') return '🏆 최종 역량 커버리지';
 
-  if (sheetKey === 'register') return '📋 이수 과목 등록';
+  if (sheetKey === 'roadmap') return '📚 학습 로드맵';
 
   return SHEET_TITLES[sheetKey];
 
@@ -81,6 +81,10 @@ interface JourneyBottomSheetProps {
   sheetKey?: JourneySheetKey;
 
   titleOverride?: string;
+
+  showBackButton?: boolean;
+
+  onBack?: () => void;
 
   onClose: () => void;
 
@@ -97,6 +101,10 @@ export function JourneyBottomSheet({
   sheetKey = null,
 
   titleOverride,
+
+  showBackButton = false,
+
+  onBack,
 
   onClose,
 
@@ -194,6 +202,17 @@ export function JourneyBottomSheet({
         <View style={styles.handle} />
 
         <View style={styles.header}>
+
+          {showBackButton && onBack ? (
+            <Pressable
+              onPress={onBack}
+              hitSlop={12}
+              accessibilityLabel="뒤로"
+              style={styles.backButton}
+            >
+              <Ionicons name="chevron-back" size={20} color="#6B7280" />
+            </Pressable>
+          ) : null}
 
           <Text style={styles.title}>{title}</Text>
 
@@ -308,6 +327,24 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
 
     marginBottom: 16,
+
+    gap: 8,
+
+  },
+
+  backButton: {
+
+    width: 32,
+
+    height: 32,
+
+    borderRadius: 16,
+
+    backgroundColor: '#F3F4F6',
+
+    alignItems: 'center',
+
+    justifyContent: 'center',
 
   },
 

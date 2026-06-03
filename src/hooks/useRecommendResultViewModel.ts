@@ -10,7 +10,6 @@ export type JourneySheetKey =
   | 'current'
   | 'roadmap'
   | 'trackSynergy'
-  | 'register'
   | null;
 
 export function useRecommendResultViewModel() {

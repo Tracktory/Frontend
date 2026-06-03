@@ -38,6 +38,7 @@ function nodeIcon(name: string): keyof typeof Ionicons.glyphMap {
     compass: 'compass',
     person: 'person',
     book: 'book',
+    library: 'library',
     'git-network': 'git-network',
   };
   return map[name] ?? 'ellipse';
@@ -202,7 +203,7 @@ export function JourneyPathNodes({
                 icon={node.icon}
                 label={node.label}
                 onPress={() => onOpenSheet(node.key!)}
-                showPulse={activeSheet == null}
+                showPulse={activeSheet == null && node.key !== ROADMAP_KEY}
               />
             </View>
           );

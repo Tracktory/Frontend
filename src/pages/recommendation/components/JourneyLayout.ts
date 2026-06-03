@@ -41,7 +41,7 @@ export const JOURNEY_NODE_LAYOUT: {
     label: '학습 로드맵',
     x: 192,
     y: 420,
-    icon: 'book',
+    icon: 'library',
     nodeColor: '#14B8A6',
   },
   {
@@ -62,5 +62,4 @@ export const SHEET_TITLES: Record<NonNullable<JourneySheetKey>, string> = {
   current: '현재 학습 현황',
   roadmap: '학습 로드맵',
   trackSynergy: '트랙 시너지',
-  register: '이수 과목 등록',
 };
