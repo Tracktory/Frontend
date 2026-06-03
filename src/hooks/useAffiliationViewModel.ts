@@ -6,11 +6,11 @@ import type { OnboardingStackParamList } from '../navigation/OnboardingNavigator
 type Navigation = StackNavigationProp<OnboardingStackParamList, 'Affiliation'>;
 
 export function useAffiliationViewModel(navigation: Navigation) {
-  const admissionYear = useOnboardingStore((s) => s.admissionYear);
+  const grade = useOnboardingStore((s) => s.grade);
   const affiliation = useOnboardingStore((s) => s.affiliation);
   const setAffiliation = useOnboardingStore((s) => s.setAffiliation);
 
-  const subtitle = admissionYear ? `${admissionYear}년 입학생 기준` : '';
+  const subtitle = grade != null ? `${grade}학년 기준으로 맞춤 설정할게요` : '';
   const canProceed = affiliation !== null;
 
   const handleNext = () => {

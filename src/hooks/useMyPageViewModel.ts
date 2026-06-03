@@ -22,7 +22,6 @@ import {
   resolveTrackId,
 } from '../pages/onboarding/data/idMappings';
 import type { RootStackParamList } from '../navigation/RootNavigator';
-import { admissionYearFromStudentId } from '../utils/mapProfileToOnboarding';
 import { computeJourneyMode } from '../pages/recommendation/utils/journeyMode';
 import { computeCompetencyFromRoadmap } from '../pages/recommendation/utils/journeyCompetency';
 import { useRecommendStore } from '../stores/recommendStore';
@@ -35,24 +34,10 @@ function toIds(labels: string[], map: Record<string, number>): number[] {
   return labels.map((l) => map[l]).filter((id): id is number => id !== undefined);
 }
 
-/** 입학연도 두 자리(YY학번 표기용) */
-function twoDigitAdmissionYear(year: number): string {
-  return `${year % 100}`.padStart(2, '0');
-}
-
-function formatProfileSubtitle(
-  admissionYear: number | null,
-  currentYear: number | null | undefined
-): string {
-  const gradePart =
-    currentYear != null && currentYear >= 1 ? `${currentYear}학년` : null;
-  const badgePart =
-    admissionYear != null ? `${twoDigitAdmissionYear(admissionYear)}학번` : null;
-
-  if (badgePart && gradePart) return `${badgePart} · ${gradePart}`;
-  if (gradePart) return gradePart;
-  if (badgePart) return badgePart;
-  return EMPTY_PLACEHOLDER;
+function formatGradeLabel(currentYear: number | null | undefined): string {
+  return currentYear != null && currentYear >= 1
+    ? `${currentYear}학년`
+    : EMPTY_PLACEHOLDER;
 }
 
 function formatEmployment(
@@ -79,7 +64,6 @@ export function useMyPageViewModel() {
   const [isAddingCourse, setIsAddingCourse] = useState(false);
   const [removingCourseName, setRemovingCourseName] = useState<string | null>(null);
 
-  const admissionYear = useOnboardingStore((s) => s.admissionYear);
   const grade = useOnboardingStore((s) => s.grade);
   const college = useOnboardingStore((s) => s.college);
   const interests = useOnboardingStore((s) => s.interests);
@@ -121,13 +105,9 @@ export function useMyPageViewModel() {
       ? experiencedFields.join(', ')
       : EMPTY_PLACEHOLDER;
 
-  const profileAdmissionYear =
-    admissionYearFromStudentId(profile?.profile.studentId) ?? admissionYear;
   const profileCurrentYear = profile?.profile.currentYear ?? grade;
-  const admissionBadge = formatProfileSubtitle(
-    profileAdmissionYear,
-    profileCurrentYear
-  );
+  const gradeLabel = formatGradeLabel(profileCurrentYear);
+  const admissionBadge = gradeLabel;
 
   const displayName = profile?.profile.name ?? userName ?? '-';
   const profileInitial = displayName.length > 0 ? displayName.slice(-1) : '-';
@@ -159,14 +139,9 @@ export function useMyPageViewModel() {
     return stats.currentPercent > 0 ? stats.currentPercent : 72;
   }, [isExploring, roadmap, completedCourses]);
 
-  const admissionYearLabel =
-    profileAdmissionYear != null
-      ? `${twoDigitAdmissionYear(profileAdmissionYear)}학번`
-      : EMPTY_PLACEHOLDER;
-
   const heroMetaLine =
-    profileAdmissionYear != null
-      ? `${admissionYearLabel} · 한성대학교`
+    profileCurrentYear != null && profileCurrentYear >= 1
+      ? `${gradeLabel} · 한성대학교`
       : '한성대학교';
 
   const deptLineForHero = isExploring
@@ -376,7 +351,7 @@ export function useMyPageViewModel() {
     profileInitial,
     majorLine,
     admissionBadge,
-    admissionYearLabel,
+    gradeLabel,
     heroMetaLine,
     deptLineForHero,
     isExploring,

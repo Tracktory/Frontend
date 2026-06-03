@@ -7,9 +7,15 @@ interface YearSelectButtonProps {
   year: number;
   selected: boolean;
   onPress: () => void;
+  label?: string;
 }
 
-export function YearSelectButton({ year, selected, onPress }: YearSelectButtonProps) {
+export function YearSelectButton({
+  year,
+  selected,
+  onPress,
+  label,
+}: YearSelectButtonProps) {
   return (
     <Pressable
       style={({ pressed }) => [
@@ -19,7 +25,9 @@ export function YearSelectButton({ year, selected, onPress }: YearSelectButtonPr
       ]}
       onPress={onPress}
     >
-      <Text style={[styles.label, selected && styles.selectedLabel]}>{year}년</Text>
+      <Text style={[styles.label, selected && styles.selectedLabel]}>
+        {label ?? `${year}년`}
+      </Text>
       {selected ? <Text style={styles.check}>✓</Text> : null}
     </Pressable>
   );

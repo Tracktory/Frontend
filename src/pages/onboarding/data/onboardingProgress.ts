@@ -2,7 +2,6 @@ import type { AffiliationType } from '../../../stores/slices/admissionSlice';
 
 export type OnboardingRouteName =
   | 'Name'
-  | 'AdmissionYear'
   | 'Affiliation'
   | 'CollegeSelect'
   | 'Track1Select'
@@ -17,7 +16,6 @@ export type OnboardingRouteName =
 
 const FIRST_YEAR_STEPS: OnboardingRouteName[] = [
   'Name',
-  'AdmissionYear',
   'Affiliation',
   'CollegeSelect',
   'InterestSelect',
@@ -31,7 +29,6 @@ const FIRST_YEAR_STEPS: OnboardingRouteName[] = [
 
 const UPPER_YEAR_STEPS: OnboardingRouteName[] = [
   'Name',
-  'AdmissionYear',
   'Affiliation',
   'Track1Select',
   'Track2Select',

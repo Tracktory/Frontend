@@ -9,6 +9,7 @@ export interface AdmissionSlice {
   affiliation: AffiliationType | null;
   setName: (name: string) => void;
   setAdmissionYear: (year: number) => void;
+  setGrade: (grade: number) => void;
   setAffiliation: (type: AffiliationType) => void;
 }
 
@@ -22,6 +23,9 @@ export const createAdmissionSlice: StateCreator<AdmissionSlice> = (set) => ({
     const currentYear = new Date().getFullYear();
     const calculatedGrade = Math.max(1, currentYear - year + 1);
     set({ admissionYear: year, grade: calculatedGrade });
+  },
+  setGrade: (grade: number) => {
+    set({ grade, admissionYear: null });
   },
   setAffiliation: (type: AffiliationType) => {
     set({ affiliation: type });

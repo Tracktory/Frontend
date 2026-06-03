@@ -2,7 +2,6 @@ export const ONBOARDING_SERVICE_NAME = 'tracktory';
 
 export type OnboardingScreenKey =
   | 'name'
-  | 'admissionYear'
   | 'affiliation'
   | 'collegeSelect'
   | 'track1Select'
@@ -22,19 +21,16 @@ export const ONBOARDING_COPY: Record<
     subtitle?: string;
     ctaPrimary: string;
     ctaDisabledHint?: string;
+    ctaGradeDisabledHint?: string;
     ctaSecondary?: string;
   }
 > = {
   name: {
     title: `반가워요,\n${ONBOARDING_SERVICE_NAME}이에요`,
-    subtitle: '이름만 알려주시면, 맞춤 로드맵을 준비할게요',
+    subtitle: '이름과 학년을 알려주시면, 맞춤 로드맵을 준비할게요',
     ctaPrimary: '다음',
     ctaDisabledHint: '이름을 적어주세요',
-  },
-  admissionYear: {
-    title: '몇 학번이세요?',
-    subtitle: '입학년도만 고르면, 지금 몇 학년인지 알아서 맞출게요',
-    ctaPrimary: '좋아요, 다음',
+    ctaGradeDisabledHint: '학년을 선택해주세요',
   },
   affiliation: {
     title: '지금은 어느 쪽에 가까우세요?',

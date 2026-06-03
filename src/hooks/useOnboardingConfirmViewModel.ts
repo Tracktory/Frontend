@@ -30,7 +30,6 @@ function toIds(labels: string[], map: Record<string, number>): number[] {
 export function useOnboardingConfirmViewModel(navigation: Navigation) {
   const rootNavigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
-  const admissionYear = useOnboardingStore((s) => s.admissionYear);
   const name = useOnboardingStore((s) => s.name);
   const grade = useOnboardingStore((s) => s.grade);
   const affiliation = useOnboardingStore((s) => s.affiliation);
@@ -49,8 +48,7 @@ export function useOnboardingConfirmViewModel(navigation: Navigation) {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const admissionYearLabel =
-    admissionYear && grade ? `${admissionYear}년 (${grade}학년)` : null;
+  const gradeLabel = grade != null ? `${grade}학년` : null;
 
   const inputTags = experiencedFieldInput
     ? experiencedFieldInput
@@ -146,7 +144,7 @@ export function useOnboardingConfirmViewModel(navigation: Navigation) {
 
   return {
     name,
-    admissionYearLabel,
+    gradeLabel,
     affiliation,
     college,
     track1,

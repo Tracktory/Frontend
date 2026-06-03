@@ -59,6 +59,7 @@ export function getInitialOnboardingState(): OnboardingDataState {
 export type OnboardingState = OnboardingDataState & {
   setName: AdmissionSlice['setName'];
   setAdmissionYear: AdmissionSlice['setAdmissionYear'];
+  setGrade: AdmissionSlice['setGrade'];
   setAffiliation: AdmissionSlice['setAffiliation'];
   setCollege: CollegeSlice['setCollege'];
   addCompletedCourse: CompletedCoursesSlice['addCompletedCourse'];

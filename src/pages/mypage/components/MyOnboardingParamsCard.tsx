@@ -24,7 +24,7 @@ function ParamRow({ label, value, showDivider = true }: ParamRowProps) {
 }
 
 interface MyOnboardingParamsCardProps {
-  admissionYearLabel: string;
+  gradeLabel: string;
   tracksOrAffiliationLabel: string;
   tracksOrAffiliationValue: string;
   jobPreferenceLine: string;
@@ -33,7 +33,7 @@ interface MyOnboardingParamsCardProps {
 }
 
 export function MyOnboardingParamsCard({
-  admissionYearLabel,
+  gradeLabel,
   tracksOrAffiliationLabel,
   tracksOrAffiliationValue,
   jobPreferenceLine,
@@ -43,7 +43,7 @@ export function MyOnboardingParamsCard({
   return (
     <View style={styles.wrap}>
       <MySectionCard title="온보딩 파라미터" iconName="book-outline">
-        <ParamRow label="입학 학번" value={admissionYearLabel} />
+        <ParamRow label="학년" value={gradeLabel} />
         <ParamRow label={tracksOrAffiliationLabel} value={tracksOrAffiliationValue} />
         <ParamRow label="희망 직무" value={jobPreferenceLine} />
         <ParamRow label="관심 분야" value={interestsSummaryLine} showDivider={false} />

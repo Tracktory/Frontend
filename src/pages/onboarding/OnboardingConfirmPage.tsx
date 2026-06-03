@@ -60,7 +60,7 @@ export function OnboardingConfirmPage({ navigation }: Props) {
       footer={<SaveAndRecommendButton onPress={vm.handleSave} isLoading={vm.isSubmitting} />}
     >
       <ConfirmRow label="이름" value={vm.name || '선택 안 함'} />
-      <ConfirmRow label="입학·학년" value={vm.admissionYearLabel ?? '선택 안 함'} />
+      <ConfirmRow label="학년" value={vm.gradeLabel ?? '선택 안 함'} />
       <ConfirmRow label={affiliationLabel} value={affiliationValue} />
       <ConfirmChips label="관심 분야" items={vm.interests} />
       <ConfirmChips label="개발 분야" items={vm.developmentFields} />

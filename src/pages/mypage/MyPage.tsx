@@ -46,7 +46,7 @@ export function MyPage() {
         />
 
         <MyOnboardingParamsCard
-          admissionYearLabel={vm.admissionYearLabel}
+          gradeLabel={vm.gradeLabel}
           tracksOrAffiliationLabel={tracksOrAffiliationLabel}
           tracksOrAffiliationValue={vm.onboardingTracksOrAffiliationLine}
           jobPreferenceLine={vm.jobPreferenceLine}

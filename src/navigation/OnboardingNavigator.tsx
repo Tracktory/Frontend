@@ -4,7 +4,6 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { useOnboardingStore } from '../stores/onboardingStore';
 
 import { NamePage } from '@/src/pages/onboarding/NamePage';
-import { AdmissionYearPage } from '@/src/pages/onboarding/AdmissionYearPage';
 import { AffiliationPage } from '@/src/pages/onboarding/AffiliationPage';
 import { CollegeSelectPage } from '@/src/pages/onboarding/CollegeSelectPage';
 import { Track1SelectPage } from '@/src/pages/onboarding/Track1SelectPage';
@@ -19,7 +18,6 @@ import { OnboardingPreviewPage } from '@/src/pages/onboarding/OnboardingPreviewP
 
 export type OnboardingStackParamList = {
   Name: undefined;
-  AdmissionYear: undefined;
   Affiliation: undefined;
   CollegeSelect: undefined;
   Track1Select: undefined;
@@ -50,7 +48,6 @@ export function OnboardingNavigator() {
       }}
     >
       <Stack.Screen name="Name" component={NamePage} />
-      <Stack.Screen name="AdmissionYear" component={AdmissionYearPage} />
       <Stack.Screen name="Affiliation" component={AffiliationPage} />
       <Stack.Screen name="CollegeSelect" component={CollegeSelectPage} />
       <Stack.Screen name="Track1Select" component={Track1SelectPage} />
