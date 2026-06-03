@@ -30,6 +30,9 @@ interface OnboardingStepLayoutProps {
   onSecondaryPress?: () => void;
   scrollable?: boolean;
   contentStyle?: StyleProp<ViewStyle>;
+  hideProgress?: boolean;
+  hideTitleBlock?: boolean;
+  centerContent?: boolean;
   /** 제공 시 기본 primary/secondary 버튼 대신 렌더 */
   footer?: React.ReactNode;
 }
@@ -49,13 +52,20 @@ export function OnboardingStepLayout({
   onSecondaryPress,
   scrollable = false,
   contentStyle,
+  hideProgress = false,
+  hideTitleBlock = false,
+  centerContent = false,
   footer,
 }: OnboardingStepLayoutProps) {
   const body = (
     <>
-      <ProgressBar progress={progress} />
-      <Text style={styles.title}>{title}</Text>
-      {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+      {!hideProgress ? <ProgressBar progress={progress} /> : null}
+      {!hideTitleBlock ? (
+        <>
+          <Text style={styles.title}>{title}</Text>
+          {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+        </>
+      ) : null}
       <View style={[styles.children, contentStyle]}>{children}</View>
     </>
   );
@@ -75,7 +85,10 @@ export function OnboardingStepLayout({
       {scrollable ? (
         <ScrollView
           style={styles.scrollArea}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            centerContent && styles.scrollContentCentered,
+          ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
@@ -142,6 +155,9 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 16,
     flexGrow: 1,
+  },
+  scrollContentCentered: {
+    justifyContent: 'center',
   },
   title: {
     fontSize: 28,

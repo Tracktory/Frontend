@@ -1,5 +1,11 @@
 import React, { useMemo, useState } from 'react';
-import { LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -37,6 +43,7 @@ const CHAT_FAB_ABOVE_GLANCE = 16;
 const HOME_BG = '#F0FDFA';
 
 export function RecommendResultPage() {
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const tabBarClearance = getBottomTabBarClearance(insets);
   const vm = useRecommendResultViewModel();
@@ -70,17 +77,12 @@ export function RecommendResultPage() {
   const targetJob = vm.jobs[0]?.title ?? '직무 미정';
   const jobCandidateCount = vm.jobs.length;
 
-  const [screenSize, setScreenSize] = useState({ width: 0, height: 0 });
   const [chatVisible, setChatVisible] = useState(false);
   const [briefingVisible, setBriefingVisible] = useState(false);
   const [reportVisible, setReportVisible] = useState(false);
 
-  const onScreenLayout = (e: LayoutChangeEvent) => {
-    const { width, height } = e.nativeEvent.layout;
-    if (width > 0 && height > 0) {
-      setScreenSize({ width, height });
-    }
-  };
+  const isMapInteractive =
+    vm.activeSheet == null && !briefingVisible && !reportVisible && !chatVisible;
 
   const renderSheetContent = () => {
     switch (vm.activeSheet) {
@@ -144,131 +146,157 @@ export function RecommendResultPage() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <View style={styles.screen} onLayout={onScreenLayout}>
-        {!vm.isError && screenSize.width > 0 ? (
-          <>
+    <View style={styles.root}>
+      {!vm.isError ? (
+        <>
+          <View
+            style={[
+              styles.backgroundShell,
+              { width: windowWidth, height: windowHeight },
+            ]}
+            pointerEvents="none"
+          >
             <JourneyMountainBackground
-              width={screenSize.width}
-              height={screenSize.height}
               showFullMountainBackground={showFullMountainBackground}
             />
-
-            <View style={styles.mapLayer} pointerEvents="box-none">
-              {isExploring ? (
-                <FirstYearHero
-                  jobs={vm.jobs}
-                  onOpenTrack={() => vm.openSheet('trackSynergy')}
-                  onOpenRegister={() => vm.openSheet('register')}
-                />
-              ) : (
-                <JourneyPathNodes
-                  mapWidth={screenSize.width}
-                  mapHeight={screenSize.height}
-                  alignToTrail={showFullMountainBackground}
-                  activeSheet={vm.activeSheet}
-                  onOpenSheet={vm.openSheet}
-                />
-              )}
-            </View>
-          </>
-        ) : null}
-
-        <View style={styles.headerWrap}>
-          <JourneyHeader
-            displayName={displayName}
-            profileInitial={profileInitial}
-            onBriefingPress={() => setBriefingVisible(true)}
-          />
-        </View>
-
-        {vm.isError ? (
-          <View style={styles.errorContainer}>
-            <Ionicons name="alert-circle-outline" size={48} color={colors.textHint} />
-            <Text style={styles.errorText}>추천 결과를 불러오지 못했습니다</Text>
-            <Pressable style={styles.retryButton} onPress={vm.refresh}>
-              <Text style={styles.retryButtonText}>재시도</Text>
-            </Pressable>
           </View>
-        ) : (
+
           <View
-            style={[styles.glanceWrap, { bottom: tabBarClearance + GLANCE_CARD_GAP }]}
-            pointerEvents="box-none"
+            style={[styles.mapLayer, { width: windowWidth, height: windowHeight }]}
+            pointerEvents={isMapInteractive ? 'box-none' : 'none'}
           >
-            <GlanceCard
-              isExploring={isExploring}
-              targetJob={targetJob}
-              competencyPercent={competencyPercent}
-              jobCandidateCount={jobCandidateCount}
-              onPress={() =>
-                vm.openSheet(isExploring ? 'job' : 'competency')
-              }
+            {isExploring ? (
+              <FirstYearHero
+                jobs={vm.jobs}
+                onOpenTrack={() => vm.openSheet('trackSynergy')}
+                onOpenRegister={() => vm.openSheet('register')}
+              />
+            ) : (
+              <JourneyPathNodes
+                mapWidth={windowWidth}
+                mapHeight={windowHeight}
+                alignToTrail={showFullMountainBackground}
+                activeSheet={vm.activeSheet}
+                onOpenSheet={vm.openSheet}
+              />
+            )}
+          </View>
+        </>
+      ) : null}
+
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <View style={styles.content}>
+          <View style={styles.headerWrap}>
+            <JourneyHeader
+              displayName={displayName}
+              profileInitial={profileInitial}
+              onBriefingPress={() => setBriefingVisible(true)}
             />
           </View>
-        )}
 
-        <JourneyBottomSheet
-          visible={vm.activeSheet != null}
-          sheetKey={vm.activeSheet}
-          onClose={vm.closeSheet}
-        >
-          {renderSheetContent()}
-        </JourneyBottomSheet>
+          {vm.isError ? (
+            <View style={styles.errorContainer}>
+              <Ionicons name="alert-circle-outline" size={48} color={colors.textHint} />
+              <Text style={styles.errorText}>추천 결과를 불러오지 못했습니다</Text>
+              <Pressable style={styles.retryButton} onPress={vm.refresh}>
+                <Text style={styles.retryButtonText}>재시도</Text>
+              </Pressable>
+            </View>
+          ) : (
+            <View
+              style={[styles.glanceWrap, { bottom: tabBarClearance + GLANCE_CARD_GAP }]}
+              pointerEvents="box-none"
+            >
+              <GlanceCard
+                isExploring={isExploring}
+                targetJob={targetJob}
+                competencyPercent={competencyPercent}
+                jobCandidateCount={jobCandidateCount}
+                onPress={() =>
+                  vm.openSheet(isExploring ? 'job' : 'competency')
+                }
+              />
+            </View>
+          )}
+        </View>
+      </SafeAreaView>
 
-        <JourneyAIBriefingBottomSheet
-          visible={briefingVisible}
-          onClose={() => setBriefingVisible(false)}
-        >
-          <JourneyAIBriefingSheet
-            isFirstYear={isExploring}
-            enabled={briefingVisible}
-          />
-        </JourneyAIBriefingBottomSheet>
+      <JourneyBottomSheet
+        visible={vm.activeSheet != null}
+        sheetKey={vm.activeSheet}
+        onClose={vm.closeSheet}
+      >
+        {renderSheetContent()}
+      </JourneyBottomSheet>
 
-        {vm.activeSheet == null && !briefingVisible ? (
-          <ChatFab
-            onPress={() => setChatVisible(true)}
-            bottomOffset={
-              tabBarClearance +
-              GLANCE_CARD_GAP +
-              glanceCardHeight +
-              CHAT_FAB_ABOVE_GLANCE
-            }
-          />
-        ) : null}
-        <ChatOverlayModal visible={chatVisible} onClose={() => setChatVisible(false)} />
-
-        <JourneyAnalysisReportOverlay
-          visible={reportVisible}
-          onClose={() => setReportVisible(false)}
-          onOpenChat={() => {
-            setReportVisible(false);
-            setChatVisible(true);
-          }}
-          roadmap={vm.roadmap}
-          completedCourses={completedCourses}
-          jobs={vm.jobs}
-          trackRecommend={vm.trackRecommend}
-          displayName={displayName}
-          studentId={studentId}
-          studentYear={studentYear}
+      <JourneyAIBriefingBottomSheet
+        visible={briefingVisible}
+        onClose={() => setBriefingVisible(false)}
+      >
+        <JourneyAIBriefingSheet
+          isFirstYear={isExploring}
+          enabled={briefingVisible}
         />
-      </View>
-    </SafeAreaView>
+      </JourneyAIBriefingBottomSheet>
+
+      {vm.activeSheet == null && !briefingVisible ? (
+        <ChatFab
+          onPress={() => setChatVisible(true)}
+          bottomOffset={
+            tabBarClearance +
+            GLANCE_CARD_GAP +
+            glanceCardHeight +
+            CHAT_FAB_ABOVE_GLANCE
+          }
+        />
+      ) : null}
+
+      <ChatOverlayModal visible={chatVisible} onClose={() => setChatVisible(false)} />
+
+      <JourneyAnalysisReportOverlay
+        visible={reportVisible}
+        onClose={() => setReportVisible(false)}
+        onOpenChat={() => {
+          setReportVisible(false);
+          setChatVisible(true);
+        }}
+        roadmap={vm.roadmap}
+        completedCourses={completedCourses}
+        jobs={vm.jobs}
+        trackRecommend={vm.trackRecommend}
+        displayName={displayName}
+        studentId={studentId}
+        studentYear={studentYear}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  root: {
     flex: 1,
     backgroundColor: HOME_BG,
+    overflow: 'hidden',
   },
-  screen: {
+  backgroundShell: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    zIndex: 0,
+  },
+  safeArea: {
     flex: 1,
-    overflow: 'visible',
+    backgroundColor: 'transparent',
+    zIndex: 10,
+  },
+  content: {
+    flex: 1,
   },
   mapLayer: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    zIndex: 5,
   },
   headerWrap: {
     paddingHorizontal: 16,

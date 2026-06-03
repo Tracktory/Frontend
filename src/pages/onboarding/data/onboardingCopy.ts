@@ -43,9 +43,9 @@ export const ONBOARDING_COPY: Record<
     ctaPrimary: '다음',
   },
   preview: {
-    title: '거의 다 왔어요',
-    subtitle: 'AI가 준비한 맞춤 결과를 미리 볼 수 있어요',
-    ctaPrimary: '다음',
+    title: '이미 이런 게 보여요',
+    subtitle: '입력한 관심사 기반으로 맞춤 추천이 준비됐어요',
+    ctaPrimary: '전체 결과 보러 가기 →',
   },
   track1Select: {
     title: '주전공 1트랙이 뭐예요?',

@@ -23,9 +23,10 @@ const DIAL_TABS: { name: keyof MainTabParamList; label: string; sub: string }[] 
   { name: 'MyPage', label: '마이', sub: '마이페이지' },
 ];
 
-const DIAL_TRACK_WIDTH = 200;
-const DIAL_TRACK_HEIGHT = 46;
+const DIAL_TRACK_WIDTH = 228;
+const DIAL_TRACK_HEIGHT = 52;
 const TAB_SLOT_WIDTH = DIAL_TRACK_WIDTH / 2;
+const DIAL_ICON_SIZE = 22;
 const PILL_SPRING = { damping: 25, stiffness: 300 };
 
 export function BottomDialTabBar({ state, navigation }: BottomTabBarProps) {
@@ -84,14 +85,6 @@ export function BottomDialTabBar({ state, navigation }: BottomTabBarProps) {
         },
       ]}
     >
-      <View style={styles.dotsLeft}>
-        <View style={styles.dotRow}>
-          {[0, 1, 2].map((i) => (
-            <View key={i} style={styles.hintDot} />
-          ))}
-        </View>
-      </View>
-
       <View style={styles.dialWrap}>
         <View style={styles.dialTrack}>
           <Animated.View style={[styles.pill, pillStyle]} />
@@ -105,7 +98,7 @@ export function BottomDialTabBar({ state, navigation }: BottomTabBarProps) {
               >
                 <Ionicons
                   name={tab.name === 'Home' ? 'home' : 'person'}
-                  size={20}
+                  size={DIAL_ICON_SIZE}
                   color={isFocused ? '#FFFFFF' : '#9CA3AF'}
                 />
                 <Text style={[styles.label, isFocused && styles.labelActive]}>{tab.label}</Text>
@@ -113,14 +106,6 @@ export function BottomDialTabBar({ state, navigation }: BottomTabBarProps) {
               </Pressable>
             );
           })}
-        </View>
-      </View>
-
-      <View style={styles.dotsRight}>
-        <View style={styles.dotRow}>
-          {[0, 1, 2].map((i) => (
-            <View key={i} style={styles.hintDot} />
-          ))}
         </View>
       </View>
     </View>
@@ -139,26 +124,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
     zIndex: 35,
-  },
-  dotsLeft: {
-    width: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dotsRight: {
-    width: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dotRow: {
-    flexDirection: 'row',
-    gap: 4,
-  },
-  hintDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#D1D5DB',
   },
   dialWrap: {
     flex: 1,
@@ -192,7 +157,7 @@ const styles = StyleSheet.create({
     paddingTop: 2,
   },
   label: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
     color: '#9CA3AF',
     marginTop: 1,
@@ -201,7 +166,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   sub: {
-    fontSize: 9,
+    fontSize: 10,
     color: '#D1D5DB',
     marginTop: 1,
   },

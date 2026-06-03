@@ -42,6 +42,7 @@ export function useOnboardingConfirmViewModel(navigation: Navigation) {
   const employmentValues = useOnboardingStore((s) => s.employmentValues);
   const experiencedFields = useOnboardingStore((s) => s.experiencedFields);
   const experiencedFieldInput = useOnboardingStore((s) => s.experiencedFieldInput);
+  const completedCourses = useOnboardingStore((s) => s.completedCourses);
 
   const accessToken = useAuthStore((s) => s.accessToken);
   const setUserName = useAuthStore((s) => s.setUserName);
@@ -65,6 +66,28 @@ export function useOnboardingConfirmViewModel(navigation: Navigation) {
   );
 
   const employmentChips = [...preferredCompanyTypes, ...employmentValues];
+
+  const isFirstYear = affiliation === '1학년';
+  const affiliationLabel = isFirstYear ? '소속' : '선택 트랙';
+  const affiliationValue = isFirstYear
+    ? (college ?? '—')
+    : track1
+      ? `${track1}${track2 ? ` / ${track2}` : ''}`
+      : '—';
+
+  const jobPreferenceValue =
+    employmentChips.length > 0 ? employmentChips.join(' · ') : '나중에 입력';
+  const completedCoursesValue =
+    completedCourses.length > 0 ? `${completedCourses.length}개` : '나중에 입력';
+
+  const summaryRows = [
+    { label: '학년', value: gradeLabel ?? '—' },
+    { label: affiliationLabel, value: affiliationValue },
+    { label: '관심 분야', value: `${interests.length}개` },
+    { label: '흥미 개발분야', value: `${developmentFields.length}개` },
+    { label: '희망 직무', value: jobPreferenceValue },
+    { label: '기수강 과목', value: completedCoursesValue },
+  ];
 
   const handleSave = async () => {
     if (!accessToken) {
@@ -153,6 +176,7 @@ export function useOnboardingConfirmViewModel(navigation: Navigation) {
     developmentFields,
     employmentChips,
     allExperiencedFields,
+    summaryRows,
     isSubmitting,
     handleSave,
   };

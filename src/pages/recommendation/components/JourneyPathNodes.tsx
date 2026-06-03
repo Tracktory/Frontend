@@ -3,8 +3,8 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
+  withDelay,
   withRepeat,
-  withSequence,
   withTiming,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
@@ -42,39 +42,52 @@ function nodeIcon(name: string): keyof typeof Ionicons.glyphMap {
   return map[name] ?? 'ellipse';
 }
 
-function TrackPulseRing() {
+const RIPPLE_DURATION = 1400;
+const RIPPLE_MAX_SCALE = 1.75;
+const RIPPLE_START_OPACITY = 0.45;
+
+function RippleRing({ delayMs }: { delayMs: number }) {
   const scale = useSharedValue(1);
-  const opacity = useSharedValue(0.6);
+  const opacity = useSharedValue(RIPPLE_START_OPACITY);
 
   useEffect(() => {
-    scale.value = withRepeat(
-      withSequence(
-        withTiming(1.4, { duration: 1000 }),
-        withTiming(1, { duration: 1000 }),
+    scale.value = withDelay(
+      delayMs,
+      withRepeat(
+        withTiming(RIPPLE_MAX_SCALE, { duration: RIPPLE_DURATION }),
+        -1,
+        false,
       ),
-      -1,
-      false,
     );
-    opacity.value = withRepeat(
-      withSequence(
-        withTiming(0, { duration: 1000 }),
-        withTiming(0.6, { duration: 1000 }),
+    opacity.value = withDelay(
+      delayMs,
+      withRepeat(
+        withTiming(0, { duration: RIPPLE_DURATION }),
+        -1,
+        false,
       ),
-      -1,
-      false,
     );
-  }, [scale, opacity]);
+  }, [delayMs, scale, opacity]);
 
-  const pulseStyle = useAnimatedStyle(() => ({
+  const rippleStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
     opacity: opacity.value,
   }));
 
   return (
     <Animated.View
-      style={[styles.pulseRing, pulseStyle]}
+      style={[styles.pulseRing, rippleStyle]}
       pointerEvents="none"
     />
+  );
+}
+
+function DualRippleRings() {
+  return (
+    <>
+      <RippleRing delayMs={0} />
+      <RippleRing delayMs={650} />
+    </>
   );
 }
 
@@ -109,7 +122,7 @@ function TrailNodeButton({
       onPress={onPress}
       accessibilityLabel={label}
     >
-      {showPulse ? <TrackPulseRing /> : null}
+      {showPulse ? <DualRippleRings /> : null}
       <Animated.View
         style={[
           styles.trackNodeCircle,
@@ -182,7 +195,7 @@ export function JourneyPathNodes({
                 icon={node.icon}
                 label={node.label}
                 onPress={() => onOpenSheet(node.key!)}
-                showPulse
+                showPulse={activeSheet == null}
               />
             </View>
           );

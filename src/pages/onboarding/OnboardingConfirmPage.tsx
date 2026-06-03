@@ -1,96 +1,48 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { StackScreenProps } from '@react-navigation/stack';
 
 import { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
-import { useOnboardingStore } from '../../stores/onboardingStore';
-import { colors } from '../../styles/colors';
 import { useOnboardingConfirmViewModel } from '../../hooks/useOnboardingConfirmViewModel';
-import { ONBOARDING_COPY } from './data/onboardingCopy';
-import { getOnboardingProgress } from './data/onboardingProgress';
 import { OnboardingStepLayout } from './components/OnboardingStepLayout';
+import { OnboardingSparklesHero } from './components/OnboardingSparklesHero';
+import { OnboardingSummaryCard } from './components/OnboardingSummaryCard';
 import { SaveAndRecommendButton } from './components/SaveAndRecommendButton';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'OnboardingConfirm'>;
 
-function ConfirmRow({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.row}>
-      <Text style={styles.rowLabel}>{label}</Text>
-      <Text style={styles.rowValue}>{value}</Text>
-    </View>
-  );
-}
-
-function ConfirmChips({ label, items }: { label: string; items: string[] }) {
-  return (
-    <View style={styles.row}>
-      <Text style={styles.rowLabel}>{label}</Text>
-      {items.length === 0 ? (
-        <Text style={styles.empty}>선택 안 함</Text>
-      ) : (
-        <Text style={styles.rowValue}>{items.join(' · ')}</Text>
-      )}
-    </View>
-  );
-}
-
 export function OnboardingConfirmPage({ navigation }: Props) {
   const vm = useOnboardingConfirmViewModel(navigation);
-  const affiliation = useOnboardingStore((s) => s.affiliation);
-  const copy = ONBOARDING_COPY.confirm;
-
-  const isFirstYearAffiliation = vm.affiliation === '1학년';
-  const affiliationLabel = isFirstYearAffiliation ? '소속' : '선택 트랙';
-  const affiliationValue = isFirstYearAffiliation
-    ? vm.college ?? '선택 안 함'
-    : vm.track1
-      ? `${vm.track1}${vm.track2 ? ` / ${vm.track2}` : ''}`
-      : '선택 안 함';
+  const displayName = vm.name.trim() || '회원';
 
   return (
     <OnboardingStepLayout
-      progress={getOnboardingProgress('OnboardingConfirm', affiliation)}
-      title={copy.title}
-      subtitle={copy.subtitle}
-      showBack
-      onBack={() => navigation.goBack()}
+      progress={1}
+      title=""
+      showBack={false}
       primaryTitle=""
+      hideProgress
+      hideTitleBlock
       scrollable
-      footer={<SaveAndRecommendButton onPress={vm.handleSave} isLoading={vm.isSubmitting} />}
+      footer={
+        <SaveAndRecommendButton onPress={vm.handleSave} isLoading={vm.isSubmitting} />
+      }
     >
-      <ConfirmRow label="이름" value={vm.name || '선택 안 함'} />
-      <ConfirmRow label="학년" value={vm.gradeLabel ?? '선택 안 함'} />
-      <ConfirmRow label={affiliationLabel} value={affiliationValue} />
-      <ConfirmChips label="관심 분야" items={vm.interests} />
-      <ConfirmChips label="개발 분야" items={vm.developmentFields} />
-      <ConfirmChips label="취업 선호" items={vm.employmentChips} />
-      {vm.allExperiencedFields.length > 0 ? (
-        <ConfirmChips label="해본 기술" items={vm.allExperiencedFields} />
-      ) : null}
+      <View style={styles.content}>
+        <OnboardingSparklesHero
+          variant="completion"
+          title="설정 완료! 🎉"
+          subtitle={`${displayName}님을 위한 AI 학습경로를`}
+          subtitleLine2="생성하고 있어요"
+        />
+        <OnboardingSummaryCard rows={vm.summaryRows} />
+      </View>
     </OnboardingStepLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  row: {
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderSubtle,
-  },
-  rowLabel: {
-    fontSize: 13,
-    color: colors.textHint,
-    marginBottom: 6,
-  },
-  rowValue: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.textPrimary,
-    lineHeight: 24,
-  },
-  empty: {
-    fontSize: 15,
-    color: colors.textHint,
+  content: {
+    paddingTop: 8,
   },
 });
