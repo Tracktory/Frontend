@@ -5,7 +5,7 @@ export const DIAL_TAB_BAR_PADDING_TOP = 8;
 export const DIAL_TAB_BAR_CONTENT_HEIGHT = 78;
 export const TAB_BAR_FLOATING_GAP = 12;
 /** Extra breathing room for bottom sheets/modals above the dial tab bar. */
-export const MODAL_BOTTOM_EXTRA_CLEARANCE = 20;
+export const MODAL_BOTTOM_EXTRA_CLEARANCE = -60;
 
 export function getBottomTabBarClearance(insets: Pick<EdgeInsets, 'bottom'>): number {
   return (

@@ -17,7 +17,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
-import { getModalBottomTabBarClearance } from '../../../navigation/layout/tabBarLayout';
+import { getModalBottomTabBarClearance } from '../../../../navigation/layout/tabBarLayout';
 
 const SHEET_TIMING = { duration: 280, easing: Easing.out(Easing.cubic) };
 
