@@ -2,7 +2,6 @@ export type OnboardingRouteName =
   | 'Name'
   | 'CollegeSelect'
   | 'Track1Select'
-  | 'Track2Select'
   | 'InterestSelect'
   | 'DevelopmentFieldSelect'
   | 'CompanyTypeSelect'
@@ -24,7 +23,6 @@ const FIRST_YEAR_STEPS: OnboardingRouteName[] = [
 const UPPER_YEAR_STEPS: OnboardingRouteName[] = [
   'Name',
   'Track1Select',
-  'Track2Select',
   'InterestSelect',
   'DevelopmentFieldSelect',
   'CompanyTypeSelect',

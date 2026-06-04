@@ -10,6 +10,7 @@ import { COLLEGE_OPTIONS, COLLEGE_TRACK_MAP } from './data/onboardingOptions';
 import { ONBOARDING_COPY } from './data/onboardingCopy';
 import { getOnboardingProgress } from './data/onboardingProgress';
 import { OnboardingStepLayout } from './components/OnboardingStepLayout';
+import { onboardingSelectedText } from './components/onboardingSelectionStyles';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'CollegeSelect'>;
 
@@ -100,7 +101,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.selectSurface,
   },
   collegeRowSelected: {
-    backgroundColor: colors.selectSurfaceActive,
+    backgroundColor: colors.onboardingChipSelectedBg,
   },
   collegeLabel: {
     fontSize: 16,
@@ -108,7 +109,8 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   collegeLabelSelected: {
-    color: colors.primary,
+    color: onboardingSelectedText,
+    fontWeight: '700',
   },
   pressed: {
     opacity: 0.92,

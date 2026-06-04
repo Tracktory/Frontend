@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
   },
   chipSelected: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.onboardingChipSelectedBg,
   },
   chipDisabled: {
     opacity: 0.35,
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   chipTextSelected: {
-    color: colors.white,
+    color: colors.primary,
     fontWeight: '600',
   },
   pressed: {

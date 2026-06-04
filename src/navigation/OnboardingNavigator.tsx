@@ -6,7 +6,6 @@ import { useOnboardingStore } from '../stores/onboardingStore';
 import { NamePage } from '@/src/pages/onboarding/NamePage';
 import { CollegeSelectPage } from '@/src/pages/onboarding/CollegeSelectPage';
 import { Track1SelectPage } from '@/src/pages/onboarding/Track1SelectPage';
-import { Track2SelectPage } from '@/src/pages/onboarding/Track2SelectPage';
 import { DevelopmentFieldSelectPage } from '@/src/pages/onboarding/DevelopmentFieldSelectPage';
 import { CompanyTypeSelectPage } from '@/src/pages/onboarding/CompanyTypeSelectPage';
 import { EmploymentValueSelectPage } from '@/src/pages/onboarding/EmploymentValueSelectPage';
@@ -18,7 +17,6 @@ export type OnboardingStackParamList = {
   Name: undefined;
   CollegeSelect: undefined;
   Track1Select: undefined;
-  Track2Select: undefined;
   InterestSelect: undefined;
   DevelopmentFieldSelect: undefined;
   CompanyTypeSelect: undefined;
@@ -49,7 +47,6 @@ export function OnboardingNavigator() {
       <Stack.Screen name="Name" component={NamePage} />
       <Stack.Screen name="CollegeSelect" component={CollegeSelectPage} />
       <Stack.Screen name="Track1Select" component={Track1SelectPage} />
-      <Stack.Screen name="Track2Select" component={Track2SelectPage} />
       <Stack.Screen name="InterestSelect" component={InterestSelectPage} />
       <Stack.Screen name="DevelopmentFieldSelect" component={DevelopmentFieldSelectPage} />
       <Stack.Screen name="CompanyTypeSelect" component={CompanyTypeSelectPage} />
