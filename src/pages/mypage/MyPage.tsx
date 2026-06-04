@@ -10,7 +10,6 @@ import { getBottomTabBarClearance } from '../../navigation/layout/tabBarLayout';
 import { MyPageHeader } from './components/MyPageHeader';
 import { MyProfileHeroCard } from './components/MyProfileHeroCard';
 import { MyOnboardingParamsCard } from './components/MyOnboardingParamsCard';
-import { MyInterestChipsSection } from './components/MyInterestChipsSection';
 import { MyCompletedCoursesEditableSection } from './components/MyCompletedCoursesEditableSection';
 import { MySettingsSection } from './components/MySettingsSection';
 import {
@@ -99,8 +98,6 @@ export function MyPage() {
           onPressEditExperience={() => setEditingSection('experience')}
           onPressEditEmployment={() => setEditingSection('employment')}
         />
-
-        <MyInterestChipsSection interests={vm.interests} />
 
         <View onLayout={handleCoursesSectionLayout}>
           <MyCompletedCoursesEditableSection
