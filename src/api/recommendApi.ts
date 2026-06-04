@@ -348,13 +348,12 @@ export async function fetchRecommendResult(
   accessToken: string,
   forceRefresh = false
 ): Promise<RecommendResult> {
-  const res = await fetch(`${BASE_URL}/api/v1/recommendations`, {
+  const query = `?forceRefresh=${encodeURIComponent(String(forceRefresh))}`;
+  const res = await fetch(`${BASE_URL}/api/v1/recommendations${query}`, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
       Authorization: `Bearer ${accessToken}`,
     },
-    body: JSON.stringify({ forceRefresh }),
   });
 
   const envelope: ApiEnvelope<ApiRecommendData> = await res.json();

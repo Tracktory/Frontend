@@ -6,7 +6,7 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,8 +16,6 @@ import { useRecommendResultViewModel } from '../../hooks/useRecommendResultViewM
 import { useOnboardingStore } from '../../stores/onboardingStore';
 import { useProfileStore } from '../../stores/profileStore';
 import { useAuthStore } from '../../stores/authStore';
-import { useRecommendStore } from '../../stores/recommendStore';
-import { navigateToRecommendLoading } from '../../utils/navigateToRecommendLoading';
 import type { MainTabParamList } from '../../navigation/MainTabNavigator';
 import { JourneyHeader } from './components/JourneyHeader';
 import { JourneyMountainBackground } from './components/JourneyMountainBackground';
@@ -60,16 +58,6 @@ export function RecommendResultPage() {
   const profile = useProfileStore((s) => s.profile);
   const userName = useAuthStore((s) => s.userName);
   const accessToken = useAuthStore((s) => s.accessToken);
-
-  useFocusEffect(
-    useCallback(() => {
-      const { shouldForceRefreshOnHomeFocus, clearForceRefreshOnHomeFocus } =
-        useRecommendStore.getState();
-      if (!shouldForceRefreshOnHomeFocus) return;
-      clearForceRefreshOnHomeFocus();
-      navigateToRecommendLoading(navigation, true);
-    }, [navigation])
-  );
 
   const profileCurrentYear = profile?.profile.currentYear;
   const displayName = profile?.profile.name ?? userName ?? '';
