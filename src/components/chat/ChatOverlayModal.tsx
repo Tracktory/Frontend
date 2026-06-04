@@ -1,6 +1,5 @@
 import React from 'react';
 import { Modal, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors } from '../../styles/colors';
 import { ChatContent } from './ChatContent';
@@ -11,10 +10,8 @@ interface ChatOverlayModalProps {
 }
 
 export function ChatOverlayModal({ visible, onClose }: ChatOverlayModalProps) {
-  const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
   const sheetHeight = height * 0.85;
-  const bottomInset = Math.max(insets.bottom, 0);
 
   return (
     <Modal
@@ -25,16 +22,7 @@ export function ChatOverlayModal({ visible, onClose }: ChatOverlayModalProps) {
     >
       <View style={styles.backdrop}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
-        <View
-          style={[
-            styles.sheet,
-            {
-              height: sheetHeight,
-              bottom: 0,
-              paddingBottom: bottomInset,
-            },
-          ]}
-        >
+        <View style={[styles.sheet, { height: sheetHeight }]}>
           <ChatContent showClose overlayMode onClose={onClose} />
         </View>
       </View>
@@ -52,6 +40,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
+    bottom: 0,
     backgroundColor: colors.background,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,

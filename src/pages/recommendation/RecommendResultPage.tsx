@@ -38,7 +38,7 @@ import { ChatFab } from '../../components/ChatFab';
 import { ChatOverlayModal } from '../../components/chat/ChatOverlayModal';
 import { getBottomTabBarClearance } from '../../navigation/layout/tabBarLayout';
 
-const GLANCE_CARD_GAP = 15;
+const GLANCE_CARD_GAP = 0;
 /** Approx. GlanceCard height (2-row climbing layout). */
 const GLANCE_CARD_HEIGHT_CLIMBING = 88;
 const GLANCE_CARD_HEIGHT_EXPLORING = 56;
