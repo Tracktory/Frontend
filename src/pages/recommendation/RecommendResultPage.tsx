@@ -20,6 +20,7 @@ import type { MainTabParamList } from '../../navigation/MainTabNavigator';
 import { JourneyHeader } from './components/JourneyHeader';
 import { JourneyMountainBackground } from './components/JourneyMountainBackground';
 import { JourneyPathNodes } from './components/JourneyPathNodes';
+import { JourneyTrailDashedPath } from './components/JourneyTrailDashedPath';
 import { GlanceCard } from './components/GlanceCard';
 import { JourneyBottomSheet } from './components/JourneyBottomSheet';
 import { computeCompetencyFromRoadmap } from './utils/journeyCompetency';
@@ -179,13 +180,21 @@ export function RecommendResultPage() {
                 onOpenRegister={goToMyPageCompletedCourses}
               />
             ) : (
-              <JourneyPathNodes
-                mapWidth={windowWidth}
-                mapHeight={windowHeight}
-                alignToTrail={showFullMountainBackground}
-                activeSheet={vm.activeSheet}
-                onOpenSheet={vm.openSheet}
-              />
+              <>
+                {showFullMountainBackground ? (
+                  <JourneyTrailDashedPath
+                    mapWidth={windowWidth}
+                    mapHeight={windowHeight}
+                  />
+                ) : null}
+                <JourneyPathNodes
+                  mapWidth={windowWidth}
+                  mapHeight={windowHeight}
+                  alignToTrail={showFullMountainBackground}
+                  activeSheet={vm.activeSheet}
+                  onOpenSheet={vm.openSheet}
+                />
+              </>
             )}
           </View>
         </>

@@ -7,10 +7,12 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 
 const AVATAR_SIZE = 40;
 const LAYOUT_WIDTH = 72;
+const BREATHE_MIN_SCALE = 0.92;
+const BREATHE_MAX_SCALE = 1.08;
+const BREATHE_HALF_MS = 1250;
 
 interface CurrentPositionAvatarProps {
   label?: string;
@@ -26,8 +28,10 @@ export function CurrentPositionAvatar({
   useEffect(() => {
     scale.value = withRepeat(
       withSequence(
-        withTiming(1.08, { duration: 1250 }),
-        withTiming(1, { duration: 1250 }),
+        withTiming(BREATHE_MIN_SCALE, { duration: BREATHE_HALF_MS }),
+        withTiming(BREATHE_MAX_SCALE, { duration: BREATHE_HALF_MS }),
+        withTiming(BREATHE_MIN_SCALE, { duration: BREATHE_HALF_MS }),
+        withTiming(BREATHE_MAX_SCALE, { duration: BREATHE_HALF_MS }),
       ),
       -1,
       false,
@@ -45,23 +49,7 @@ export function CurrentPositionAvatar({
       accessibilityLabel={label}
     >
       <Animated.View style={[styles.avatarOuter, breatheStyle]}>
-        <View style={styles.avatarClip}>
-          <Svg width={AVATAR_SIZE} height={AVATAR_SIZE}>
-            <Defs>
-              <LinearGradient id="currentAvatarGrad" x1="0" y1="0" x2="1" y2="1">
-                <Stop offset="0" stopColor="#14B8A6" />
-                <Stop offset="1" stopColor="#0D9488" />
-              </LinearGradient>
-            </Defs>
-            <Circle
-              cx={AVATAR_SIZE / 2}
-              cy={AVATAR_SIZE / 2}
-              r={AVATAR_SIZE / 2}
-              fill="url(#currentAvatarGrad)"
-            />
-          </Svg>
-          <Text style={styles.emoji}>🧑‍💻</Text>
-        </View>
+        <Text style={styles.emoji}>🧑‍💻</Text>
       </Animated.View>
       <View style={styles.labelPill}>
         <Text style={styles.labelText} numberOfLines={1}>
@@ -82,23 +70,18 @@ const styles = StyleSheet.create({
     height: AVATAR_SIZE,
     borderRadius: AVATAR_SIZE / 2,
     backgroundColor: '#14B8A6',
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'visible',
     shadowColor: '#111827',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 6,
   },
-  avatarClip: {
-    width: AVATAR_SIZE,
-    height: AVATAR_SIZE,
-    borderRadius: AVATAR_SIZE / 2,
-    overflow: 'hidden',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#14B8A6',
-  },
   emoji: {
-    position: 'absolute',
     fontSize: 16,
     lineHeight: 22,
   },

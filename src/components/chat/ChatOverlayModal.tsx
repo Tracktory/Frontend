@@ -3,7 +3,6 @@ import { Modal, Pressable, StyleSheet, View, useWindowDimensions } from 'react-n
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors } from '../../styles/colors';
-import { getModalBottomTabBarClearance } from '../../navigation/layout/tabBarLayout';
 import { ChatContent } from './ChatContent';
 import { useAuthStore } from '../../stores/authStore';
 import { useChatStore } from '../../stores/chatStore';
@@ -16,8 +15,8 @@ interface ChatOverlayModalProps {
 export function ChatOverlayModal({ visible, onClose }: ChatOverlayModalProps) {
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
-  const tabBarClearance = getModalBottomTabBarClearance(insets);
   const sheetHeight = height * 0.85;
+  const bottomInset = Math.max(insets.bottom, 0);
   const userId = useAuthStore((s) => s.userId);
   const enterChatScreen = useChatStore((s) => s.enterChatScreen);
 
@@ -42,12 +41,12 @@ export function ChatOverlayModal({ visible, onClose }: ChatOverlayModalProps) {
             styles.sheet,
             {
               height: sheetHeight,
-              bottom: tabBarClearance,
-              paddingTop: insets.top,
+              bottom: 0,
+              paddingBottom: bottomInset,
             },
           ]}
         >
-          <ChatContent showClose onClose={onClose} headerHeight={insets.top + 52} />
+          <ChatContent showClose onClose={onClose} headerHeight={52} />
         </View>
       </View>
     </Modal>
@@ -57,6 +56,7 @@ export function ChatOverlayModal({ visible, onClose }: ChatOverlayModalProps) {
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
+    justifyContent: 'flex-end',
     backgroundColor: 'transparent',
   },
   sheet: {
