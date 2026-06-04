@@ -39,28 +39,16 @@ export interface OnboardingSubmitResult {
   onboardingCompleted: boolean;
 }
 
-function createRequestId(): string {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
-}
-
 export async function submitOnboarding(
   body: OnboardingRequestBody,
-  accessToken: string,
-  requestId?: string
+  accessToken: string
 ): Promise<OnboardingSubmitResult> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${accessToken}`,
-  };
-  if (requestId) {
-    headers['X-Request-Id'] = requestId;
-  } else {
-    headers['X-Request-Id'] = createRequestId();
-  }
-
   const res = await fetch(`${BASE_URL}/api/v1/onboarding`, {
     method: 'POST',
-    headers,
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
     body: JSON.stringify(body),
   });
 
