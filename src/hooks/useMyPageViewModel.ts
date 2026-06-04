@@ -131,7 +131,6 @@ export function useMyPageViewModel() {
     [studentYear, hasSelectedTrack]
   );
 
-  const trackCount = sortedTracks.length > 0 ? sortedTracks.length : [track1, track2].filter(Boolean).length;
   const completedCount = completedCourses.length;
 
   const competencyPercent = useMemo(() => {
@@ -165,12 +164,6 @@ export function useMyPageViewModel() {
     : tracksLine !== EMPTY_PLACEHOLDER
       ? tracksLine
       : '빅데이터트랙, 컴퓨터공학트랙';
-
-  const miniStatPrimaryLabel = isExploring ? '소속' : '선택 트랙';
-  const miniStatPrimaryValue = isExploring
-    ? (college ?? MAJOR_FALLBACK)
-    : `${trackCount > 0 ? trackCount : 2}`;
-  const miniStatPrimaryUnit = isExploring ? undefined : '개';
 
   const miniStatCompetencyValue = isExploring
     ? '-'
@@ -365,15 +358,11 @@ export function useMyPageViewModel() {
     heroMetaLine,
     deptLineForHero,
     isExploring,
-    trackCount,
     completedCount,
     competencyPercent,
     jobPreferenceLine,
     interestsSummaryLine,
     onboardingTracksOrAffiliationLine,
-    miniStatPrimaryLabel,
-    miniStatPrimaryValue,
-    miniStatPrimaryUnit,
     miniStatCompetencyValue,
     profileCurrentYear,
     college,

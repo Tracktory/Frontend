@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import TargetIcon from '@/src/assets/images/target.svg';
 import { GlanceProgressBar } from './GlanceProgressBar';
 
 export interface GlanceCardProps {
@@ -29,9 +30,12 @@ export function GlanceCard({
       ) : (
         <>
           <View style={styles.row1}>
-            <Text style={styles.targetText} numberOfLines={1}>
-              🎯 목표 {targetJob}
-            </Text>
+            <View style={styles.targetRow}>
+              <TargetIcon width={20} height={20} />
+              <Text style={styles.targetText} numberOfLines={1}>
+                목표 {targetJob}
+              </Text>
+            </View>
             <Text style={styles.percentText}>{clampedPercent}%</Text>
           </View>
           <View style={styles.row2}>
@@ -81,11 +85,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 8,
   },
+  targetRow: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginRight: 12,
+    minWidth: 0,
+  },
   targetText: {
     flex: 1,
     fontSize: 13,
     color: '#4B5563',
-    marginRight: 12,
   },
   percentText: {
     fontSize: 20,

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import MapIcon from '@/src/assets/images/map.svg';
 
 import type { RoadmapPayload } from '../../../../data/mockRoadmapData';
 import { getRoadmapDisplayTiers } from '../../data/roadmapTierUtils';
@@ -61,7 +61,7 @@ export function RoadmapContent({
         style={({ pressed }) => [styles.editBtn, pressed && styles.editBtnPressed]}
         onPress={onRegister}
       >
-        <Ionicons name="library-outline" size={16} color="#14B8A6" />
+        <MapIcon width={16} height={16} />
         <Text style={styles.editBtnText}>이수 과목 수정하기</Text>
       </Pressable>
     </View>

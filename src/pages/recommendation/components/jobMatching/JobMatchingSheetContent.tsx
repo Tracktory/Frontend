@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import type { JobRecommendation } from '../../../../data/mockRecommendData';
@@ -17,6 +17,13 @@ export function JobMatchingSheetContent({
   onShowBriefing,
 }: JobMatchingSheetContentProps) {
   const topJobs = jobs.slice(0, MAX_JOBS);
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(
+    topJobs[0]?.id ?? null
+  );
+
+  useEffect(() => {
+    setSelectedJobId(jobs.slice(0, MAX_JOBS)[0]?.id ?? null);
+  }, [jobs]);
 
   return (
     <View style={styles.wrap}>
@@ -26,6 +33,9 @@ export function JobMatchingSheetContent({
           title={job.title}
           matchScore={job.matchScore}
           chips={job.techStackReady ? job.techStack : []}
+          reasoning={job.reasoning}
+          isActive={job.id === selectedJobId}
+          onPress={() => setSelectedJobId(job.id)}
         />
       ))}
       <JobBriefingLinkCard onPress={onShowBriefing} />

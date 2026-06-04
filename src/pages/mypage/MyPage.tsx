@@ -76,9 +76,6 @@ export function MyPage() {
           deptLine={vm.deptLineForHero}
           displayName={vm.displayName}
           metaLine={vm.heroMetaLine}
-          miniStatPrimaryLabel={vm.miniStatPrimaryLabel}
-          miniStatPrimaryValue={vm.miniStatPrimaryValue}
-          miniStatPrimaryUnit={vm.miniStatPrimaryUnit}
           completedCount={vm.completedCount}
           miniStatCompetencyValue={vm.miniStatCompetencyValue}
         />

@@ -82,7 +82,7 @@ export function useAnalysisReport({
               if (allowRecommendRetry && !retriedRecommend.current) {
                 retriedRecommend.current = true;
                 try {
-                  const rec = await fetchRecommendResult(accessToken, true);
+                  const rec = await fetchRecommendResult(accessToken, false);
                   setRecommendResult(rec);
                   await loadReport(code, false);
                   return;

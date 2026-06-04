@@ -7,9 +7,6 @@ interface MyProfileHeroCardProps {
   deptLine: string;
   displayName: string;
   metaLine: string;
-  miniStatPrimaryLabel: string;
-  miniStatPrimaryValue: string;
-  miniStatPrimaryUnit?: string;
   completedCount: number;
   miniStatCompetencyValue: string;
 }
@@ -38,9 +35,6 @@ export function MyProfileHeroCard({
   deptLine,
   displayName,
   metaLine,
-  miniStatPrimaryLabel,
-  miniStatPrimaryValue,
-  miniStatPrimaryUnit = '개',
   completedCount,
   miniStatCompetencyValue,
 }: MyProfileHeroCardProps) {
@@ -71,11 +65,6 @@ export function MyProfileHeroCard({
 
       <View style={styles.statsDivider} />
       <View style={styles.statsRow}>
-        <MiniStat
-          label={miniStatPrimaryLabel}
-          value={miniStatPrimaryValue}
-          unit={miniStatPrimaryUnit}
-        />
         <MiniStat label="이수 과목" value={`${completedCount}`} unit="개" />
         <MiniStat
           label="역량 커버리지"

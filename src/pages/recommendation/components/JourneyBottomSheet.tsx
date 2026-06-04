@@ -34,6 +34,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Ionicons } from '@expo/vector-icons';
 
+import MapIcon from '@/src/assets/images/map.svg';
+import TrophyIcon from '@/src/assets/images/trophy.svg';
 import type { JourneySheetKey } from '../../../hooks/useRecommendResultViewModel';
 import { getModalBottomTabBarClearance } from '../../../navigation/layout/tabBarLayout';
 import { colors } from '../../../styles/colors';
@@ -64,12 +66,22 @@ function resolveSheetTitle(
 
   if (sheetKey === 'job') return '🧭 직무 매칭';
 
-  if (sheetKey === 'competency') return '🏆 최종 역량 커버리지';
+  if (sheetKey === 'competency') return SHEET_TITLES.competency;
 
-  if (sheetKey === 'roadmap') return '📚 학습 로드맵';
+  if (sheetKey === 'roadmap') return SHEET_TITLES.roadmap;
 
   return SHEET_TITLES[sheetKey];
 
+}
+
+function SheetTitleIcon({ sheetKey }: { sheetKey: JourneySheetKey | null | undefined }) {
+  if (sheetKey === 'competency') {
+    return <TrophyIcon width={20} height={20} />;
+  }
+  if (sheetKey === 'roadmap') {
+    return <MapIcon width={20} height={20} />;
+  }
+  return null;
 }
 
 
@@ -214,7 +226,10 @@ export function JourneyBottomSheet({
             </Pressable>
           ) : null}
 
-          <Text style={styles.title}>{title}</Text>
+          <View style={styles.titleRow}>
+            <SheetTitleIcon sheetKey={sheetKey} />
+            <Text style={styles.title}>{title}</Text>
+          </View>
 
           <Pressable
 
@@ -274,7 +289,7 @@ const styles = StyleSheet.create({
 
     ...StyleSheet.absoluteFillObject,
 
-    backgroundColor: 'rgba(0,0,0,0.35)',
+    backgroundColor: 'transparent',
 
   },
 
@@ -348,6 +363,15 @@ const styles = StyleSheet.create({
 
   },
 
+  titleRow: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingRight: 12,
+    minWidth: 0,
+  },
+
   title: {
 
     flex: 1,
@@ -357,8 +381,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
 
     color: '#111827',
-
-    paddingRight: 12,
 
   },
 

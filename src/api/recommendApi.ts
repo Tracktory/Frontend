@@ -332,7 +332,7 @@ function mapRoadmap(
 
 export async function fetchRecommendResult(
   accessToken: string,
-  forceRefresh = true
+  forceRefresh = false
 ): Promise<RecommendResult> {
   const res = await fetch(`${BASE_URL}/api/v1/recommendations`, {
     method: 'POST',

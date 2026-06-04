@@ -63,7 +63,7 @@ export function BottomDialTabBar({ state, navigation }: BottomTabBarProps) {
       if (now - lastHomePress.current < 800) return;
       lastHomePress.current = now;
       const parent = navigation.getParent<StackNavigationProp<MainStackParamList>>();
-      parent?.navigate('RecommendLoading', { forceRefresh: true });
+      parent?.navigate('RecommendLoading', { forceRefresh: false });
       return;
     }
 
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.96)',
+    backgroundColor: colors.white,
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
     zIndex: 35,
