@@ -2,10 +2,7 @@ import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import type {
-  RemainingCoursePlan,
-  SkillComparison,
-} from '../../../data/analysisReportStaticMock';
+import type { RemainingCoursePlan } from '../../../data/analysisReportStaticMock';
 import { AnalysisReportSection } from '../AnalysisReportSection';
 import { CircularGauge } from '../charts/CircularGauge';
 
@@ -15,7 +12,6 @@ interface FinalCoveragePlanSectionProps {
   expectedPercent: number;
   remainingCount: number;
   showContributionBadges: boolean;
-  skillComparison: SkillComparison[];
   remainingCoursePlan: RemainingCoursePlan[];
   prerequisiteWarning: string;
 }
@@ -26,11 +22,9 @@ export function FinalCoveragePlanSection({
   expectedPercent,
   remainingCount,
   showContributionBadges,
-  skillComparison,
   remainingCoursePlan,
   prerequisiteWarning,
 }: FinalCoveragePlanSectionProps) {
-  const [showProjected, setShowProjected] = useState(false);
   const [expandedCourse, setExpandedCourse] = useState<number | null>(null);
 
   return (
@@ -55,54 +49,6 @@ export function FinalCoveragePlanSection({
         </View>
       </View>
 
-      <Pressable
-        style={styles.toggleBtn}
-        onPress={() => setShowProjected((v) => !v)}
-      >
-        <Text style={styles.toggleText}>분야별 역량 변화 보기</Text>
-        <Ionicons
-          name={showProjected ? 'chevron-up' : 'chevron-down'}
-          size={14}
-          color="#0D9488"
-        />
-      </Pressable>
-
-      {showProjected ? (
-        <View style={styles.comparisonBlock}>
-          {skillComparison.map((s) => (
-            <View key={s.subject} style={styles.comparisonRow}>
-              <View style={styles.comparisonHeader}>
-                <Text style={styles.comparisonSubject}>{s.subject}</Text>
-                <Text style={styles.comparisonValues}>
-                  <Text style={styles.currentVal}>{s.current}%</Text>
-                  {' → '}
-                  <Text style={styles.projectedVal}>{s.projected}%</Text>
-                </Text>
-              </View>
-              <View style={styles.stackedTrack}>
-                <View style={[styles.stackedCurrent, { width: `${s.current}%` }]} />
-                <View
-                  style={[
-                    styles.stackedDelta,
-                    { width: `${Math.max(0, s.projected - s.current)}%` },
-                  ]}
-                />
-              </View>
-            </View>
-          ))}
-          <View style={styles.legendRow}>
-            <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: '#14B8A6' }]} />
-              <Text style={styles.legendText}>현재</Text>
-            </View>
-            <View style={styles.legendItem}>
-              <View style={[styles.legendDot, styles.legendDotLight]} />
-              <Text style={styles.legendText}>이수 후 증가</Text>
-            </View>
-          </View>
-        </View>
-      ) : null}
-
       <View style={styles.divider} />
 
       <View style={styles.planHeader}>
@@ -110,68 +56,52 @@ export function FinalCoveragePlanSection({
         <Text style={styles.planTitle}>{expectedPercent}% 달성 잔여 과목 플랜</Text>
       </View>
 
-      {remainingCoursePlan.map((c, i) => (
-        <View key={`${c.name}-${i}`}>
-          <Pressable
-            style={[
-              styles.courseBtn,
-              expandedCourse === i ? styles.courseBtnExpanded : null,
-            ]}
-            onPress={() => setExpandedCourse(expandedCourse === i ? null : i)}
-          >
-            <View style={styles.courseIndex}>
-              <Text style={styles.courseIndexText}>{i + 1}</Text>
-            </View>
-            <View style={styles.courseInfo}>
-              <Text style={styles.courseName}>{c.name}</Text>
-              <Text style={styles.courseMeta}>
-                {c.credits}학점 · {c.sem} · {c.area}
-              </Text>
-            </View>
-            {showContributionBadges && c.impact !== '—' ? (
-              <View style={styles.impactPill}>
-                <Text style={styles.impactText}>{c.impact}</Text>
+      {remainingCoursePlan.length === 0 ? (
+        <Text style={styles.emptyPlan}>잔여 필수 과목이 없습니다.</Text>
+      ) : (
+        remainingCoursePlan.map((c, i) => (
+          <View key={`${c.name}-${i}`}>
+            <Pressable
+              style={[
+                styles.courseBtn,
+                expandedCourse === i ? styles.courseBtnExpanded : null,
+              ]}
+              onPress={() => setExpandedCourse(expandedCourse === i ? null : i)}
+            >
+              <View style={styles.courseIndex}>
+                <Text style={styles.courseIndexText}>{i + 1}</Text>
+              </View>
+              <View style={styles.courseInfo}>
+                <Text style={styles.courseName}>{c.name}</Text>
+                <Text style={styles.courseMeta}>
+                  {c.credits}학점 · {c.sem} · {c.area}
+                </Text>
+              </View>
+              {showContributionBadges && c.impact !== '—' ? (
+                <View style={styles.impactPill}>
+                  <Text style={styles.impactText}>{c.impact}</Text>
+                </View>
+              ) : null}
+              <Ionicons
+                name={expandedCourse === i ? 'chevron-up' : 'chevron-down'}
+                size={13}
+                color="#9CA3AF"
+              />
+            </Pressable>
+            {expandedCourse === i ? (
+              <View style={styles.courseDetail}>
+                <Text style={styles.courseDesc}>
+                  <Text style={styles.courseDescBold}>{c.area}</Text>
+                  {` · ${c.sem}`}
+                  {showContributionBadges && c.impact !== '—'
+                    ? ` — 역량 ${c.impact} 기여 예상`
+                    : ''}
+                </Text>
               </View>
             ) : null}
-            <Ionicons
-              name={expandedCourse === i ? 'chevron-up' : 'chevron-down'}
-              size={13}
-              color="#9CA3AF"
-            />
-          </Pressable>
-          {expandedCourse === i ? (
-            <View style={styles.courseDetail}>
-              {showContributionBadges && c.contributionPercent != null ? (
-                <>
-                  <View style={styles.impactBarLabels}>
-                    <Text style={styles.impactBarLabel}>커버리지 기여도</Text>
-                    <Text style={styles.impactBarValue}>{c.impact}</Text>
-                  </View>
-                  <View style={styles.impactBarTrack}>
-                    <View
-                      style={[
-                        styles.impactBarFill,
-                        {
-                          width: `${Math.min(100, c.contributionPercent * 10)}%`,
-                        },
-                      ]}
-                    />
-                  </View>
-                </>
-              ) : null}
-              <Text style={styles.courseDesc}>
-                <Text style={styles.courseDescBold}>{c.area}</Text>
-                {c.tracks && c.tracks.length > 0
-                  ? ` · ${c.tracks.join(', ')}`
-                  : ''}
-                {showContributionBadges && c.impact !== '—'
-                  ? ` — 커버리지 ${c.impact} 기여`
-                  : ' — 기준 직무 변경 시 기여도 미제공'}
-              </Text>
-            </View>
-          ) : null}
-        </View>
-      ))}
+          </View>
+        ))
+      )}
 
       <View style={styles.warning}>
         <View style={styles.warningHeader}>
@@ -208,93 +138,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#14B8A6',
   },
-  toggleBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#F0FDFA',
-    borderWidth: 1,
-    borderColor: '#CCFBF1',
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    marginBottom: 8,
-  },
-  toggleText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#0D9488',
-  },
-  comparisonBlock: {
-    paddingTop: 8,
-    gap: 10,
-  },
-  comparisonRow: {
-    marginBottom: 4,
-  },
-  comparisonHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  comparisonSubject: {
-    fontSize: 11,
-    color: '#4B5563',
-  },
-  comparisonValues: {
-    fontSize: 11,
-    color: '#6B7280',
-  },
-  currentVal: {
-    color: '#9CA3AF',
-  },
-  projectedVal: {
-    color: '#0D9488',
-    fontWeight: '700',
-  },
-  stackedTrack: {
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#F3F4F6',
-    flexDirection: 'row',
-    overflow: 'hidden',
-  },
-  stackedCurrent: {
-    height: 8,
-    backgroundColor: '#14B8A6',
-  },
-  stackedDelta: {
-    height: 8,
-    backgroundColor: '#CCFBF1',
-  },
-  legendRow: {
-    flexDirection: 'row',
-    gap: 16,
-    marginTop: 4,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  legendDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  legendDotLight: {
-    backgroundColor: '#CCFBF1',
-    borderWidth: 1,
-    borderColor: '#99F6E4',
-  },
-  legendText: {
-    fontSize: 10,
-    color: '#9CA3AF',
-  },
   divider: {
     height: 1,
     backgroundColor: '#F3F4F6',
-    marginVertical: 16,
+    marginBottom: 16,
   },
   planHeader: {
     flexDirection: 'row',
@@ -306,6 +153,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#374151',
+  },
+  emptyPlan: {
+    fontSize: 13,
+    color: '#9CA3AF',
+    marginBottom: 12,
   },
   courseBtn: {
     flexDirection: 'row',
@@ -371,32 +223,6 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 16,
     borderBottomRightRadius: 16,
     backgroundColor: '#F0FDFA',
-  },
-  impactBarLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  impactBarLabel: {
-    fontSize: 11,
-    color: '#9CA3AF',
-  },
-  impactBarValue: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#0D9488',
-  },
-  impactBarTrack: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#CCFBF1',
-    marginBottom: 8,
-    overflow: 'hidden',
-  },
-  impactBarFill: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#14B8A6',
   },
   courseDesc: {
     fontSize: 11,

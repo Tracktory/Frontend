@@ -1,40 +1,34 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import type { AnalysisReportModel } from '../../../utils/buildAnalysisReportModel';
+import type { RoadmapPayload } from '../../../../../data/mockRoadmapData';
+import {
+  computeCompetencyFromRoadmap,
+  computeRoadmapProgressStats,
+} from '../../../utils/journeyCompetency';
 import { AnalysisReportSection } from '../AnalysisReportSection';
 import { CircularGauge } from '../charts/CircularGauge';
-import { CoverageProgressBar } from '../../competency/CoverageProgressBar';
-import { SkillChip } from '../shared/SkillChip';
 
 interface OverallCoverageSectionProps {
-  model: Pick<
-    AnalysisReportModel,
-    | 'currentPercent'
-    | 'nextActionsPercent'
-    | 'expectedPercent'
-    | 'showNextActionsTier'
-    | 'remainingCount'
-    | 'completedCourseCount'
-    | 'earnedCredits'
-    | 'gapTokens'
-  >;
+  roadmap: RoadmapPayload | null;
+  completedCourses: string[];
 }
 
-export function OverallCoverageSection({ model }: OverallCoverageSectionProps) {
-  const {
-    currentPercent,
-    nextActionsPercent,
-    expectedPercent,
-    showNextActionsTier,
-    remainingCount,
-    completedCourseCount,
-    earnedCredits,
-    gapTokens,
-  } = model;
+export function OverallCoverageSection({
+  roadmap,
+  completedCourses,
+}: OverallCoverageSectionProps) {
+  const competency = useMemo(
+    () => computeCompetencyFromRoadmap(roadmap, completedCourses),
+    [roadmap, completedCourses],
+  );
+  const progress = useMemo(
+    () => computeRoadmapProgressStats(roadmap, completedCourses),
+    [roadmap, completedCourses],
+  );
 
-  const hintTarget = showNextActionsTier ? nextActionsPercent : expectedPercent;
-  const hintMiddle = showNextActionsTier ? '다음 액션 과목' : '로드맵 전체';
+  const { currentPercent, targetPercent, remainingCount } = competency;
+  const { completedCourseCount, earnedCredits } = progress;
 
   return (
     <AnalysisReportSection title="종합 역량 커버리지" iconName="flag">
@@ -43,53 +37,30 @@ export function OverallCoverageSection({ model }: OverallCoverageSectionProps) {
         <View style={styles.rightCol}>
           <Text style={styles.hint}>
             잔여 <Text style={styles.hintStrong}>{remainingCount}개 과목</Text> 이수 시{'\n'}
-            <Text style={styles.hintTarget}>{hintTarget}%</Text>에 도달해요
-            {showNextActionsTier ? ` (전체 ${expectedPercent}%)` : ''}
+            <Text style={styles.hintTarget}>{targetPercent}%</Text>에 도달해요
           </Text>
           <View style={styles.barLabels}>
             <Text style={styles.barLabel}>현재 {currentPercent}%</Text>
-            {showNextActionsTier ? (
-              <Text style={styles.barLabel}>다음 {nextActionsPercent}%</Text>
-            ) : null}
-            <Text style={styles.barLabel}>전체 {expectedPercent}%</Text>
+            <Text style={styles.barLabel}>목표 {targetPercent}%</Text>
           </View>
-          <CoverageProgressBar percent={currentPercent} />
-          {showNextActionsTier ? (
-            <View style={styles.nextTrack}>
-              <View
-                style={[
-                  styles.nextFill,
-                  { width: `${Math.min(100, nextActionsPercent)}%` },
-                ]}
-              />
-            </View>
-          ) : null}
+          <View style={styles.currentTrack}>
+            <View
+              style={[
+                styles.currentFill,
+                { width: `${Math.min(100, currentPercent)}%` },
+              ]}
+            />
+          </View>
           <View style={styles.targetTrack}>
             <View
               style={[
                 styles.targetFill,
-                { width: `${Math.min(100, expectedPercent)}%` },
+                { width: `${Math.min(100, targetPercent)}%` },
               ]}
             />
           </View>
-          <Text style={styles.tierHint}>
-            {showNextActionsTier
-              ? `3단: 현재 → ${hintMiddle} → 로드맵 전체`
-              : '2단: 현재 → 로드맵 전체 (선택 기준 직무)'}
-          </Text>
         </View>
       </View>
-
-      {gapTokens.length > 0 ? (
-        <View style={styles.gapBlock}>
-          <Text style={styles.gapTitle}>부족 역량</Text>
-          <View style={styles.gapChips}>
-            {gapTokens.slice(0, 8).map((token) => (
-              <SkillChip key={token} label={token} variant="token" />
-            ))}
-          </View>
-        </View>
-      ) : null}
 
       <View style={styles.statsRow}>
         <View style={styles.statPill}>
@@ -137,25 +108,22 @@ const styles = StyleSheet.create({
   barLabels: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    flexWrap: 'wrap',
-    gap: 4,
     marginBottom: 4,
   },
   barLabel: {
     fontSize: 10,
     color: '#9CA3AF',
   },
-  nextTrack: {
-    height: 6,
-    borderRadius: 3,
+  currentTrack: {
+    height: 8,
+    borderRadius: 4,
     backgroundColor: '#E5E7EB',
-    marginTop: 4,
     overflow: 'hidden',
   },
-  nextFill: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#5EEAD4',
+  currentFill: {
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#14B8A6',
   },
   targetTrack: {
     height: 8,
@@ -168,24 +136,6 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: '#CCFBF1',
-  },
-  tierHint: {
-    fontSize: 10,
-    color: '#9CA3AF',
-    marginTop: 6,
-  },
-  gapBlock: {
-    marginBottom: 12,
-  },
-  gapTitle: {
-    fontSize: 11,
-    color: '#9CA3AF',
-    marginBottom: 6,
-  },
-  gapChips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
   },
   statsRow: {
     flexDirection: 'row',

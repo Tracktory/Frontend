@@ -1,47 +1,33 @@
 import type { JobRecommendation } from '../../../data/mockRecommendData';
-import type { RecommendationReportData } from '../../../api/recommendReportApi';
-import type { RoadmapPayload, SemesterStep, SemesterTiming } from '../../../data/mockRoadmapData';
+import type {
+  RoadmapPayload,
+  SemesterStep,
+  SemesterTiming,
+} from '../../../data/mockRoadmapData';
 import type { TrackRecommendPayload } from '../../../data/mockTrackRecommendData';
 import { admissionYearFromStudentId } from '../../../utils/mapProfileToOnboarding';
 import { applyStudentGradeToSemesterSteps } from '../../../utils/roadmapTiming';
 import {
-  AI_ACTIONS,
   PREREQUISITE_WARNING_FALLBACK,
-  REMAINING_COURSE_PLAN,
-  SKILL_COMPARISON,
-  SKILL_TOKENS_FALLBACK,
   TRACK_BARS_FALLBACK,
-  type AIActionItem,
   type RemainingCoursePlan,
-  type SkillComparison,
-  type SkillTokenItem,
   type TrackBarItem,
 } from '../data/analysisReportStaticMock';
 import {
   computeCompetencyFromRoadmap,
   computeRoadmapProgressStats,
 } from './journeyCompetency';
-import {
-  assertCoverageInvariant,
-  formatAnchorJobLabel,
-  isPrimaryAnchorReport,
-  mapNextActions,
-  mapRemainingCoursePlan,
-  mapReportJobs,
-  mapSkillComparisonFromReport,
-  mapSkillTokensFromReport,
-} from './mapRecommendationReport';
 
 export type ReportJobItem = {
   id: string;
   jobCode?: string;
   title: string;
-  /** 추천 API matchScore */
+  description: string;
+  reasoning: string;
   match: number;
-  /** 리포트 coverage.fields currentPercent */
-  coveragePercent: number;
-  gapTokens: string[];
-  isAnchor?: boolean;
+  techStack: string[];
+  coreSkills: string[];
+  advancedSkills: string[];
 };
 
 export type ReportSemesterItem = {
@@ -54,30 +40,20 @@ export type ReportSemesterItem = {
 
 export type AnalysisReportModel = {
   subtitle: string;
-  anchorJobLabel: string | null;
-  anchorJobCode: string | null;
-  showNextActionsTier: boolean;
-  showContributionBadges: boolean;
   currentPercent: number;
-  nextActionsPercent: number;
-  /** @deprecated use expectedPercent — kept for FinalCoveragePlanSection */
   targetPercent: number;
   expectedPercent: number;
   remainingCount: number;
   completedCourseCount: number;
   earnedCredits: number;
-  gapTokens: string[];
-  skillTokens: SkillTokenItem[];
-  anchorCoveragePercent: number;
-  skillComparison: SkillComparison[];
   trackBars: TrackBarItem[];
   synergyTip: string;
   jobs: ReportJobItem[];
   semesters: ReportSemesterItem[];
   defaultExpandedSemesterIndex: number;
   remainingCoursePlan: RemainingCoursePlan[];
+  showContributionBadges: boolean;
   prerequisiteWarning: string;
-  aiActions: AIActionItem[];
 };
 
 function formatReportSubtitle(
@@ -102,8 +78,8 @@ function buildTrackBars(trackRecommend: TrackRecommendPayload | null): TrackBarI
   for (const p of trackRecommend.primary) {
     if (p.score != null) {
       bars.push({
-        name: p.title.replace(/\s*트랙$/, '트랙'),
-        value: Math.min(100, Math.round(p.score * 0.75)),
+        name: p.title,
+        value: Math.min(100, Math.round(p.score)),
         color: colors[bars.length % colors.length]!,
       });
     }
@@ -112,8 +88,8 @@ function buildTrackBars(trackRecommend: TrackRecommendPayload | null): TrackBarI
   for (const s of trackRecommend.secondary.slice(0, 4 - bars.length)) {
     if (s.score != null) {
       bars.push({
-        name: s.name.length > 12 ? s.name.slice(0, 12) + '…' : s.name,
-        value: Math.min(100, Math.round(s.score * 0.75)),
+        name: s.name,
+        value: Math.min(100, Math.round(s.score)),
         color: colors[bars.length % colors.length]!,
       });
     }
@@ -123,18 +99,31 @@ function buildTrackBars(trackRecommend: TrackRecommendPayload | null): TrackBarI
 }
 
 function buildSynergyTip(trackRecommend: TrackRecommendPayload | null): string {
-  const score = trackRecommend?.combinationScore ?? 87;
-  return `💡 빅데이터 + 컴퓨터공학 융합 시너지 스코어 ${score}점으로 상위 8% 수준`;
+  const reasoning =
+    trackRecommend?.combinationReasoning?.trim() ||
+    trackRecommend?.llmSynergy?.trim() ||
+    trackRecommend?.trackDescription?.trim();
+  if (reasoning) {
+    return reasoning.startsWith('💡') ? reasoning : `💡 ${reasoning}`;
+  }
+  const score = trackRecommend?.combinationScore;
+  if (score != null) {
+    return `💡 트랙 조합 시너지 스코어 ${score}점`;
+  }
+  return '💡 추천 트랙 조합을 이수하면 역량 시너지가 커집니다.';
 }
 
-function enrichJob(job: JobRecommendation): ReportJobItem {
+function mapJob(job: JobRecommendation): ReportJobItem {
   return {
     id: job.id,
     jobCode: job.code,
     title: job.title,
+    description: job.description,
+    reasoning: job.reasoning,
     match: job.matchScore,
-    coveragePercent: job.matchScore,
-    gapTokens: [],
+    techStack: job.techStackReady ? job.techStack : [],
+    coreSkills: job.coreSkills,
+    advancedSkills: job.advancedSkills,
   };
 }
 
@@ -167,104 +156,42 @@ function buildSemesters(
   };
 }
 
-function mergeRemainingCoursePlanLocal(
-  roadmapRemainingNames: string[],
-): RemainingCoursePlan[] {
-  const planByName = new Map(REMAINING_COURSE_PLAN.map((p) => [p.name, p]));
+function findCourseInRoadmap(
+  roadmap: RoadmapPayload | null,
+  name: string,
+): { credits: number; sem: string; area: string } | null {
+  if (!roadmap?.semesterSteps?.length) return null;
 
-  const fromRoadmap = roadmapRemainingNames
-    .map((name) => {
-      const meta = planByName.get(name);
-      if (meta) return meta;
+  for (const step of roadmap.semesterSteps) {
+    const course = step.courses.find((c) => c.name === name);
+    if (course) {
       return {
-        name,
-        credits: 3,
-        impact: '+7-8%',
-        sem: '예정',
-        area: '종합',
-      } satisfies RemainingCoursePlan;
-    })
-    .slice(0, 6);
-
-  if (fromRoadmap.length >= 6) return fromRoadmap;
-
-  const used = new Set(fromRoadmap.map((c) => c.name));
-  for (const p of REMAINING_COURSE_PLAN) {
-    if (fromRoadmap.length >= 6) break;
-    if (!used.has(p.name)) {
-      fromRoadmap.push(p);
-      used.add(p.name);
+        credits: course.credits ?? 3,
+        sem: `${step.year}학년 ${step.semester}학기`,
+        area: step.stageLabel,
+      };
     }
   }
-
-  return fromRoadmap.slice(0, 6);
+  return null;
 }
 
-function applyReportToModel(
-  base: Omit<
-    AnalysisReportModel,
-    | 'anchorJobLabel'
-    | 'anchorJobCode'
-    | 'showNextActionsTier'
-    | 'showContributionBadges'
-    | 'currentPercent'
-    | 'nextActionsPercent'
-    | 'targetPercent'
-    | 'expectedPercent'
-    | 'remainingCount'
-    | 'completedCourseCount'
-    | 'earnedCredits'
-    | 'gapTokens'
-    | 'skillTokens'
-    | 'anchorCoveragePercent'
-    | 'skillComparison'
-    | 'jobs'
-    | 'remainingCoursePlan'
-    | 'aiActions'
-  >,
-  report: RecommendationReportData,
-  storeJobs: JobRecommendation[],
-  anchorJobCode: string | undefined
-): AnalysisReportModel {
-  assertCoverageInvariant(report);
-
-  const showNextActionsTier = isPrimaryAnchorReport(report);
-  const showContribution = showNextActionsTier;
-  const anchorCode = anchorJobCode ?? report.anchorJob?.code ?? null;
-  const anchorField = anchorCode
-    ? report.coverage.fields.find((f) => f.jobCode === anchorCode)
-    : undefined;
-
-  return {
-    ...base,
-    anchorJobLabel: formatAnchorJobLabel(report.anchorJob),
-    anchorJobCode: anchorCode,
-    showNextActionsTier,
-    showContributionBadges: showContribution,
-    currentPercent: report.coverage.currentPercent,
-    nextActionsPercent: report.coverage.nextActionsPercent,
-    targetPercent: showNextActionsTier
-      ? report.coverage.nextActionsPercent
-      : report.coverage.expectedPercent,
-    expectedPercent: report.coverage.expectedPercent,
-    remainingCount: report.remainingCourses.length,
-    completedCourseCount: report.aggregate.completedCourseCount,
-    earnedCredits: report.aggregate.earnedCredits,
-    gapTokens: report.coverage.gapTokens,
-    skillTokens: mapSkillTokensFromReport(report, anchorCode ?? undefined),
-    anchorCoveragePercent:
-      anchorField?.currentPercent ?? report.coverage.currentPercent,
-    skillComparison: mapSkillComparisonFromReport(report),
-    jobs: mapReportJobs(report, storeJobs, anchorCode ?? undefined),
-    remainingCoursePlan: mapRemainingCoursePlan(report, showContribution),
-    aiActions:
-      report.nextActions.length > 0 ? mapNextActions(report) : [],
-  };
+function buildRemainingCoursePlanFromRoadmap(
+  roadmap: RoadmapPayload | null,
+  remaining: { name: string; gainLabel: string }[],
+): RemainingCoursePlan[] {
+  return remaining.map(({ name, gainLabel }) => {
+    const meta = findCourseInRoadmap(roadmap, name);
+    return {
+      name,
+      credits: meta?.credits ?? 3,
+      impact: gainLabel,
+      sem: meta?.sem ?? '예정',
+      area: meta?.area ?? '종합',
+    };
+  });
 }
 
 export function buildAnalysisReportModel(params: {
-  report?: RecommendationReportData | null;
-  anchorJobCode?: string;
   roadmap: RoadmapPayload | null;
   completedCourses: string[];
   jobs: JobRecommendation[];
@@ -275,8 +202,6 @@ export function buildAnalysisReportModel(params: {
   reportDate?: Date;
 }): AnalysisReportModel {
   const {
-    report,
-    anchorJobCode,
     roadmap,
     completedCourses,
     jobs,
@@ -293,40 +218,27 @@ export function buildAnalysisReportModel(params: {
     roadmap,
     studentYear,
   );
+  const remainingCoursePlan = buildRemainingCoursePlanFromRoadmap(
+    roadmap,
+    progress.remainingAll,
+  );
 
-  const localBase: AnalysisReportModel = {
+  return {
     subtitle: formatReportSubtitle(displayName, studentId, reportDate),
-    anchorJobLabel: null,
-    anchorJobCode: null,
-    showNextActionsTier: true,
-    showContributionBadges: true,
     currentPercent: competency.currentPercent,
-    nextActionsPercent: competency.targetPercent,
     targetPercent: competency.targetPercent,
     expectedPercent: competency.targetPercent,
     remainingCount: competency.remainingCount,
     completedCourseCount: progress.completedCourseCount,
     earnedCredits: progress.earnedCredits,
-    gapTokens: [],
-    skillTokens: SKILL_TOKENS_FALLBACK,
-    anchorCoveragePercent: competency.currentPercent,
-    skillComparison: SKILL_COMPARISON,
     trackBars: buildTrackBars(trackRecommend),
     synergyTip: buildSynergyTip(trackRecommend),
-    jobs: jobs.slice(0, 3).map(enrichJob),
+    jobs: jobs.slice(0, 3).map(mapJob),
     semesters,
     defaultExpandedSemesterIndex,
-    remainingCoursePlan: mergeRemainingCoursePlanLocal(
-      progress.remainingAll.map((c) => c.name),
-    ),
+    remainingCoursePlan,
+    showContributionBadges: remainingCoursePlan.some((c) => c.impact !== '—'),
     prerequisiteWarning:
       trackRecommend?.prerequisiteNote?.trim() || PREREQUISITE_WARNING_FALLBACK,
-    aiActions: AI_ACTIONS,
   };
-
-  if (!report) {
-    return localBase;
-  }
-
-  return applyReportToModel(localBase, report, jobs, anchorJobCode);
 }
