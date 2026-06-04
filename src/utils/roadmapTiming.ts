@@ -44,7 +44,11 @@ function resolveSemesterTiming(
   return 'future';
 }
 
-/** 학생 학년 기준으로 학기 timing 재계산 (API past가 1학년 학기에 잘못 붙는 경우 보정) */
+function hasServerSemesterTiming(timing: SemesterTiming): boolean {
+  return timing === 'past' || timing === 'current' || timing === 'future';
+}
+
+/** 학생 학년 기준 timing 보정. 추천 API가 이미 timing을 내려주면 그대로 유지. */
 export function applyStudentGradeToSemesterSteps(
   steps: SemesterStep[],
   studentGrade: number | null,
@@ -53,6 +57,10 @@ export function applyStudentGradeToSemesterSteps(
   if (studentGrade == null || studentGrade < 1) return steps;
 
   return steps.map((step) => {
+    if (hasServerSemesterTiming(step.timing)) {
+      return step;
+    }
+
     const timing = resolveSemesterTiming(
       step.year,
       step.semester,

@@ -100,6 +100,7 @@ interface ApiCourseItem {
   completed?: boolean;
   score?: number | null;
   credit?: number;
+  credits?: number;
   description?: string;
   stageLabel?: string;
   prerequisites?: ApiCoursePrerequisite[];
@@ -302,7 +303,7 @@ function mapRoadmap(
       id: String(item.subjectId ?? item.code ?? item.name),
       name: item.name,
       description: item.description ?? '',
-      credits: item.credit ?? 3,
+      credits: item.credits ?? item.credit ?? 3,
       score: item.score ?? undefined,
       completed: item.completed ?? false,
       timing: item.timing ? normalizeTiming(item.timing) : timing,
