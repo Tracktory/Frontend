@@ -14,6 +14,9 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { colors } from '../../styles/colors';
 import { useChatViewModel } from '../../hooks/useChatViewModel';
+import { useAuthStore } from '../../stores/authStore';
+import { useChatStore } from '../../stores/chatStore';
+import { useProfileStore } from '../../stores/profileStore';
 import { ChatMessageBubble } from './ChatMessageBubble';
 import { ChatTypingBubble } from './ChatTypingBubble';
 
@@ -39,6 +42,16 @@ export function ChatContent({
 }: ChatContentProps) {
   const vm = useChatViewModel();
   const scrollRef = useRef<ScrollView>(null);
+  const userId = useAuthStore((s) => s.userId);
+  const userName = useAuthStore((s) => s.userName);
+  const profileName = useProfileStore((s) => s.profile?.profile.name);
+  const enterChatScreen = useChatStore((s) => s.enterChatScreen);
+
+  useEffect(() => {
+    if (userId == null) return;
+    const displayName = profileName?.trim() || userName?.trim() || null;
+    enterChatScreen(userId, displayName);
+  }, [userId, profileName, userName, enterChatScreen]);
 
   // 메시지·로딩 말풍선 추가 시 맨 아래로 스크롤
   useEffect(() => {

@@ -23,7 +23,7 @@ export const JOURNEY_NODE_LAYOUT: {
   {
     key: 'job',
     label: '직무 매칭',
-    x: 187,
+    x: 177,
     y: 245,
     icon: 'compass',
     nodeColor: '#0F766E',
@@ -31,7 +31,7 @@ export const JOURNEY_NODE_LAYOUT: {
   {
     key: 'current',
     label: '현재 위치',
-    x: 192,
+    x: 220,
     y: 330,
     icon: 'person',
     nodeColor: '#14B8A6',
@@ -47,7 +47,7 @@ export const JOURNEY_NODE_LAYOUT: {
   {
     key: 'trackSynergy',
     label: '트랙 시너지',
-    x: 158,
+    x: 130,
     y: 508,
     icon: 'git-network',
     nodeColor: '#14B8A6',

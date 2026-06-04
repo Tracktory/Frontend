@@ -7,6 +7,7 @@ import { useChatStore, createMessage } from '../stores/chatStore';
 import { sendChatMessage } from '../api/chatApi';
 import { AuthApiError } from '../api/authApi';
 import { useAuthStore } from '../stores/authStore';
+import { useProfileStore } from '../stores/profileStore';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 
 function generateUUID(): string {
@@ -30,6 +31,8 @@ export function useChatViewModel() {
 
   const accessToken = useAuthStore((s) => s.accessToken);
   const userId = useAuthStore((s) => s.userId);
+  const userName = useAuthStore((s) => s.userName);
+  const profileName = useProfileStore((s) => s.profile?.profile.name);
 
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -121,7 +124,8 @@ export function useChatViewModel() {
           text: '확인',
           style: 'destructive',
           onPress: () => {
-            resetConversationForUser(userId);
+            const displayName = profileName?.trim() || userName?.trim() || null;
+            resetConversationForUser(userId, displayName);
           },
         },
       ],

@@ -1,11 +1,9 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { Modal, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors } from '../../styles/colors';
 import { ChatContent } from './ChatContent';
-import { useAuthStore } from '../../stores/authStore';
-import { useChatStore } from '../../stores/chatStore';
 
 interface ChatOverlayModalProps {
   visible: boolean;
@@ -17,22 +15,12 @@ export function ChatOverlayModal({ visible, onClose }: ChatOverlayModalProps) {
   const { height } = useWindowDimensions();
   const sheetHeight = height * 0.85;
   const bottomInset = Math.max(insets.bottom, 0);
-  const userId = useAuthStore((s) => s.userId);
-  const enterChatScreen = useChatStore((s) => s.enterChatScreen);
-
-  const handleShow = useCallback(() => {
-    if (userId != null) {
-      enterChatScreen(userId);
-    }
-  }, [userId, enterChatScreen]);
-
   return (
     <Modal
       visible={visible}
       animationType="slide"
       transparent
       onRequestClose={onClose}
-      onShow={handleShow}
     >
       <View style={styles.backdrop}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />

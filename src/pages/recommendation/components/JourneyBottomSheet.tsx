@@ -34,6 +34,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Ionicons } from '@expo/vector-icons';
 
+import CompassIcon from '@/src/assets/images/compass.svg';
 import MapIcon from '@/src/assets/images/map.svg';
 import TrophyIcon from '@/src/assets/images/trophy.svg';
 import type { JourneySheetKey } from '../../../hooks/useRecommendResultViewModel';
@@ -64,7 +65,7 @@ function resolveSheetTitle(
 
   if (sheetKey === 'current') return '📍 현재 학습 현황';
 
-  if (sheetKey === 'job') return '🧭 직무 매칭';
+  if (sheetKey === 'job') return SHEET_TITLES.job;
 
   if (sheetKey === 'competency') return SHEET_TITLES.competency;
 
@@ -80,6 +81,9 @@ function SheetTitleIcon({ sheetKey }: { sheetKey: JourneySheetKey | null | undef
   }
   if (sheetKey === 'roadmap') {
     return <MapIcon width={20} height={20} />;
+  }
+  if (sheetKey === 'job') {
+    return <CompassIcon width={20} height={20} />;
   }
   return null;
 }

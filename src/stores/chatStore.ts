@@ -55,10 +55,16 @@ export function createMessage(
   return { id: uid(), role, type, text, ...extra };
 }
 
+function greetingHonorific(displayName?: string | null): string {
+  const trimmed = displayName?.trim();
+  return trimmed ? `${trimmed}님` : '학생님';
+}
+
 /** 챗봇 최초 진입(또는 리셋) 시 표시할 인사 + 선택지 칩 */
-export function buildInitialMessages(): ChatMessage[] {
+export function buildInitialMessages(displayName?: string | null): ChatMessage[] {
+  const honorific = greetingHonorific(displayName);
   return [
-    createMessage('assistant', 'text', '학생님, 다음 학기 수강할 과목이 궁금한가요?'),
+    createMessage('assistant', 'text', `${honorific}, 다음 학기 수강할 과목이 궁금한가요?`),
     createMessage(
       'assistant',
       'quickReply',
@@ -91,10 +97,10 @@ interface ChatState {
   messagesByUserId: Record<string, ChatMessage[]>;
   /** userId별 API threadId (동일 사용자는 세션 간 재사용) */
   threadIdsByUserId: Record<string, string>;
-  enterChatScreen: (userId: number) => void;
+  enterChatScreen: (userId: number, displayName?: string | null) => void;
   getThreadIdForUser: (userId: number) => string | null;
   setThreadIdForUser: (userId: number, threadId: string) => void;
-  resetConversationForUser: (userId: number) => void;
+  resetConversationForUser: (userId: number, displayName?: string | null) => void;
   clearChatForLogout: () => void;
   appendMessage: (m: ChatMessage) => void;
   setMessages: (msgs: ChatMessage[]) => void;
@@ -108,16 +114,18 @@ export const useChatStore = create<ChatState>()(
       messagesByUserId: {},
       threadIdsByUserId: {},
 
-      enterChatScreen: (userId: number) => {
+      enterChatScreen: (userId: number, displayName?: string | null) => {
         const key = userKey(userId);
         const stored = get().messagesByUserId[key];
-        const messages = stored ?? buildInitialMessages();
+        const hasUserMessages = stored?.some((m) => m.role === 'user') ?? false;
+        const messages =
+          !stored || (!hasUserMessages && Boolean(displayName?.trim()))
+            ? buildInitialMessages(displayName)
+            : stored;
         set((s) => ({
           activeUserId: userId,
           messages,
-          messagesByUserId: stored
-            ? s.messagesByUserId
-            : { ...s.messagesByUserId, [key]: messages },
+          messagesByUserId: { ...s.messagesByUserId, [key]: messages },
         }));
       },
 
@@ -131,9 +139,9 @@ export const useChatStore = create<ChatState>()(
         }));
       },
 
-      resetConversationForUser: (userId: number) => {
+      resetConversationForUser: (userId: number, displayName?: string | null) => {
         const key = userKey(userId);
-        const initial = buildInitialMessages();
+        const initial = buildInitialMessages(displayName);
         set((s) => {
           const nextThreads = { ...s.threadIdsByUserId };
           delete nextThreads[key];
