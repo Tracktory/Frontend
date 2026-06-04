@@ -8,9 +8,15 @@ import { TrackCombinationBanner } from './TrackCombinationBanner';
 
 interface TrackRecommendPanelProps {
   data: TrackRecommendPayload;
+  showSecondary?: boolean;
+  showRelatedJobs?: boolean;
 }
 
-export function TrackRecommendPanel({ data }: TrackRecommendPanelProps) {
+export function TrackRecommendPanel({
+  data,
+  showSecondary = true,
+  showRelatedJobs = true,
+}: TrackRecommendPanelProps) {
   const trackNames = data.primary.map((t) => t.title);
 
   return (
@@ -21,9 +27,13 @@ export function TrackRecommendPanel({ data }: TrackRecommendPanelProps) {
         combinationReasoning={data.combinationReasoning}
       />
       {data.primary.map((track) => (
-        <PrimaryTrackCard key={track.rank} track={track} />
+        <PrimaryTrackCard
+          key={track.rank}
+          track={track}
+          showRelatedJobs={showRelatedJobs}
+        />
       ))}
-      <SecondaryTrackList tracks={data.secondary} />
+      {showSecondary ? <SecondaryTrackList tracks={data.secondary} /> : null}
     </View>
   );
 }

@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors } from '../../../styles/colors';
+import { getModalBottomTabBarClearance } from '../../../navigation/layout/tabBarLayout';
 import { MOCK_ROADMAP } from '../../../data/mockRoadmapData';
 import type { SemesterCourse, SemesterStep } from '../../../data/mockRoadmapData';
 import { useOnboardingStore } from '../../../stores/onboardingStore';
@@ -42,6 +43,7 @@ function findCourse(courseId: string): ResolvedCourse | null {
 
 export function CourseDetailModal({ courseId, onClose }: CourseDetailModalProps) {
   const insets = useSafeAreaInsets();
+  const tabBarClearance = getModalBottomTabBarClearance(insets);
   const completedCourses = useOnboardingStore((s) => s.completedCourses);
 
   const resolved = useMemo(
@@ -63,7 +65,7 @@ export function CourseDetailModal({ courseId, onClose }: CourseDetailModalProps)
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 20) }]}>
+        <View style={[styles.sheet, { marginBottom: tabBarClearance, paddingBottom: 20 }]}>
           {/* 핸들 */}
           <View style={styles.handle} />
 

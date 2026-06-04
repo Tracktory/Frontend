@@ -6,13 +6,17 @@ import { colors } from '../../../styles/colors';
 
 interface PrimaryTrackCardProps {
   track: PrimaryTrack;
+  showRelatedJobs?: boolean;
 }
 
-export function PrimaryTrackCard({ track }: PrimaryTrackCardProps) {
+export function PrimaryTrackCard({
+  track,
+  showRelatedJobs = true,
+}: PrimaryTrackCardProps) {
   const hasScore = track.score != null;
   const hasReasoning = (track.reasoning?.trim().length ?? 0) > 0;
   const hasSubjects = track.coreSubjects.length > 0;
-  const hasJobs = track.relatedJobs.length > 0;
+  const hasJobs = showRelatedJobs && track.relatedJobs.length > 0;
 
   return (
     <View style={styles.card}>
@@ -58,7 +62,7 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: colors.cardBorder,
+    borderColor: '#E5E7EB',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,

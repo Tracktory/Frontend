@@ -12,7 +12,9 @@ import { StackScreenProps } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 
+import { AuthKeyboardScreen } from '@/src/components/auth/AuthKeyboardScreen';
 import { Button } from '@/src/components/Button';
+import Logo from '@/src/assets/images/Logo.svg';
 import { colors } from '@/src/styles/colors';
 import { useLoginViewModel } from '@/src/hooks/useLoginViewModel';
 import type { AuthStackParamList } from '@/src/navigation/AuthNavigator';
@@ -20,16 +22,18 @@ import type { RootStackParamList } from '@/src/navigation/RootNavigator';
 
 type Props = StackScreenProps<AuthStackParamList, 'Login'>;
 
+const AUTH_BG = '#F0FDFA';
+
 export function LoginPage({ navigation }: Props) {
   const rootNavigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const vm = useLoginViewModel(navigation, rootNavigation);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-      <View style={styles.flex}>
-        <View style={styles.screen}>
+      <AuthKeyboardScreen contentContainerStyle={styles.screen}>
           {/* 로고 영역 */}
           <View style={styles.logoArea}>
+            <Logo width={100} height={88} />
             <Text style={styles.logoTitle}>Tracktory</Text>
             <Text style={styles.logoSubtitle}>나만의 AI 학습경로 추천</Text>
           </View>
@@ -109,8 +113,7 @@ export function LoginPage({ navigation }: Props) {
               </Pressable>
             </View>
           </View>
-        </View>
-      </View>
+      </AuthKeyboardScreen>
     </SafeAreaView>
   );
 }
@@ -118,27 +121,23 @@ export function LoginPage({ navigation }: Props) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background,
-  },
-  flex: {
-    flex: 1,
+    backgroundColor: AUTH_BG,
   },
   screen: {
-    flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 48,
-    paddingBottom: 28,
-    justifyContent: 'space-between',
+    paddingTop: 24,
   },
   logoArea: {
     alignItems: 'center',
-    paddingTop: 40,
-    paddingBottom: 48,
+    paddingTop: 24,
+    paddingBottom: 32,
+    gap: 8,
   },
   logoTitle: {
-    fontSize: 36,
+    marginTop: 4,
+    fontSize: 28,
     fontWeight: '800',
-    color: colors.primary,
+    color: '#111827',
     letterSpacing: -0.5,
   },
   logoSubtitle: {
@@ -148,8 +147,8 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   formArea: {
-    flex: 1,
     gap: 4,
+    marginTop: 8,
   },
   inputGroup: {
     gap: 6,

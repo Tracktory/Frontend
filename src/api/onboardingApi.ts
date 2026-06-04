@@ -32,17 +32,17 @@ export interface OnboardingRequestBody {
   workValueIds: number[];
   techStackIds: number[];
   techStackCustoms: string[];
-  completedSubjects: CompletedSubject[];
+  completedSubjects?: CompletedSubject[];
 }
 
-interface OnboardingResponseData {
+export interface OnboardingSubmitResult {
   onboardingCompleted: boolean;
 }
 
 export async function submitOnboarding(
   body: OnboardingRequestBody,
   accessToken: string
-): Promise<void> {
+): Promise<OnboardingSubmitResult> {
   const res = await fetch(`${BASE_URL}/api/v1/onboarding`, {
     method: 'POST',
     headers: {
@@ -52,11 +52,17 @@ export async function submitOnboarding(
     body: JSON.stringify(body),
   });
 
-  const envelope: ApiEnvelope<OnboardingResponseData> = await res.json();
+  const envelope: ApiEnvelope<OnboardingSubmitResult> = await res.json();
 
   if (!envelope.success) {
     const code = envelope.error?.code ?? 'UNKNOWN';
     const message = envelope.error?.message ?? '알 수 없는 오류가 발생했습니다.';
-    throw new AuthApiError(code, message);
+    throw new AuthApiError(code, message, envelope.error?.details);
   }
+
+  if (!envelope.data) {
+    throw new Error('응답 데이터가 없습니다.');
+  }
+
+  return envelope.data;
 }

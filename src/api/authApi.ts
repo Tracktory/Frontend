@@ -20,7 +20,8 @@ export interface SignUpResponseData {
 export class AuthApiError extends Error {
   constructor(
     public readonly code: string,
-    message: string
+    message: string,
+    public readonly details?: unknown
   ) {
     super(message);
     this.name = 'AuthApiError';

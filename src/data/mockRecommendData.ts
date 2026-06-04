@@ -2,6 +2,8 @@
 
 export interface JobRecommendation {
   id: string;
+  /** 직무 코드 (BE, DE, AI 등) — 리포트 anchorJobCode 매칭용 */
+  code?: string;
   title: string;
   /** 한 줄 소개 */
   description: string;

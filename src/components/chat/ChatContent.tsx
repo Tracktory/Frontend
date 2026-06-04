@@ -1,7 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Alert,
-  KeyboardAvoidingView,
+  Keyboard,
   Platform,
   Pressable,
   ScrollView,
@@ -11,11 +10,19 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors } from '../../styles/colors';
 import { useChatViewModel } from '../../hooks/useChatViewModel';
+import { useAuthStore } from '../../stores/authStore';
+import { useChatStore } from '../../stores/chatStore';
+import { useProfileStore } from '../../stores/profileStore';
 import { ChatMessageBubble } from './ChatMessageBubble';
 import { ChatTypingBubble } from './ChatTypingBubble';
+
+const HEADER_HEIGHT = 52;
+/** inputRow: paddingTop 10 + input 42 + paddingBottom 10 */
+const INPUT_BAR_HEIGHT = 62;
 
 interface ChatContentProps {
   /** 온보딩 미완료 상태이면 true — 입력/칩 차단 */
@@ -25,8 +32,10 @@ interface ChatContentProps {
   showClose?: boolean;
   onMinimize?: () => void;
   onClose?: () => void;
-  /** 헤더 키보드 오프셋 (KeyboardAvoidingView용) */
-  headerHeight?: number;
+  /** 플로팅 탭바 등 하단 여백 (키보드 닫힌 resting, 탭 챗봇) */
+  bottomInset?: number;
+  /** 홈 FAB 오버레이 시트 — 키보드 열릴 때 bottom에 keyboardHeight 적용 */
+  overlayMode?: boolean;
 }
 
 export function ChatContent({
@@ -35,24 +44,73 @@ export function ChatContent({
   showClose = false,
   onMinimize,
   onClose,
-  headerHeight = 52,
+  bottomInset = 0,
+  overlayMode = false,
 }: ChatContentProps) {
   const vm = useChatViewModel();
   const scrollRef = useRef<ScrollView>(null);
+  const insets = useSafeAreaInsets();
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const userId = useAuthStore((s) => s.userId);
+  const userName = useAuthStore((s) => s.userName);
+  const profileName = useProfileStore((s) => s.profile?.profile.name);
+  const enterChatScreen = useChatStore((s) => s.enterChatScreen);
 
-  // 메시지·로딩 말풍선 추가 시 맨 아래로 스크롤
-  useEffect(() => {
+  const keyboardVisible = keyboardHeight > 0;
+
+  /** 오버레이 시트는 ChatOverlayModal paddingBottom으로 safe area 처리 */
+  const restingBottom = overlayMode ? 0 : bottomInset;
+
+  const inputBottom = useMemo(() => {
+    if (!keyboardVisible) return restingBottom;
+    if (overlayMode) return keyboardHeight;
+    return Platform.OS === 'ios' ? keyboardHeight : 0;
+  }, [keyboardVisible, keyboardHeight, overlayMode, restingBottom]);
+
+  const inputPaddingBottom = useMemo(() => {
+    if (!keyboardVisible) return 10;
+    return overlayMode ? Math.max(insets.bottom, 8) : 8;
+  }, [keyboardVisible, overlayMode, insets.bottom]);
+
+  const scrollPaddingBottom = INPUT_BAR_HEIGHT + inputBottom;
+
+  const scrollToEnd = () => {
     setTimeout(() => {
       scrollRef.current?.scrollToEnd({ animated: true });
     }, 50);
+  };
+
+  useEffect(() => {
+    if (userId == null) return;
+    const displayName = profileName?.trim() || userName?.trim() || null;
+    enterChatScreen(userId, displayName);
+  }, [userId, profileName, userName, enterChatScreen]);
+
+  useEffect(() => {
+    scrollToEnd();
   }, [vm.messages, vm.isTyping]);
+
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSub = Keyboard.addListener(showEvent, (e) => {
+      setKeyboardHeight(e.endCoordinates.height);
+      scrollToEnd();
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setKeyboardHeight(0);
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const handleSend = () => {
     if (onboardingRequired) return;
-    const ok = vm.handleSend();
-    if (!ok) {
-      Alert.alert('알림', '질문을 입력해주세요.');
-    }
+    void vm.handleSend();
   };
 
   const handleChip = (id: string, label: string) => {
@@ -62,11 +120,9 @@ export function ChatContent({
 
   return (
     <View style={styles.container}>
-      {/* 헤더 */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>AI 학습경로 챗봇</Text>
         <View style={styles.headerIcons}>
-          {/* 이전 대화 보기 */}
           <Pressable
             style={styles.iconBtn}
             onPress={vm.handleLoadHistory}
@@ -76,7 +132,6 @@ export function ChatContent({
             <Ionicons name="time-outline" size={20} color={colors.textSecondary} />
           </Pressable>
 
-          {/* 새 대화 시작 (확인 팝업 포함) */}
           <Pressable
             style={styles.iconBtn}
             onPress={vm.handleReset}
@@ -99,64 +154,66 @@ export function ChatContent({
         </View>
       </View>
 
-      {/* 온보딩 안내 배너 */}
       {onboardingRequired && (
         <View style={styles.onboardingBanner}>
           <Text style={styles.onboardingText}>먼저 온보딩을 완료해주세요.</Text>
         </View>
       )}
 
-      {/* 메시지 영역 */}
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={headerHeight}
+      <ScrollView
+        ref={scrollRef}
+        style={styles.messageArea}
+        contentContainerStyle={[
+          styles.messageContent,
+          { paddingBottom: scrollPaddingBottom },
+        ]}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        onContentSizeChange={scrollToEnd}
       >
-        <ScrollView
-          ref={scrollRef}
-          style={styles.messageArea}
-          contentContainerStyle={styles.messageContent}
-          showsVerticalScrollIndicator={false}
-          onContentSizeChange={() =>
-            scrollRef.current?.scrollToEnd({ animated: true })
-          }
-        >
-          {vm.messages.map((msg) => (
-            <ChatMessageBubble
-              key={msg.id}
-              message={msg}
-              onChipPress={onboardingRequired ? undefined : handleChip}
-            />
-          ))}
-          {vm.isTyping && <ChatTypingBubble />}
-        </ScrollView>
-
-        {/* 입력 영역 */}
-        <View style={styles.inputRow}>
-          <TextInput
-            style={styles.input}
-            placeholder="궁금한 점을 물어보세요..."
-            placeholderTextColor={colors.textHint}
-            value={vm.inputText}
-            onChangeText={vm.setInputText}
-            onSubmitEditing={handleSend}
-            returnKeyType="send"
-            editable={!onboardingRequired && !vm.isTyping}
-            multiline={false}
+        {vm.messages.map((msg) => (
+          <ChatMessageBubble
+            key={msg.id}
+            message={msg}
+            onChipPress={onboardingRequired ? undefined : handleChip}
           />
-          <Pressable
-            style={[styles.sendBtn, onboardingRequired && styles.sendBtnDisabled]}
-            onPress={handleSend}
-            disabled={onboardingRequired || vm.isTyping}
-          >
-            <Ionicons
-              name="send"
-              size={18}
-              color={onboardingRequired ? colors.textHint : colors.white}
-            />
-          </Pressable>
-        </View>
-      </KeyboardAvoidingView>
+        ))}
+        {vm.isTyping && <ChatTypingBubble />}
+      </ScrollView>
+
+      <View
+        style={[
+          styles.inputRow,
+          {
+            bottom: inputBottom,
+            paddingBottom: inputPaddingBottom,
+          },
+        ]}
+      >
+        <TextInput
+          style={styles.input}
+          placeholder="궁금한 점을 물어보세요..."
+          placeholderTextColor={colors.textHint}
+          value={vm.inputText}
+          onChangeText={vm.setInputText}
+          onSubmitEditing={handleSend}
+          returnKeyType="send"
+          editable={!onboardingRequired && !vm.isTyping}
+          multiline={false}
+          onFocus={scrollToEnd}
+        />
+        <Pressable
+          style={[styles.sendBtn, onboardingRequired && styles.sendBtnDisabled]}
+          onPress={handleSend}
+          disabled={onboardingRequired || vm.isTyping}
+        >
+          <Ionicons
+            name="send"
+            size={18}
+            color={onboardingRequired ? colors.textHint : colors.white}
+          />
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -166,11 +223,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  flex: {
-    flex: 1,
-  },
   header: {
-    height: 52,
+    height: HEADER_HEIGHT,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
@@ -210,13 +264,18 @@ const styles = StyleSheet.create({
   },
   messageContent: {
     padding: 16,
-    paddingBottom: 8,
+    flexGrow: 1,
   },
   inputRow: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    elevation: 10,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingTop: 10,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,
     backgroundColor: colors.white,

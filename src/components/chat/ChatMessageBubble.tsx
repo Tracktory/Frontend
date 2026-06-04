@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '../../styles/colors';
 import type { ChatMessage, CourseSuggestion } from '../../stores/chatStore';
+import { formatAssistantMessageText } from '../../utils/formatAssistantMessageText';
 
 function CourseCard({ course }: { course: CourseSuggestion }) {
   return (
@@ -55,13 +56,16 @@ interface BubbleProps {
 
 export function ChatMessageBubble({ message, onChipPress }: BubbleProps) {
   const isUser = message.role === 'user';
+  const displayText = isUser
+    ? message.text
+    : formatAssistantMessageText(message.text);
 
   return (
     <View style={[styles.row, isUser ? styles.rowUser : styles.rowBot]}>
       {/* 말풍선 본문 */}
       <View style={[styles.bubble, isUser ? styles.bubbleUser : styles.bubbleBot]}>
         <Text style={[styles.text, isUser ? styles.textUser : styles.textBot]}>
-          {message.text}
+          {displayText}
         </Text>
 
         {/* 추천 과목 카드 */}

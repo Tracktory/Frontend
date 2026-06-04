@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Alert } from 'react-native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 
 import { signUp, AuthApiError } from '../api/authApi';
@@ -61,7 +60,6 @@ export function useSignUpViewModel(navigation: AuthNavigation) {
     try {
       await signUp(email, password);
       navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
-      Alert.alert('회원가입 완료', '로그인 후 온보딩을 진행해주세요.');
     } catch (err) {
       if (err instanceof AuthApiError) {
         switch (err.code) {
@@ -75,10 +73,10 @@ export function useSignUpViewModel(navigation: AuthNavigation) {
             setEmailError('이미 등록된 이메일입니다.');
             break;
           default:
-            Alert.alert('오류', err.message);
+            if (__DEV__) console.warn('[signUp]', err.message);
         }
-      } else {
-        Alert.alert('네트워크 오류', '잠시 후 다시 시도해주세요.');
+      } else if (__DEV__) {
+        console.warn('[signUp] network error');
       }
     } finally {
       setIsSubmitting(false);
