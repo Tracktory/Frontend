@@ -21,7 +21,7 @@ export function ReportAccordion({
     <View
       style={[
         styles.wrap,
-        borderActive && expanded ? styles.wrapActive : null,
+        borderActive ? styles.wrapActive : null,
       ]}
     >
       <Pressable

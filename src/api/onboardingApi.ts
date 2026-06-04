@@ -32,31 +32,49 @@ export interface OnboardingRequestBody {
   workValueIds: number[];
   techStackIds: number[];
   techStackCustoms: string[];
-  completedSubjects: CompletedSubject[];
+  completedSubjects?: CompletedSubject[];
 }
 
-interface OnboardingResponseData {
+export interface OnboardingSubmitResult {
   onboardingCompleted: boolean;
+}
+
+function createRequestId(): string {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 }
 
 export async function submitOnboarding(
   body: OnboardingRequestBody,
-  accessToken: string
-): Promise<void> {
+  accessToken: string,
+  requestId?: string
+): Promise<OnboardingSubmitResult> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${accessToken}`,
+  };
+  if (requestId) {
+    headers['X-Request-Id'] = requestId;
+  } else {
+    headers['X-Request-Id'] = createRequestId();
+  }
+
   const res = await fetch(`${BASE_URL}/api/v1/onboarding`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-    },
+    headers,
     body: JSON.stringify(body),
   });
 
-  const envelope: ApiEnvelope<OnboardingResponseData> = await res.json();
+  const envelope: ApiEnvelope<OnboardingSubmitResult> = await res.json();
 
   if (!envelope.success) {
     const code = envelope.error?.code ?? 'UNKNOWN';
     const message = envelope.error?.message ?? '알 수 없는 오류가 발생했습니다.';
-    throw new AuthApiError(code, message);
+    throw new AuthApiError(code, message, envelope.error?.details);
   }
+
+  if (!envelope.data) {
+    throw new Error('응답 데이터가 없습니다.');
+  }
+
+  return envelope.data;
 }

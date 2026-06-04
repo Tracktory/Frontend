@@ -16,12 +16,12 @@ type Props = StackScreenProps<OnboardingStackParamList, 'DevelopmentFieldSelect'
 
 export function DevelopmentFieldSelectPage({ navigation }: Props) {
   const vm = useDevelopmentFieldSelectViewModel(navigation);
-  const affiliation = useOnboardingStore((s) => s.affiliation);
+  const grade = useOnboardingStore((s) => s.grade);
   const copy = ONBOARDING_COPY.developmentFieldSelect;
 
   return (
     <OnboardingStepLayout
-      progress={getOnboardingProgress('DevelopmentFieldSelect', affiliation)}
+      progress={getOnboardingProgress('DevelopmentFieldSelect', grade)}
       title={copy.title}
       subtitle={copy.subtitle}
       showBack

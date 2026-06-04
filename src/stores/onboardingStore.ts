@@ -36,8 +36,20 @@ type OnboardingDataState = AdmissionSlice &
   EmploymentSlice &
   ExperienceSlice;
 
+export type OnboardingFieldsState = Pick<
+  AdmissionSlice,
+  'name' | 'admissionYear' | 'grade' | 'affiliation'
+> &
+  Pick<CollegeSlice, 'college'> &
+  Pick<CompletedCoursesSlice, 'completedCourses'> &
+  Pick<TrackSlice, 'track1' | 'track2'> &
+  Pick<InterestSlice, 'interests'> &
+  Pick<DevelopmentSlice, 'developmentFields'> &
+  Pick<EmploymentSlice, 'preferredCompanyTypes' | 'employmentValues'> &
+  Pick<ExperienceSlice, 'experiencedFields' | 'experiencedFieldInput'>;
+
 /** 온보딩 입력 필드 초기값 (액션 제외) */
-export function getInitialOnboardingState(): OnboardingDataState {
+export function getInitialOnboardingState(): OnboardingFieldsState {
   return {
     name: '',
     admissionYear: null,

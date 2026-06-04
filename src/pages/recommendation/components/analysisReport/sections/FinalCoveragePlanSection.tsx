@@ -12,7 +12,9 @@ import { CircularGauge } from '../charts/CircularGauge';
 interface FinalCoveragePlanSectionProps {
   currentPercent: number;
   targetPercent: number;
+  expectedPercent: number;
   remainingCount: number;
+  showContributionBadges: boolean;
   skillComparison: SkillComparison[];
   remainingCoursePlan: RemainingCoursePlan[];
   prerequisiteWarning: string;
@@ -21,7 +23,9 @@ interface FinalCoveragePlanSectionProps {
 export function FinalCoveragePlanSection({
   currentPercent,
   targetPercent,
+  expectedPercent,
   remainingCount,
+  showContributionBadges,
   skillComparison,
   remainingCoursePlan,
   prerequisiteWarning,
@@ -103,7 +107,7 @@ export function FinalCoveragePlanSection({
 
       <View style={styles.planHeader}>
         <Ionicons name="ellipse" size={12} color="#0D9488" />
-        <Text style={styles.planTitle}>95% 달성 필수 과목 플랜</Text>
+        <Text style={styles.planTitle}>{expectedPercent}% 달성 잔여 과목 플랜</Text>
       </View>
 
       {remainingCoursePlan.map((c, i) => (
@@ -124,9 +128,11 @@ export function FinalCoveragePlanSection({
                 {c.credits}학점 · {c.sem} · {c.area}
               </Text>
             </View>
-            <View style={styles.impactPill}>
-              <Text style={styles.impactText}>{c.impact}</Text>
-            </View>
+            {showContributionBadges && c.impact !== '—' ? (
+              <View style={styles.impactPill}>
+                <Text style={styles.impactText}>{c.impact}</Text>
+              </View>
+            ) : null}
             <Ionicons
               name={expandedCourse === i ? 'chevron-up' : 'chevron-down'}
               size={13}
@@ -135,23 +141,32 @@ export function FinalCoveragePlanSection({
           </Pressable>
           {expandedCourse === i ? (
             <View style={styles.courseDetail}>
-              <View style={styles.impactBarLabels}>
-                <Text style={styles.impactBarLabel}>커버리지 기여도</Text>
-                <Text style={styles.impactBarValue}>{c.impact}</Text>
-              </View>
-              <View style={styles.impactBarTrack}>
-                <View
-                  style={[
-                    styles.impactBarFill,
-                    {
-                      width: `${Math.min(100, parseInt(c.impact.replace(/\D/g, ''), 10) * 10)}%`,
-                    },
-                  ]}
-                />
-              </View>
+              {showContributionBadges && c.contributionPercent != null ? (
+                <>
+                  <View style={styles.impactBarLabels}>
+                    <Text style={styles.impactBarLabel}>커버리지 기여도</Text>
+                    <Text style={styles.impactBarValue}>{c.impact}</Text>
+                  </View>
+                  <View style={styles.impactBarTrack}>
+                    <View
+                      style={[
+                        styles.impactBarFill,
+                        {
+                          width: `${Math.min(100, c.contributionPercent * 10)}%`,
+                        },
+                      ]}
+                    />
+                  </View>
+                </>
+              ) : null}
               <Text style={styles.courseDesc}>
-                <Text style={styles.courseDescBold}>{c.area}</Text> 역량을 강화하며 전체
-                커버리지 {c.impact} 향상에 기여합니다.
+                <Text style={styles.courseDescBold}>{c.area}</Text>
+                {c.tracks && c.tracks.length > 0
+                  ? ` · ${c.tracks.join(', ')}`
+                  : ''}
+                {showContributionBadges && c.impact !== '—'
+                  ? ` — 커버리지 ${c.impact} 기여`
+                  : ' — 기준 직무 변경 시 기여도 미제공'}
               </Text>
             </View>
           ) : null}

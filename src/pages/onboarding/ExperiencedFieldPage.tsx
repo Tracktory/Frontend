@@ -16,12 +16,12 @@ type Props = StackScreenProps<OnboardingStackParamList, 'GoalSelect'>;
 
 export function ExperiencedFieldPage({ navigation }: Props) {
   const vm = useExperiencedFieldViewModel(navigation);
-  const affiliation = useOnboardingStore((s) => s.affiliation);
+  const grade = useOnboardingStore((s) => s.grade);
   const copy = ONBOARDING_COPY.experiencedField;
 
   return (
     <OnboardingStepLayout
-      progress={getOnboardingProgress('GoalSelect', affiliation)}
+      progress={getOnboardingProgress('GoalSelect', grade)}
       title={copy.title}
       subtitle={copy.subtitle}
       showBack

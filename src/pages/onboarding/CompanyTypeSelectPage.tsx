@@ -15,12 +15,12 @@ type Props = StackScreenProps<OnboardingStackParamList, 'CompanyTypeSelect'>;
 
 export function CompanyTypeSelectPage({ navigation }: Props) {
   const vm = useCompanyTypeSelectViewModel(navigation);
-  const affiliation = useOnboardingStore((s) => s.affiliation);
+  const grade = useOnboardingStore((s) => s.grade);
   const copy = ONBOARDING_COPY.companyTypeSelect;
 
   return (
     <OnboardingStepLayout
-      progress={getOnboardingProgress('CompanyTypeSelect', affiliation)}
+      progress={getOnboardingProgress('CompanyTypeSelect', grade)}
       title={copy.title}
       subtitle={copy.subtitle}
       showBack

@@ -13,12 +13,12 @@ type Props = StackScreenProps<OnboardingStackParamList, 'Track2Select'>;
 
 export function Track2SelectPage({ navigation }: Props) {
   const vm = useTrack2SelectViewModel(navigation);
-  const affiliation = useOnboardingStore((s) => s.affiliation);
+  const grade = useOnboardingStore((s) => s.grade);
   const copy = ONBOARDING_COPY.track2Select;
 
   return (
     <OnboardingStepLayout
-      progress={getOnboardingProgress('Track2Select', affiliation)}
+      progress={getOnboardingProgress('Track2Select', grade)}
       title={copy.title}
       subtitle={copy.subtitle}
       showBack

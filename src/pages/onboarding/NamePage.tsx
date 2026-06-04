@@ -25,7 +25,7 @@ export function NamePage({ navigation }: Props) {
 
   return (
     <OnboardingStepLayout
-      progress={getOnboardingProgress('Name', null)}
+      progress={getOnboardingProgress('Name', vm.grade)}
       title={copy.title}
       subtitle={copy.subtitle}
       primaryTitle={copy.ctaPrimary}

@@ -15,13 +15,13 @@ type Props = StackScreenProps<OnboardingStackParamList, 'CollegeSelect'>;
 
 export function CollegeSelectPage({ navigation }: Props) {
   const vm = useCollegeSelectViewModel(navigation);
-  const affiliation = useOnboardingStore((s) => s.affiliation);
+  const grade = useOnboardingStore((s) => s.grade);
   const copy = ONBOARDING_COPY.collegeSelect;
   const [previewOpen, setPreviewOpen] = useState(false);
 
   return (
     <OnboardingStepLayout
-      progress={getOnboardingProgress('CollegeSelect', affiliation)}
+      progress={getOnboardingProgress('CollegeSelect', grade)}
       title={copy.title}
       subtitle={copy.subtitle}
       showBack

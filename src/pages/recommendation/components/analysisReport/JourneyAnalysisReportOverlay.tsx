@@ -1,8 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   Modal,
+  Pressable,
   ScrollView,
   StyleSheet,
+  Text,
   useWindowDimensions,
   View,
 } from 'react-native';
@@ -14,11 +17,10 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import type { JobRecommendation } from '../../../../data/mockRecommendData';
+import { useAuthStore } from '../../../../stores/authStore';
+import { useAnalysisReport } from '../../../../hooks/useAnalysisReport';
 import { getModalBottomTabBarClearance } from '../../../../navigation/layout/tabBarLayout';
-import type { RoadmapPayload } from '../../../../data/mockRoadmapData';
-import type { TrackRecommendPayload } from '../../../../data/mockTrackRecommendData';
-import { buildAnalysisReportModel } from '../../utils/buildAnalysisReportModel';
+import type { AnalysisReportLocalParams } from '../../../../hooks/useAnalysisReport';
 import { AnalysisReportFooter } from './AnalysisReportFooter';
 import { AnalysisReportHeader } from './AnalysisReportHeader';
 import { AIActionsSection } from './sections/AIActionsSection';
@@ -31,30 +33,17 @@ import { TrackCompletionSection } from './sections/TrackCompletionSection';
 
 const SPRING_CONFIG = { damping: 30, stiffness: 300 };
 
-interface JourneyAnalysisReportOverlayProps {
+interface JourneyAnalysisReportOverlayProps extends AnalysisReportLocalParams {
   visible: boolean;
   onClose: () => void;
   onOpenChat: () => void;
-  roadmap: RoadmapPayload | null;
-  completedCourses: string[];
-  jobs: JobRecommendation[];
-  trackRecommend: TrackRecommendPayload | null;
-  displayName: string;
-  studentId?: string;
-  studentYear: number;
 }
 
 export function JourneyAnalysisReportOverlay({
   visible,
   onClose,
   onOpenChat,
-  roadmap,
-  completedCourses,
-  jobs,
-  trackRecommend,
-  displayName,
-  studentId,
-  studentYear,
+  ...localParams
 }: JourneyAnalysisReportOverlayProps) {
   const insets = useSafeAreaInsets();
   const tabBarClearance = getModalBottomTabBarClearance(insets);
@@ -62,27 +51,33 @@ export function JourneyAnalysisReportOverlay({
   const [mounted, setMounted] = useState(false);
   const translateX = useSharedValue(screenWidth);
 
-  const model = useMemo(
-    () =>
-      buildAnalysisReportModel({
-        roadmap,
-        completedCourses,
-        jobs,
-        trackRecommend,
-        displayName,
-        studentId,
-        studentYear,
-      }),
+  const accessToken = useAuthStore((s) => s.accessToken);
+
+  const stableLocalParams = useMemo(
+    () => localParams,
     [
-      roadmap,
-      completedCourses,
-      jobs,
-      trackRecommend,
-      displayName,
-      studentId,
-      studentYear,
-    ],
+      localParams.roadmap,
+      localParams.completedCourses,
+      localParams.jobs,
+      localParams.trackRecommend,
+      localParams.displayName,
+      localParams.studentId,
+      localParams.studentYear,
+    ]
   );
+
+  const {
+    model,
+    isLoading,
+    errorMessage,
+    selectAnchorJobCode,
+    retry,
+  } = useAnalysisReport({
+    visible,
+    accessToken,
+    localParams: stableLocalParams,
+    onFatalError: onClose,
+  });
 
   useEffect(() => {
     if (visible) {
@@ -106,6 +101,8 @@ export function JourneyAnalysisReportOverlay({
 
   const shouldShow = visible || mounted;
   if (!shouldShow) return null;
+
+  const showContent = !isLoading && !errorMessage;
 
   return (
     <Modal
@@ -131,33 +128,57 @@ export function JourneyAnalysisReportOverlay({
           >
             <AnalysisReportHeader
               subtitle={model.subtitle}
+              anchorJobLabel={model.anchorJobLabel}
               onBack={onClose}
               onShare={() => {}}
             />
 
-            <View style={styles.sections}>
-              <OverallCoverageSection model={model} />
-              <SkillAnalysisSection skillRadar={model.skillRadar} />
-              <TrackCompletionSection
-                trackBars={model.trackBars}
-                synergyTip={model.synergyTip}
-              />
-              <JobMatchingDetailSection jobs={model.jobs} />
-              <SemesterTimelineSection
-                semesters={model.semesters}
-                defaultExpandedIndex={model.defaultExpandedSemesterIndex}
-              />
-              <FinalCoveragePlanSection
-                currentPercent={model.currentPercent}
-                targetPercent={model.targetPercent}
-                remainingCount={model.remainingCount}
-                skillComparison={model.skillComparison}
-                remainingCoursePlan={model.remainingCoursePlan}
-                prerequisiteWarning={model.prerequisiteWarning}
-              />
-              <AIActionsSection actions={model.aiActions} />
-              <AnalysisReportFooter onOpenChat={onOpenChat} />
-            </View>
+            {isLoading ? (
+              <View style={styles.centerBox}>
+                <ActivityIndicator size="large" color="#14B8A6" />
+                <Text style={styles.loadingText}>리포트를 불러오는 중이에요</Text>
+              </View>
+            ) : null}
+
+            {errorMessage ? (
+              <View style={styles.centerBox}>
+                <Text style={styles.errorText}>{errorMessage}</Text>
+                <Pressable style={styles.retryBtn} onPress={retry}>
+                  <Text style={styles.retryText}>다시 시도</Text>
+                </Pressable>
+              </View>
+            ) : null}
+
+            {showContent ? (
+              <View style={styles.sections}>
+                <OverallCoverageSection model={model} />
+                <SkillAnalysisSection skillRadar={model.skillRadar} />
+                <TrackCompletionSection
+                  trackBars={model.trackBars}
+                  synergyTip={model.synergyTip}
+                />
+                <JobMatchingDetailSection
+                  jobs={model.jobs}
+                  onSelectJobCode={selectAnchorJobCode}
+                />
+                <SemesterTimelineSection
+                  semesters={model.semesters}
+                  defaultExpandedIndex={model.defaultExpandedSemesterIndex}
+                />
+                <FinalCoveragePlanSection
+                  currentPercent={model.currentPercent}
+                  targetPercent={model.targetPercent}
+                  expectedPercent={model.expectedPercent}
+                  remainingCount={model.remainingCount}
+                  showContributionBadges={model.showContributionBadges}
+                  skillComparison={model.skillComparison}
+                  remainingCoursePlan={model.remainingCoursePlan}
+                  prerequisiteWarning={model.prerequisiteWarning}
+                />
+                <AIActionsSection actions={model.aiActions} />
+                <AnalysisReportFooter onOpenChat={onOpenChat} />
+              </View>
+            ) : null}
           </ScrollView>
         </Animated.View>
       </View>
@@ -185,5 +206,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 20,
     gap: 20,
+  },
+  centerBox: {
+    paddingHorizontal: 20,
+    paddingVertical: 48,
+    alignItems: 'center',
+    gap: 16,
+  },
+  loadingText: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  errorText: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  retryBtn: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: '#14B8A6',
+  },
+  retryText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });

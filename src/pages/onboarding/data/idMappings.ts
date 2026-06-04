@@ -3,6 +3,8 @@
  * DB 변경 시 이 파일의 값만 동기화하면 됨.
  */
 
+import { COLLEGE_TRACK_MAP } from './onboardingOptions';
+
 // code: MANAGEMENT_OFFICE | TRADE_DISTRIBUTION | SALES_CUSTOMER | SERVICE | MARKETING_AD_PR
 //       IT_INTERNET | DESIGN | RND_ENGINEERING | PRODUCTION_MANUFACTURING | EDUCATION
 //       MEDICAL | MEDIA | SPECIALIZED | CONSTRUCTION
@@ -156,7 +158,7 @@ export const COLLEGE_ID_MAP: Record<string, number> = {
   '크리에이티브인문예술대학': 8,
 };
 
-/** DB department.name → id */
+/** DB department.name → id (시드 id 1–15, department.college_id 참고) */
 export const DEPARTMENT_ID_MAP: Record<string, number> = {
   '미래플러스대학': 1,
   '기계전자공학부': 2,
@@ -203,6 +205,7 @@ export const COLLEGE_DEFAULT_DEPARTMENT_ID_MAP: Record<string, number> = {
   '디자인대학': 5,
   '미래융합사회과학대학': 6,
   '크리에이티브인문예술대학': 9,
+  '상상력교양대학': 7,
 };
 
 export const TRACK_ID_MAP: Record<string, number> = {
@@ -358,6 +361,40 @@ export function resolveDepartmentIdForTrack(trackName: string): number | undefin
     TRACK_TO_DEPARTMENT_ID_MAP[normalized] ??
     TRACK_TO_DEPARTMENT_ID_MAP[trackName.trim()]
   );
+}
+
+export function isValidDepartmentId(id: number): boolean {
+  return Object.prototype.hasOwnProperty.call(DEPARTMENT_TO_COLLEGE_ID_MAP, id);
+}
+
+/** 1학년: 선택 단과대의 기본 학과(department) id */
+export function resolveFirstYearDepartmentId(college: string | null): number | undefined {
+  if (!college) return undefined;
+  const id = COLLEGE_DEFAULT_DEPARTMENT_ID_MAP[college];
+  return id != null && isValidDepartmentId(id) ? id : undefined;
+}
+
+/** 1학년: API tracks[]용 trackId (department id 사용 금지) */
+export function resolveFirstYearDefaultTrackId(college: string | null): number | undefined {
+  if (!college) return undefined;
+  const targetDept = resolveFirstYearDepartmentId(college);
+  const candidates = COLLEGE_TRACK_MAP[college];
+  if (!candidates) return undefined;
+
+  if (targetDept != null) {
+    for (const name of candidates) {
+      const trackId = resolveTrackId(name);
+      if (trackId == null) continue;
+      const dept = resolveDepartmentIdForTrack(name);
+      if (dept === targetDept) return trackId;
+    }
+  }
+
+  for (const name of candidates) {
+    const trackId = resolveTrackId(name);
+    if (trackId != null) return trackId;
+  }
+  return undefined;
 }
 
 function invertMap(map: Record<string, number>): Record<number, string> {

@@ -1,10 +1,24 @@
 import React from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 
+import type { RootStackParamList } from '../../../navigation/RootNavigator';
+import { performLogout } from '../../../utils/performLogout';
+
 export function MySettingsSection() {
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+
   const handleLogout = () => {
-    Alert.alert('로그아웃', '로그아웃 기능은 준비 중입니다.');
+    Alert.alert('로그아웃', '로그아웃 하시겠습니까?', [
+      { text: '취소', style: 'cancel' },
+      {
+        text: '로그아웃',
+        style: 'destructive',
+        onPress: () => performLogout(navigation),
+      },
+    ]);
   };
 
   return (
@@ -13,6 +27,8 @@ export function MySettingsSection() {
         <Pressable
           style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
           onPress={handleLogout}
+          accessibilityLabel="로그아웃"
+          accessibilityRole="button"
         >
           <Text style={styles.emoji}>🚪</Text>
           <Text style={[styles.label, styles.labelDanger]}>로그아웃</Text>

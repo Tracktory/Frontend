@@ -16,12 +16,12 @@ type Props = StackScreenProps<OnboardingStackParamList, 'EmploymentValueSelect'>
 
 export function EmploymentValueSelectPage({ navigation }: Props) {
   const vm = useEmploymentValueSelectViewModel(navigation);
-  const affiliation = useOnboardingStore((s) => s.affiliation);
+  const grade = useOnboardingStore((s) => s.grade);
   const copy = ONBOARDING_COPY.employmentValueSelect;
 
   return (
     <OnboardingStepLayout
-      progress={getOnboardingProgress('EmploymentValueSelect', affiliation)}
+      progress={getOnboardingProgress('EmploymentValueSelect', grade)}
       title={copy.title}
       subtitle={copy.subtitle}
       showBack

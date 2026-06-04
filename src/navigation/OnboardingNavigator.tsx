@@ -4,7 +4,6 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { useOnboardingStore } from '../stores/onboardingStore';
 
 import { NamePage } from '@/src/pages/onboarding/NamePage';
-import { AffiliationPage } from '@/src/pages/onboarding/AffiliationPage';
 import { CollegeSelectPage } from '@/src/pages/onboarding/CollegeSelectPage';
 import { Track1SelectPage } from '@/src/pages/onboarding/Track1SelectPage';
 import { Track2SelectPage } from '@/src/pages/onboarding/Track2SelectPage';
@@ -14,11 +13,9 @@ import { EmploymentValueSelectPage } from '@/src/pages/onboarding/EmploymentValu
 import { ExperiencedFieldPage } from '@/src/pages/onboarding/ExperiencedFieldPage';
 import { InterestSelectPage } from '@/src/pages/onboarding/InterestSelectPage';
 import { OnboardingConfirmPage } from '@/src/pages/onboarding/OnboardingConfirmPage';
-import { OnboardingPreviewPage } from '@/src/pages/onboarding/OnboardingPreviewPage';
 
 export type OnboardingStackParamList = {
   Name: undefined;
-  Affiliation: undefined;
   CollegeSelect: undefined;
   Track1Select: undefined;
   Track2Select: undefined;
@@ -27,7 +24,6 @@ export type OnboardingStackParamList = {
   CompanyTypeSelect: undefined;
   EmploymentValueSelect: undefined;
   GoalSelect: undefined;
-  OnboardingPreview: undefined;
   OnboardingConfirm: undefined;
 };
 
@@ -51,7 +47,6 @@ export function OnboardingNavigator() {
       }}
     >
       <Stack.Screen name="Name" component={NamePage} />
-      <Stack.Screen name="Affiliation" component={AffiliationPage} />
       <Stack.Screen name="CollegeSelect" component={CollegeSelectPage} />
       <Stack.Screen name="Track1Select" component={Track1SelectPage} />
       <Stack.Screen name="Track2Select" component={Track2SelectPage} />
@@ -60,7 +55,6 @@ export function OnboardingNavigator() {
       <Stack.Screen name="CompanyTypeSelect" component={CompanyTypeSelectPage} />
       <Stack.Screen name="EmploymentValueSelect" component={EmploymentValueSelectPage} />
       <Stack.Screen name="GoalSelect" component={ExperiencedFieldPage} />
-      <Stack.Screen name="OnboardingPreview" component={OnboardingPreviewPage} />
       <Stack.Screen name="OnboardingConfirm" component={OnboardingConfirmPage} />
     </Stack.Navigator>
   );

@@ -4,12 +4,14 @@ import { Ionicons } from '@expo/vector-icons';
 
 interface AnalysisReportHeaderProps {
   subtitle: string;
+  anchorJobLabel?: string | null;
   onBack: () => void;
   onShare?: () => void;
 }
 
 export function AnalysisReportHeader({
   subtitle,
+  anchorJobLabel,
   onBack,
   onShare,
 }: AnalysisReportHeaderProps) {
@@ -21,6 +23,9 @@ export function AnalysisReportHeader({
       <View style={styles.center}>
         <Text style={styles.title}>상세 분석 리포트</Text>
         <Text style={styles.subtitle}>{subtitle}</Text>
+        {anchorJobLabel ? (
+          <Text style={styles.anchorLabel}>{anchorJobLabel}</Text>
+        ) : null}
       </View>
       <Pressable
         style={styles.iconBtn}
@@ -65,5 +70,11 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#9CA3AF',
     marginTop: 2,
+  },
+  anchorLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#0D9488',
+    marginTop: 4,
   },
 });

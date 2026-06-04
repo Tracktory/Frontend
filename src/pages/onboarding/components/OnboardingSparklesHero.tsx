@@ -9,6 +9,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
+import Logo from '@/src/assets/images/Logo.svg';
+
 type HeroVariant = 'preview' | 'completion';
 
 interface OnboardingSparklesHeroProps {
@@ -45,32 +47,34 @@ export function OnboardingSparklesHero({
 
   return (
     <View style={styles.wrap}>
-      <Animated.View
-        style={[
-          isCompletion ? styles.iconCircle : styles.iconBox,
-          { width: boxSize, height: boxSize },
-          isCompletion ? iconAnimStyle : null,
-        ]}
-      >
-        <Svg width={boxSize} height={boxSize} style={StyleSheet.absoluteFillObject}>
-          <Defs>
-            <LinearGradient id="sparklesHeroGrad" x1="0" y1="0" x2="1" y2="1">
-              <Stop offset="0" stopColor="#14B8A6" />
-              <Stop offset="1" stopColor="#0D9488" />
-            </LinearGradient>
-          </Defs>
-          <Rect
-            x={0}
-            y={0}
-            width={boxSize}
-            height={boxSize}
-            rx={isCompletion ? boxSize / 2 : 16}
-            ry={isCompletion ? boxSize / 2 : 16}
-            fill="url(#sparklesHeroGrad)"
-          />
-        </Svg>
-        <Ionicons name="sparkles" size={iconSize} color="#FFFFFF" />
-      </Animated.View>
+      {isCompletion ? (
+        <Animated.View style={[styles.logoWrap, iconAnimStyle]}>
+          <Logo width={96} height={84} />
+        </Animated.View>
+      ) : (
+        <Animated.View
+          style={[styles.iconBox, { width: boxSize, height: boxSize }]}
+        >
+          <Svg width={boxSize} height={boxSize} style={StyleSheet.absoluteFillObject}>
+            <Defs>
+              <LinearGradient id="sparklesHeroGrad" x1="0" y1="0" x2="1" y2="1">
+                <Stop offset="0" stopColor="#14B8A6" />
+                <Stop offset="1" stopColor="#0D9488" />
+              </LinearGradient>
+            </Defs>
+            <Rect
+              x={0}
+              y={0}
+              width={boxSize}
+              height={boxSize}
+              rx={16}
+              ry={16}
+              fill="url(#sparklesHeroGrad)"
+            />
+          </Svg>
+          <Ionicons name="sparkles" size={iconSize} color="#FFFFFF" />
+        </Animated.View>
+      )}
 
       <Text style={[styles.title, isCompletion && styles.titleCompletion]}>{title}</Text>
       {subtitle ? (
@@ -94,17 +98,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     overflow: 'hidden',
   },
-  iconCircle: {
-    borderRadius: 48,
+  logoWrap: {
     alignItems: 'center',
-    justifyContent: 'center',
     marginBottom: 24,
-    overflow: 'hidden',
-    shadowColor: '#14B8A6',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
-    elevation: 8,
   },
   title: {
     fontSize: 24,

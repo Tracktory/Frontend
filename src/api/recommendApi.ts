@@ -190,7 +190,8 @@ function mapSubjectNames(
 
 function mapJobs(items: ApiJobItem[]): JobRecommendation[] {
   return items.map((item, index) => ({
-    id: String(item.jobId ?? item.id ?? item.code ?? index + 1),
+    id: String(item.jobId ?? item.id ?? index + 1),
+    code: item.code,
     title: item.name,
     description: item.description ?? '',
     reasoning: item.reasoning ?? '',

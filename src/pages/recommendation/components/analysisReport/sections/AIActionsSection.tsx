@@ -10,6 +10,10 @@ interface AIActionsSectionProps {
 }
 
 export function AIActionsSection({ actions }: AIActionsSectionProps) {
+  if (actions.length === 0) {
+    return null;
+  }
+
   return (
     <AnalysisReportSection title="AI 추천 다음 액션" iconName="flash">
       {actions.map((action, i) => (

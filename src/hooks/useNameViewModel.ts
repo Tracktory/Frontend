@@ -18,6 +18,7 @@ export function useNameViewModel(navigation: Navigation) {
   const storedGrade = useOnboardingStore((s) => s.grade);
   const setName = useOnboardingStore((s) => s.setName);
   const setGrade = useOnboardingStore((s) => s.setGrade);
+  const setAffiliation = useOnboardingStore((s) => s.setAffiliation);
 
   const [name, setLocalName] = useState(storedName);
   const [grade, setLocalGrade] = useState<number | null>(storedGrade);
@@ -34,7 +35,8 @@ export function useNameViewModel(navigation: Navigation) {
 
     setName(name);
     setGrade(grade);
-    navigation.navigate('Affiliation');
+    setAffiliation(grade === 1 ? '1학년' : '2학년이상');
+    navigation.navigate(grade === 1 ? 'CollegeSelect' : 'Track1Select');
   };
 
   return {

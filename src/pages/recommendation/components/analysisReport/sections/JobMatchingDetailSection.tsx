@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { ReportJobItem } from '../../../utils/buildAnalysisReportModel';
 import { AnalysisReportSection } from '../AnalysisReportSection';
@@ -8,9 +8,13 @@ import { SkillChip } from '../shared/SkillChip';
 
 interface JobMatchingDetailSectionProps {
   jobs: ReportJobItem[];
+  onSelectJobCode?: (jobCode: string) => void;
 }
 
-export function JobMatchingDetailSection({ jobs }: JobMatchingDetailSectionProps) {
+export function JobMatchingDetailSection({
+  jobs,
+  onSelectJobCode,
+}: JobMatchingDetailSectionProps) {
   const [expandedJob, setExpandedJob] = useState<number | null>(0);
 
   if (jobs.length === 0) {
@@ -23,28 +27,45 @@ export function JobMatchingDetailSection({ jobs }: JobMatchingDetailSectionProps
 
   return (
     <AnalysisReportSection title="직무 매칭 상세" iconName="briefcase">
+      <Text style={styles.hint}>카드를 탭하면 해당 직무 기준으로 충족도를 볼 수 있어요.</Text>
       {jobs.map((job, i) => (
         <ReportAccordion
-          key={job.id}
+          key={job.jobCode ?? job.id}
           expanded={expandedJob === i}
           onToggle={() => setExpandedJob(expandedJob === i ? null : i)}
-          borderActive
+          borderActive={job.isAnchor}
           header={
-            <View style={styles.jobHeaderRow}>
-              <Text style={styles.icon}>{job.icon}</Text>
-              <View style={styles.jobHeaderText}>
-                <Text style={styles.jobTitle}>{job.title}</Text>
-                <Text style={styles.salary}>연봉 {job.salary}</Text>
+            <Pressable
+              style={styles.jobHeaderPress}
+              onPress={() => {
+                if (job.jobCode && onSelectJobCode) {
+                  onSelectJobCode(job.jobCode);
+                }
+              }}
+            >
+              <View style={styles.jobHeaderRow}>
+                <Text style={styles.icon}>{job.icon}</Text>
+                <View style={styles.jobHeaderText}>
+                  <View style={styles.titleRow}>
+                    <Text style={styles.jobTitle}>{job.title}</Text>
+                    {job.isAnchor ? (
+                      <View style={styles.anchorBadge}>
+                        <Text style={styles.anchorBadgeText}>기준</Text>
+                      </View>
+                    ) : null}
+                  </View>
+                  <Text style={styles.salary}>연봉 {job.salary}</Text>
+                </View>
+                <View style={styles.matchPill}>
+                  <Text style={styles.matchText}>{job.match}%</Text>
+                </View>
               </View>
-              <View style={styles.matchPill}>
-                <Text style={styles.matchText}>{job.match}%</Text>
-              </View>
-            </View>
+            </Pressable>
           }
         >
           <View style={styles.matchBarWrap}>
             <View style={styles.matchBarLabels}>
-              <Text style={styles.matchBarLabel}>직무 매칭률</Text>
+              <Text style={styles.matchBarLabel}>현재 충족률</Text>
               <Text style={styles.matchBarValue}>{job.match}%</Text>
             </View>
             <View style={styles.matchBarTrack}>
@@ -63,6 +84,14 @@ export function JobMatchingDetailSection({ jobs }: JobMatchingDetailSectionProps
               <SkillChip key={s} label={s} variant="gap" />
             ))}
           </View>
+          {job.jobCode && onSelectJobCode ? (
+            <Pressable
+              style={styles.setAnchorBtn}
+              onPress={() => onSelectJobCode(job.jobCode!)}
+            >
+              <Text style={styles.setAnchorText}>이 직무를 기준으로 보기</Text>
+            </Pressable>
+          ) : null}
         </ReportAccordion>
       ))}
     </AnalysisReportSection>
@@ -70,9 +99,17 @@ export function JobMatchingDetailSection({ jobs }: JobMatchingDetailSectionProps
 }
 
 const styles = StyleSheet.create({
+  hint: {
+    fontSize: 11,
+    color: '#9CA3AF',
+    marginBottom: 10,
+  },
   empty: {
     fontSize: 14,
     color: '#9CA3AF',
+  },
+  jobHeaderPress: {
+    flex: 1,
   },
   jobHeaderRow: {
     flex: 1,
@@ -86,10 +123,27 @@ const styles = StyleSheet.create({
   jobHeaderText: {
     flex: 1,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexWrap: 'wrap',
+  },
   jobTitle: {
     fontSize: 14,
     fontWeight: '700',
     color: '#111827',
+  },
+  anchorBadge: {
+    backgroundColor: '#CCFBF1',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  anchorBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#0D9488',
   },
   salary: {
     fontSize: 12,
@@ -148,5 +202,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 6,
+  },
+  setAnchorBtn: {
+    marginTop: 12,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 12,
+    backgroundColor: '#F0FDFA',
+    borderWidth: 1,
+    borderColor: '#99F6E4',
+  },
+  setAnchorText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#0D9488',
   },
 });

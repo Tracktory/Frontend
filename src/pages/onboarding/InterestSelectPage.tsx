@@ -16,12 +16,12 @@ type Props = StackScreenProps<OnboardingStackParamList, 'InterestSelect'>;
 
 export function InterestSelectPage({ navigation }: Props) {
   const vm = useInterestSelectViewModel(navigation);
-  const affiliation = useOnboardingStore((s) => s.affiliation);
+  const grade = useOnboardingStore((s) => s.grade);
   const copy = ONBOARDING_COPY.interestSelect;
 
   return (
     <OnboardingStepLayout
-      progress={getOnboardingProgress('InterestSelect', affiliation)}
+      progress={getOnboardingProgress('InterestSelect', grade)}
       title={copy.title}
       subtitle={copy.subtitle}
       showBack

@@ -39,6 +39,10 @@ export type RemainingCoursePlan = {
   impact: string;
   sem: string;
   area: string;
+  code?: string;
+  tracks?: string[];
+  trackHint?: string;
+  contributionPercent?: number | null;
 };
 
 export const REMAINING_COURSE_PLAN: RemainingCoursePlan[] = [

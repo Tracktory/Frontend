@@ -2,7 +2,6 @@ export const ONBOARDING_SERVICE_NAME = 'tracktory';
 
 export type OnboardingScreenKey =
   | 'name'
-  | 'affiliation'
   | 'collegeSelect'
   | 'track1Select'
   | 'track2Select'
@@ -11,7 +10,6 @@ export type OnboardingScreenKey =
   | 'companyTypeSelect'
   | 'employmentValueSelect'
   | 'experiencedField'
-  | 'preview'
   | 'confirm';
 
 export const ONBOARDING_COPY: Record<
@@ -32,20 +30,10 @@ export const ONBOARDING_COPY: Record<
     ctaDisabledHint: '이름을 적어주세요',
     ctaGradeDisabledHint: '학년을 선택해주세요',
   },
-  affiliation: {
-    title: '지금은 어느 쪽에 가까우세요?',
-    ctaPrimary: '다음',
-    ctaDisabledHint: '하나만 골라주세요',
-  },
   collegeSelect: {
     title: '소속 학부를 선택하세요',
     subtitle: '아직 트랙을 정하지 않아도 괜찮아요',
     ctaPrimary: '다음',
-  },
-  preview: {
-    title: '이미 이런 게 보여요',
-    subtitle: '입력한 관심사 기반으로 맞춤 추천이 준비됐어요',
-    ctaPrimary: '전체 결과 보러 가기 →',
   },
   track1Select: {
     title: '주전공 1트랙이 뭐예요?',

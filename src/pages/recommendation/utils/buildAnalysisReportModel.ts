@@ -1,4 +1,5 @@
 import type { JobRecommendation } from '../../../data/mockRecommendData';
+import type { RecommendationReportData } from '../../../api/recommendReportApi';
 import type { RoadmapPayload, SemesterStep, SemesterTiming } from '../../../data/mockRoadmapData';
 import type { TrackRecommendPayload } from '../../../data/mockTrackRecommendData';
 import { admissionYearFromStudentId } from '../../../utils/mapProfileToOnboarding';
@@ -11,6 +12,7 @@ import {
   SKILL_COMPARISON,
   SKILL_RADAR,
   TRACK_BARS_FALLBACK,
+  type AIActionItem,
   type JobReportEnrichment,
   type RemainingCoursePlan,
   type SkillComparison,
@@ -21,15 +23,27 @@ import {
   computeCompetencyFromRoadmap,
   computeRoadmapProgressStats,
 } from './journeyCompetency';
+import {
+  assertCoverageInvariant,
+  formatAnchorJobLabel,
+  isPrimaryAnchorReport,
+  mapNextActions,
+  mapRemainingCoursePlan,
+  mapReportJobs,
+  mapSkillComparisonFromReport,
+  mapSkillRadarFromReport,
+} from './mapRecommendationReport';
 
 export type ReportJobItem = {
   id: string;
+  jobCode?: string;
   title: string;
   match: number;
   icon: string;
   salary: string;
   skills: string[];
   gap: string[];
+  isAnchor?: boolean;
 };
 
 export type ReportSemesterItem = {
@@ -42,11 +56,19 @@ export type ReportSemesterItem = {
 
 export type AnalysisReportModel = {
   subtitle: string;
+  anchorJobLabel: string | null;
+  anchorJobCode: string | null;
+  showNextActionsTier: boolean;
+  showContributionBadges: boolean;
   currentPercent: number;
+  nextActionsPercent: number;
+  /** @deprecated use expectedPercent — kept for FinalCoveragePlanSection */
   targetPercent: number;
+  expectedPercent: number;
   remainingCount: number;
   completedCourseCount: number;
   earnedCredits: number;
+  gapTokens: string[];
   skillRadar: SkillRadarPoint[];
   skillComparison: SkillComparison[];
   trackBars: TrackBarItem[];
@@ -56,7 +78,7 @@ export type AnalysisReportModel = {
   defaultExpandedSemesterIndex: number;
   remainingCoursePlan: RemainingCoursePlan[];
   prerequisiteWarning: string;
-  aiActions: typeof AI_ACTIONS;
+  aiActions: AIActionItem[];
 };
 
 function formatReportSubtitle(
@@ -115,6 +137,7 @@ function enrichJob(job: JobRecommendation): ReportJobItem {
 
   return {
     id: job.id,
+    jobCode: job.code,
     title: job.title,
     match: job.matchScore,
     icon: meta?.icon ?? '💼',
@@ -153,7 +176,7 @@ function buildSemesters(
   };
 }
 
-function mergeRemainingCoursePlan(
+function mergeRemainingCoursePlanLocal(
   roadmapRemainingNames: string[],
 ): RemainingCoursePlan[] {
   const planByName = new Map(REMAINING_COURSE_PLAN.map((p) => [p.name, p]));
@@ -186,7 +209,63 @@ function mergeRemainingCoursePlan(
   return fromRoadmap.slice(0, 6);
 }
 
+function applyReportToModel(
+  base: Omit<
+    AnalysisReportModel,
+    | 'anchorJobLabel'
+    | 'anchorJobCode'
+    | 'showNextActionsTier'
+    | 'showContributionBadges'
+    | 'currentPercent'
+    | 'nextActionsPercent'
+    | 'targetPercent'
+    | 'expectedPercent'
+    | 'remainingCount'
+    | 'completedCourseCount'
+    | 'earnedCredits'
+    | 'gapTokens'
+    | 'skillRadar'
+    | 'skillComparison'
+    | 'jobs'
+    | 'remainingCoursePlan'
+    | 'aiActions'
+  >,
+  report: RecommendationReportData,
+  storeJobs: JobRecommendation[],
+  anchorJobCode: string | undefined
+): AnalysisReportModel {
+  assertCoverageInvariant(report);
+
+  const showNextActionsTier = isPrimaryAnchorReport(report);
+  const showContribution = showNextActionsTier;
+  const anchorCode = anchorJobCode ?? report.anchorJob?.code ?? null;
+
+  return {
+    ...base,
+    anchorJobLabel: formatAnchorJobLabel(report.anchorJob),
+    anchorJobCode: anchorCode,
+    showNextActionsTier,
+    showContributionBadges: showContribution,
+    currentPercent: report.coverage.currentPercent,
+    nextActionsPercent: report.coverage.nextActionsPercent,
+    targetPercent: report.coverage.expectedPercent,
+    expectedPercent: report.coverage.expectedPercent,
+    remainingCount: report.remainingCourses.length,
+    completedCourseCount: report.aggregate.completedCourseCount,
+    earnedCredits: report.aggregate.earnedCredits,
+    gapTokens: report.coverage.gapTokens,
+    skillRadar: mapSkillRadarFromReport(report),
+    skillComparison: mapSkillComparisonFromReport(report),
+    jobs: mapReportJobs(report, storeJobs, anchorCode ?? undefined),
+    remainingCoursePlan: mapRemainingCoursePlan(report, showContribution),
+    aiActions:
+      report.nextActions.length > 0 ? mapNextActions(report) : [],
+  };
+}
+
 export function buildAnalysisReportModel(params: {
+  report?: RecommendationReportData | null;
+  anchorJobCode?: string;
   roadmap: RoadmapPayload | null;
   completedCourses: string[];
   jobs: JobRecommendation[];
@@ -197,6 +276,8 @@ export function buildAnalysisReportModel(params: {
   reportDate?: Date;
 }): AnalysisReportModel {
   const {
+    report,
+    anchorJobCode,
     roadmap,
     completedCourses,
     jobs,
@@ -214,13 +295,20 @@ export function buildAnalysisReportModel(params: {
     studentYear,
   );
 
-  return {
+  const localBase: AnalysisReportModel = {
     subtitle: formatReportSubtitle(displayName, studentId, reportDate),
+    anchorJobLabel: null,
+    anchorJobCode: null,
+    showNextActionsTier: true,
+    showContributionBadges: true,
     currentPercent: competency.currentPercent,
+    nextActionsPercent: competency.targetPercent,
     targetPercent: competency.targetPercent,
+    expectedPercent: competency.targetPercent,
     remainingCount: competency.remainingCount,
     completedCourseCount: progress.completedCourseCount,
     earnedCredits: progress.earnedCredits,
+    gapTokens: [],
     skillRadar: SKILL_RADAR,
     skillComparison: SKILL_COMPARISON,
     trackBars: buildTrackBars(trackRecommend),
@@ -228,11 +316,17 @@ export function buildAnalysisReportModel(params: {
     jobs: jobs.slice(0, 3).map(enrichJob),
     semesters,
     defaultExpandedSemesterIndex,
-    remainingCoursePlan: mergeRemainingCoursePlan(
+    remainingCoursePlan: mergeRemainingCoursePlanLocal(
       progress.remainingAll.map((c) => c.name),
     ),
     prerequisiteWarning:
       trackRecommend?.prerequisiteNote?.trim() || PREREQUISITE_WARNING_FALLBACK,
     aiActions: AI_ACTIONS,
   };
+
+  if (!report) {
+    return localBase;
+  }
+
+  return applyReportToModel(localBase, report, jobs, anchorJobCode);
 }
