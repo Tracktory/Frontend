@@ -4,14 +4,13 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
-  withSequence,
   withTiming,
 } from 'react-native-reanimated';
 
 const AVATAR_SIZE = 40;
 const LAYOUT_WIDTH = 72;
-const BREATHE_MIN_SCALE = 0.92;
-const BREATHE_MAX_SCALE = 1.08;
+const BREATHE_MIN_SCALE = 0.98;
+const BREATHE_MAX_SCALE = 1.02;
 const BREATHE_HALF_MS = 1250;
 
 interface CurrentPositionAvatarProps {
@@ -23,18 +22,13 @@ export function CurrentPositionAvatar({
   label = '현재 위치',
   onPress,
 }: CurrentPositionAvatarProps) {
-  const scale = useSharedValue(1);
+  const scale = useSharedValue(BREATHE_MIN_SCALE);
 
   useEffect(() => {
     scale.value = withRepeat(
-      withSequence(
-        withTiming(BREATHE_MIN_SCALE, { duration: BREATHE_HALF_MS }),
-        withTiming(BREATHE_MAX_SCALE, { duration: BREATHE_HALF_MS }),
-        withTiming(BREATHE_MIN_SCALE, { duration: BREATHE_HALF_MS }),
-        withTiming(BREATHE_MAX_SCALE, { duration: BREATHE_HALF_MS }),
-      ),
+      withTiming(BREATHE_MAX_SCALE, { duration: BREATHE_HALF_MS }),
       -1,
-      false,
+      true,
     );
   }, [scale]);
 

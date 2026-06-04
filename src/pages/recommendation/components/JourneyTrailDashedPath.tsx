@@ -19,7 +19,7 @@ export function JourneyTrailDashedPath({ mapWidth, mapHeight }: JourneyTrailDash
         width={mapWidth}
         height={mapHeight}
         viewBox={`0 0 ${CLIMB_VIEWBOX.width} ${CLIMB_VIEWBOX.height}`}
-        preserveAspectRatio="xMidYMid slice"
+        preserveAspectRatio="none"
       >
         <Path
           d={JOURNEY_CLIMB_DASH_PATH}
