@@ -3,16 +3,24 @@ import { StyleSheet, Text, View } from 'react-native';
 
 interface SkillChipProps {
   label: string;
-  variant: 'owned' | 'gap';
+  variant: 'owned' | 'gap' | 'token';
 }
 
 export function SkillChip({ label, variant }: SkillChipProps) {
-  const owned = variant === 'owned';
+  const style =
+    variant === 'owned' ? styles.owned : variant === 'token' ? styles.token : styles.gap;
+  const textStyle =
+    variant === 'owned'
+      ? styles.ownedText
+      : variant === 'token'
+        ? styles.tokenText
+        : styles.gapText;
+  const display =
+    variant === 'owned' ? `✓ ${label}` : variant === 'token' ? label : `+ ${label}`;
+
   return (
-    <View style={[styles.chip, owned ? styles.owned : styles.gap]}>
-      <Text style={[styles.text, owned ? styles.ownedText : styles.gapText]}>
-        {owned ? `✓ ${label}` : `+ ${label}`}
-      </Text>
+    <View style={[styles.chip, style]}>
+      <Text style={[styles.text, textStyle]}>{display}</Text>
     </View>
   );
 }
@@ -29,6 +37,9 @@ const styles = StyleSheet.create({
   gap: {
     backgroundColor: '#FEF2F2',
   },
+  token: {
+    backgroundColor: '#FEF2F2',
+  },
   text: {
     fontSize: 11,
   },
@@ -37,5 +48,8 @@ const styles = StyleSheet.create({
   },
   gapText: {
     color: '#EF4444',
+  },
+  tokenText: {
+    color: '#B91C1C',
   },
 });

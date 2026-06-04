@@ -1,12 +1,13 @@
-export type SkillRadarPoint = { subject: string; value: number };
+/** 역량 분야별 분석 — 기준 직무 부족 역량 토큰 (최대 6) */
+export type SkillTokenItem = { label: string };
 
-export const SKILL_RADAR: SkillRadarPoint[] = [
-  { subject: '데이터분석', value: 82 },
-  { subject: '알고리즘', value: 60 },
-  { subject: '빅데이터', value: 70 },
-  { subject: 'AI/ML', value: 45 },
-  { subject: '서버개발', value: 55 },
-  { subject: '클라우드', value: 65 },
+export const SKILL_TOKENS_FALLBACK: SkillTokenItem[] = [
+  { label: 'Kafka' },
+  { label: 'Redis' },
+  { label: 'Kubernetes' },
+  { label: 'Docker' },
+  { label: 'Spark' },
+  { label: 'SQL' },
 ];
 
 export type SkillComparison = {
@@ -62,50 +63,6 @@ export const AI_ACTIONS: AIActionItem[] = [
   { icon: '📚', text: '빅데이터트랙 68% 완성 — Kafka 기초 강의를 추가로 이수하면 좋아요.' },
   { icon: '🚀', text: '알고리즘 역량(60%) 강화를 위해 Baekjoon 1일 1문제를 권장합니다.' },
 ];
-
-export type JobReportEnrichment = {
-  icon: string;
-  salary: string;
-  gap: string[];
-};
-
-export const JOB_REPORT_ENRICHMENT: Record<string, JobReportEnrichment> = {
-  '데이터 엔지니어': {
-    icon: '📦',
-    salary: '4,500 ~ 7,500만원',
-    gap: ['Spark', 'GCP'],
-  },
-  '백엔드 개발자': {
-    icon: '⚙️',
-    salary: '4,200 ~ 7,000만원',
-    gap: ['Docker', 'Redis'],
-  },
-  'MLOps 엔지니어': {
-    icon: '🤖',
-    salary: '5,000 ~ 9,000만원',
-    gap: ['논문 작성', 'JAX'],
-  },
-  '프론트엔드 개발자': {
-    icon: '💻',
-    salary: '3,800 ~ 6,500만원',
-    gap: ['TypeScript', '성능 최적화'],
-  },
-  'Backend Developer': {
-    icon: '⚙️',
-    salary: '4,200 ~ 7,000만원',
-    gap: ['Docker', 'Redis'],
-  },
-  'Data Engineer': {
-    icon: '📦',
-    salary: '4,500 ~ 7,500만원',
-    gap: ['Spark', 'GCP'],
-  },
-  'AI Researcher': {
-    icon: '🤖',
-    salary: '5,000 ~ 9,000만원',
-    gap: ['논문 작성', 'JAX'],
-  },
-};
 
 export const PREREQUISITE_WARNING_FALLBACK =
   '알고리즘 수강 전 자료구조를 반드시 이수해야 합니다.\n딥러닝 수강 전 머신러닝 이수가 권장됩니다.';

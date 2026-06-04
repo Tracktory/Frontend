@@ -6,14 +6,12 @@ interface AnalysisReportHeaderProps {
   subtitle: string;
   anchorJobLabel?: string | null;
   onBack: () => void;
-  onShare?: () => void;
 }
 
 export function AnalysisReportHeader({
   subtitle,
   anchorJobLabel,
   onBack,
-  onShare,
 }: AnalysisReportHeaderProps) {
   return (
     <View style={styles.wrap}>
@@ -27,14 +25,6 @@ export function AnalysisReportHeader({
           <Text style={styles.anchorLabel}>{anchorJobLabel}</Text>
         ) : null}
       </View>
-      <Pressable
-        style={styles.iconBtn}
-        onPress={onShare}
-        hitSlop={8}
-        accessibilityLabel="공유"
-      >
-        <Ionicons name="share-outline" size={15} color="#6B7280" />
-      </Pressable>
     </View>
   );
 }

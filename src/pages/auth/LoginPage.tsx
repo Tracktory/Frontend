@@ -12,6 +12,7 @@ import { StackScreenProps } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 
+import { AuthKeyboardScreen } from '@/src/components/auth/AuthKeyboardScreen';
 import { Button } from '@/src/components/Button';
 import Logo from '@/src/assets/images/Logo.svg';
 import { colors } from '@/src/styles/colors';
@@ -29,8 +30,7 @@ export function LoginPage({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-      <View style={styles.flex}>
-        <View style={styles.screen}>
+      <AuthKeyboardScreen contentContainerStyle={styles.screen}>
           {/* 로고 영역 */}
           <View style={styles.logoArea}>
             <Logo width={100} height={88} />
@@ -113,8 +113,7 @@ export function LoginPage({ navigation }: Props) {
               </Pressable>
             </View>
           </View>
-        </View>
-      </View>
+      </AuthKeyboardScreen>
     </SafeAreaView>
   );
 }
@@ -124,15 +123,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: AUTH_BG,
   },
-  flex: {
-    flex: 1,
-  },
   screen: {
-    flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 48,
-    paddingBottom: 28,
-    justifyContent: 'space-between',
+    paddingTop: 24,
   },
   logoArea: {
     alignItems: 'center',
@@ -154,8 +147,8 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   formArea: {
-    flex: 1,
     gap: 4,
+    marginTop: 8,
   },
   inputGroup: {
     gap: 6,

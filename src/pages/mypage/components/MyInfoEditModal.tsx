@@ -255,10 +255,20 @@ export function MyInfoEditModal({
     >
       <View style={styles.backdrop}>
         <Pressable style={StyleSheet.absoluteFill} onPress={isSaving ? undefined : onClose} />
-        <View style={styles.sheet}>
+        <View
+          style={[
+            styles.sheet,
+            section === 'tracks' ? styles.sheetTracks : styles.sheetDefault,
+          ]}
+        >
           <Text style={styles.title}>{sectionTitle}</Text>
 
-          <ScrollView showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={styles.sheetScroll}
+            contentContainerStyle={styles.sheetScrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
             {section === 'grade' ? (
               <View style={styles.gradeRow}>
                 {GRADE_OPTIONS.map((year) => (
@@ -522,14 +532,28 @@ const styles = StyleSheet.create({
   },
   sheet: {
     width: '100%',
-    maxHeight: '78%',
     backgroundColor: colors.white,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.cardBorder,
     paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 14,
+    paddingTop: 14,
+    paddingBottom: 12,
+    flexDirection: 'column',
+  },
+  sheetTracks: {
+    maxHeight: '68%',
+  },
+  sheetDefault: {
+    maxHeight: '72%',
+  },
+  sheetScroll: {
+    flexGrow: 0,
+    flexShrink: 1,
+    maxHeight: '100%',
+  },
+  sheetScrollContent: {
+    paddingBottom: 4,
   },
   title: {
     fontSize: 16,

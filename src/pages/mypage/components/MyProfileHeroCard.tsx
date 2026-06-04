@@ -42,15 +42,17 @@ export function MyProfileHeroCard({
 
   return (
     <View style={styles.wrap}>
-      <Svg style={StyleSheet.absoluteFill} width="100%" height="100%">
-        <Defs>
-          <LinearGradient id="profileHeroGrad" x1="0" y1="0" x2="1" y2="1">
-            <Stop offset="0" stopColor="#14B8A6" />
-            <Stop offset="1" stopColor="#0D9488" />
-          </LinearGradient>
-        </Defs>
-        <Rect width="100%" height="100%" rx={24} fill="url(#profileHeroGrad)" />
-      </Svg>
+      <View style={styles.bgClip}>
+        <Svg style={StyleSheet.absoluteFill} width="100%" height="100%">
+          <Defs>
+            <LinearGradient id="profileHeroGrad" x1="0" y1="0" x2="1" y2="1">
+              <Stop offset="0" stopColor="#14B8A6" />
+              <Stop offset="1" stopColor="#0D9488" />
+            </LinearGradient>
+          </Defs>
+          <Rect width="100%" height="100%" rx={24} fill="url(#profileHeroGrad)" />
+        </Svg>
+      </View>
 
       <View style={styles.topRow}>
         <View style={styles.avatar}>
@@ -82,8 +84,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderRadius: 24,
     padding: 20,
+    position: 'relative',
+  },
+  bgClip: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 24,
     overflow: 'hidden',
-    minHeight: 160,
   },
   topRow: {
     flexDirection: 'row',
@@ -124,6 +130,7 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: 'row',
     gap: 24,
+    paddingBottom: 4,
   },
   miniStat: {
     flex: 1,

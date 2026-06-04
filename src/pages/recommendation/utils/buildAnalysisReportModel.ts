@@ -6,17 +6,15 @@ import { admissionYearFromStudentId } from '../../../utils/mapProfileToOnboardin
 import { applyStudentGradeToSemesterSteps } from '../../../utils/roadmapTiming';
 import {
   AI_ACTIONS,
-  JOB_REPORT_ENRICHMENT,
   PREREQUISITE_WARNING_FALLBACK,
   REMAINING_COURSE_PLAN,
   SKILL_COMPARISON,
-  SKILL_RADAR,
+  SKILL_TOKENS_FALLBACK,
   TRACK_BARS_FALLBACK,
   type AIActionItem,
-  type JobReportEnrichment,
   type RemainingCoursePlan,
   type SkillComparison,
-  type SkillRadarPoint,
+  type SkillTokenItem,
   type TrackBarItem,
 } from '../data/analysisReportStaticMock';
 import {
@@ -31,18 +29,18 @@ import {
   mapRemainingCoursePlan,
   mapReportJobs,
   mapSkillComparisonFromReport,
-  mapSkillRadarFromReport,
+  mapSkillTokensFromReport,
 } from './mapRecommendationReport';
 
 export type ReportJobItem = {
   id: string;
   jobCode?: string;
   title: string;
+  /** 추천 API matchScore */
   match: number;
-  icon: string;
-  salary: string;
-  skills: string[];
-  gap: string[];
+  /** 리포트 coverage.fields currentPercent */
+  coveragePercent: number;
+  gapTokens: string[];
   isAnchor?: boolean;
 };
 
@@ -69,7 +67,8 @@ export type AnalysisReportModel = {
   completedCourseCount: number;
   earnedCredits: number;
   gapTokens: string[];
-  skillRadar: SkillRadarPoint[];
+  skillTokens: SkillTokenItem[];
+  anchorCoveragePercent: number;
   skillComparison: SkillComparison[];
   trackBars: TrackBarItem[];
   synergyTip: string;
@@ -129,21 +128,13 @@ function buildSynergyTip(trackRecommend: TrackRecommendPayload | null): string {
 }
 
 function enrichJob(job: JobRecommendation): ReportJobItem {
-  const meta: JobReportEnrichment | undefined = JOB_REPORT_ENRICHMENT[job.title];
-  const skills = job.coreSkills.length > 0 ? job.coreSkills.slice(0, 6) : job.techStack;
-  const gap =
-    meta?.gap ??
-    job.advancedSkills.filter((s) => !skills.includes(s)).slice(0, 4);
-
   return {
     id: job.id,
     jobCode: job.code,
     title: job.title,
     match: job.matchScore,
-    icon: meta?.icon ?? '💼',
-    salary: meta?.salary ?? '연봉 정보 준비 중',
-    skills,
-    gap: gap.length > 0 ? gap : ['추가 역량 학습'],
+    coveragePercent: job.matchScore,
+    gapTokens: [],
   };
 }
 
@@ -224,7 +215,8 @@ function applyReportToModel(
     | 'completedCourseCount'
     | 'earnedCredits'
     | 'gapTokens'
-    | 'skillRadar'
+    | 'skillTokens'
+    | 'anchorCoveragePercent'
     | 'skillComparison'
     | 'jobs'
     | 'remainingCoursePlan'
@@ -239,6 +231,9 @@ function applyReportToModel(
   const showNextActionsTier = isPrimaryAnchorReport(report);
   const showContribution = showNextActionsTier;
   const anchorCode = anchorJobCode ?? report.anchorJob?.code ?? null;
+  const anchorField = anchorCode
+    ? report.coverage.fields.find((f) => f.jobCode === anchorCode)
+    : undefined;
 
   return {
     ...base,
@@ -248,13 +243,17 @@ function applyReportToModel(
     showContributionBadges: showContribution,
     currentPercent: report.coverage.currentPercent,
     nextActionsPercent: report.coverage.nextActionsPercent,
-    targetPercent: report.coverage.expectedPercent,
+    targetPercent: showNextActionsTier
+      ? report.coverage.nextActionsPercent
+      : report.coverage.expectedPercent,
     expectedPercent: report.coverage.expectedPercent,
     remainingCount: report.remainingCourses.length,
     completedCourseCount: report.aggregate.completedCourseCount,
     earnedCredits: report.aggregate.earnedCredits,
     gapTokens: report.coverage.gapTokens,
-    skillRadar: mapSkillRadarFromReport(report),
+    skillTokens: mapSkillTokensFromReport(report, anchorCode ?? undefined),
+    anchorCoveragePercent:
+      anchorField?.currentPercent ?? report.coverage.currentPercent,
     skillComparison: mapSkillComparisonFromReport(report),
     jobs: mapReportJobs(report, storeJobs, anchorCode ?? undefined),
     remainingCoursePlan: mapRemainingCoursePlan(report, showContribution),
@@ -309,7 +308,8 @@ export function buildAnalysisReportModel(params: {
     completedCourseCount: progress.completedCourseCount,
     earnedCredits: progress.earnedCredits,
     gapTokens: [],
-    skillRadar: SKILL_RADAR,
+    skillTokens: SKILL_TOKENS_FALLBACK,
+    anchorCoveragePercent: competency.currentPercent,
     skillComparison: SKILL_COMPARISON,
     trackBars: buildTrackBars(trackRecommend),
     synergyTip: buildSynergyTip(trackRecommend),

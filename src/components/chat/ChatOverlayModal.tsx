@@ -15,6 +15,7 @@ export function ChatOverlayModal({ visible, onClose }: ChatOverlayModalProps) {
   const { height } = useWindowDimensions();
   const sheetHeight = height * 0.85;
   const bottomInset = Math.max(insets.bottom, 0);
+
   return (
     <Modal
       visible={visible}
@@ -34,7 +35,11 @@ export function ChatOverlayModal({ visible, onClose }: ChatOverlayModalProps) {
             },
           ]}
         >
-          <ChatContent showClose onClose={onClose} headerHeight={52} />
+          <ChatContent
+            showClose
+            onClose={onClose}
+            includeTopInsetInOffset={false}
+          />
         </View>
       </View>
     </Modal>

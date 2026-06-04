@@ -44,7 +44,6 @@ export function JobMatchingDetailSection({
               }}
             >
               <View style={styles.jobHeaderRow}>
-                <Text style={styles.icon}>{job.icon}</Text>
                 <View style={styles.jobHeaderText}>
                   <View style={styles.titleRow}>
                     <Text style={styles.jobTitle}>{job.title}</Text>
@@ -54,10 +53,12 @@ export function JobMatchingDetailSection({
                       </View>
                     ) : null}
                   </View>
-                  <Text style={styles.salary}>연봉 {job.salary}</Text>
                 </View>
-                <View style={styles.matchPill}>
-                  <Text style={styles.matchText}>{job.match}%</Text>
+                <View style={styles.matchPillWrap}>
+                  <Text style={styles.matchPillLabel}>매칭</Text>
+                  <View style={styles.matchPill}>
+                    <Text style={styles.matchText}>{job.match}%</Text>
+                  </View>
                 </View>
               </View>
             </Pressable>
@@ -65,25 +66,25 @@ export function JobMatchingDetailSection({
         >
           <View style={styles.matchBarWrap}>
             <View style={styles.matchBarLabels}>
-              <Text style={styles.matchBarLabel}>현재 충족률</Text>
-              <Text style={styles.matchBarValue}>{job.match}%</Text>
+              <Text style={styles.matchBarLabel}>역량 충족률</Text>
+              <Text style={styles.matchBarValue}>{job.coveragePercent}%</Text>
             </View>
             <View style={styles.matchBarTrack}>
-              <View style={[styles.matchBarFill, { width: `${job.match}%` }]} />
+              <View
+                style={[styles.matchBarFill, { width: `${job.coveragePercent}%` }]}
+              />
             </View>
           </View>
-          <Text style={styles.chipsTitle}>보유 스킬</Text>
-          <View style={styles.chipRow}>
-            {job.skills.map((s) => (
-              <SkillChip key={s} label={s} variant="owned" />
-            ))}
-          </View>
-          <Text style={[styles.chipsTitle, styles.gapTitle]}>필요 역량</Text>
-          <View style={styles.chipRow}>
-            {job.gap.map((s) => (
-              <SkillChip key={s} label={s} variant="gap" />
-            ))}
-          </View>
+          <Text style={styles.chipsTitle}>부족 역량 토큰</Text>
+          {job.gapTokens.length > 0 ? (
+            <View style={styles.chipRow}>
+              {job.gapTokens.map((token) => (
+                <SkillChip key={token} label={token} variant="token" />
+              ))}
+            </View>
+          ) : (
+            <Text style={styles.gapEmpty}>표시할 부족 역량 토큰이 없습니다.</Text>
+          )}
           {job.jobCode && onSelectJobCode ? (
             <Pressable
               style={styles.setAnchorBtn}
@@ -117,9 +118,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
-  icon: {
-    fontSize: 22,
-  },
   jobHeaderText: {
     flex: 1,
   },
@@ -145,17 +143,20 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#0D9488',
   },
-  salary: {
-    fontSize: 12,
+  matchPillWrap: {
+    alignItems: 'center',
+    marginRight: 4,
+  },
+  matchPillLabel: {
+    fontSize: 9,
     color: '#9CA3AF',
-    marginTop: 2,
+    marginBottom: 2,
   },
   matchPill: {
     backgroundColor: '#14B8A6',
     borderRadius: 999,
     paddingVertical: 4,
     paddingHorizontal: 10,
-    marginRight: 4,
   },
   matchText: {
     fontSize: 12,
@@ -195,8 +196,10 @@ const styles = StyleSheet.create({
     color: '#9CA3AF',
     marginBottom: 6,
   },
-  gapTitle: {
-    marginTop: 8,
+  gapEmpty: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    marginBottom: 4,
   },
   chipRow: {
     flexDirection: 'row',

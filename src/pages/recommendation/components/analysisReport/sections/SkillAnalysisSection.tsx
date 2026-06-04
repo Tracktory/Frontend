@@ -1,68 +1,50 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import type { SkillRadarPoint } from '../../../data/analysisReportStaticMock';
+import type { SkillTokenItem } from '../../../data/analysisReportStaticMock';
 import { AnalysisReportSection } from '../AnalysisReportSection';
-import { SkillRadarChart } from '../charts/SkillRadarChart';
+import { SkillChip } from '../shared/SkillChip';
 
 interface SkillAnalysisSectionProps {
-  skillRadar: SkillRadarPoint[];
+  skillTokens: SkillTokenItem[];
+  anchorCoveragePercent: number;
 }
 
-export function SkillAnalysisSection({ skillRadar }: SkillAnalysisSectionProps) {
+export function SkillAnalysisSection({
+  skillTokens,
+  anchorCoveragePercent,
+}: SkillAnalysisSectionProps) {
   return (
     <AnalysisReportSection title="역량 분야별 분석" iconName="trending-up">
-      <SkillRadarChart data={skillRadar} />
-      <View style={styles.grid}>
-        {skillRadar.map((s) => (
-          <View key={s.subject} style={styles.gridItem}>
-            <View style={styles.miniHeader}>
-              <Text style={styles.miniLabel}>{s.subject}</Text>
-              <Text style={styles.miniValue}>{s.value}%</Text>
-            </View>
-            <View style={styles.miniTrack}>
-              <View style={[styles.miniFill, { width: `${s.value}%` }]} />
-            </View>
-          </View>
-        ))}
-      </View>
+      <Text style={styles.caption}>
+        기준 직무 역량 충족률 {anchorCoveragePercent}% · 부족 역량 토큰
+      </Text>
+      {skillTokens.length > 0 ? (
+        <View style={styles.chipGrid}>
+          {skillTokens.map((token) => (
+            <SkillChip key={token.label} label={token.label} variant="token" />
+          ))}
+        </View>
+      ) : (
+        <Text style={styles.empty}>부족 역량 토큰 데이터가 없습니다.</Text>
+      )}
     </AnalysisReportSection>
   );
 }
 
 const styles = StyleSheet.create({
-  grid: {
+  caption: {
+    fontSize: 11,
+    color: '#9CA3AF',
+    marginBottom: 10,
+  },
+  chipGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    marginTop: 8,
   },
-  gridItem: {
-    width: '48%',
-  },
-  miniHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  miniLabel: {
-    fontSize: 11,
-    color: '#4B5563',
-  },
-  miniValue: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#14B8A6',
-  },
-  miniTrack: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#E5E7EB',
-    overflow: 'hidden',
-  },
-  miniFill: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#14B8A6',
+  empty: {
+    fontSize: 13,
+    color: '#9CA3AF',
   },
 });

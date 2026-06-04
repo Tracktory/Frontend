@@ -130,7 +130,6 @@ export function JourneyAnalysisReportOverlay({
               subtitle={model.subtitle}
               anchorJobLabel={model.anchorJobLabel}
               onBack={onClose}
-              onShare={() => {}}
             />
 
             {isLoading ? (
@@ -152,7 +151,10 @@ export function JourneyAnalysisReportOverlay({
             {showContent ? (
               <View style={styles.sections}>
                 <OverallCoverageSection model={model} />
-                <SkillAnalysisSection skillRadar={model.skillRadar} />
+                <SkillAnalysisSection
+                  skillTokens={model.skillTokens}
+                  anchorCoveragePercent={model.anchorCoveragePercent}
+                />
                 <TrackCompletionSection
                   trackBars={model.trackBars}
                   synergyTip={model.synergyTip}

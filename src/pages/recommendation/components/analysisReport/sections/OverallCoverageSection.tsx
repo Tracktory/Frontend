@@ -85,7 +85,7 @@ export function OverallCoverageSection({ model }: OverallCoverageSectionProps) {
           <Text style={styles.gapTitle}>부족 역량</Text>
           <View style={styles.gapChips}>
             {gapTokens.slice(0, 8).map((token) => (
-              <SkillChip key={token} label={token} variant="gap" />
+              <SkillChip key={token} label={token} variant="token" />
             ))}
           </View>
         </View>

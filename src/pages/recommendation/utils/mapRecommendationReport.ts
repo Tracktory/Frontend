@@ -1,11 +1,10 @@
 import type { JobRecommendation } from '../../../data/mockRecommendData';
 import type { RecommendationReportData } from '../../../api/recommendReportApi';
 import {
-  JOB_REPORT_ENRICHMENT,
   type AIActionItem,
   type RemainingCoursePlan,
   type SkillComparison,
-  type SkillRadarPoint,
+  type SkillTokenItem,
 } from '../data/analysisReportStaticMock';
 import type { ReportJobItem } from './buildAnalysisReportModel';
 
@@ -32,13 +31,21 @@ export function isPrimaryAnchorReport(report: RecommendationReportData): boolean
   return coverage.nextActionsPercent > coverage.currentPercent || report.nextActions.length > 0;
 }
 
-export function mapSkillRadarFromReport(report: RecommendationReportData): SkillRadarPoint[] {
-  return [...report.coverage.fields]
-    .sort((a, b) => b.currentPercent - a.currentPercent)
-    .map((f) => ({
-      subject: f.jobName.length > 10 ? f.jobName.slice(0, 10) + '…' : f.jobName,
-      value: f.currentPercent,
-    }));
+/** 기준 직무 부족 역량 토큰 상위 6개 (API gapTokens / missingTokens) */
+export function mapSkillTokensFromReport(
+  report: RecommendationReportData,
+  anchorJobCode: string | undefined,
+): SkillTokenItem[] {
+  const code = anchorJobCode ?? report.anchorJob?.code;
+  const anchorField = code
+    ? report.coverage.fields.find((f) => f.jobCode === code)
+    : undefined;
+  const tokens =
+    anchorField && anchorField.missingTokens.length > 0
+      ? anchorField.missingTokens
+      : report.coverage.gapTokens;
+
+  return tokens.slice(0, 6).map((label) => ({ label }));
 }
 
 export function mapSkillComparisonFromReport(report: RecommendationReportData): SkillComparison[] {
@@ -70,24 +77,15 @@ export function mapReportJobs(
 
   return sorted.map((field) => {
     const store = findStoreJob(storeJobs, field);
-    const meta = JOB_REPORT_ENRICHMENT[field.jobName] ?? JOB_REPORT_ENRICHMENT[store?.title ?? ''];
-    const skills =
-      store && store.coreSkills.length > 0
-        ? store.coreSkills.slice(0, 6)
-        : store?.techStack ?? [];
+    const matchScore = store?.matchScore ?? field.currentPercent;
 
     return {
       id: field.jobCode,
       jobCode: field.jobCode,
       title: field.jobName,
-      match: field.currentPercent,
-      icon: meta?.icon ?? '💼',
-      salary: meta?.salary ?? '연봉 정보 준비 중',
-      skills: skills.length > 0 ? skills : ['역량 데이터 준비 중'],
-      gap:
-        field.missingTokens.length > 0
-          ? field.missingTokens.slice(0, 6)
-          : ['추가 역량 학습'],
+      match: matchScore,
+      coveragePercent: field.currentPercent,
+      gapTokens: field.missingTokens.slice(0, 6),
       isAnchor: anchorJobCode === field.jobCode,
     };
   });
