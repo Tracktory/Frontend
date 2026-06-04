@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import type { TrackRecommendPayload } from '../../../../data/mockTrackRecommendData';
@@ -12,6 +12,8 @@ interface TrackSynergySheetContentProps {
 }
 
 export function TrackSynergySheetContent({ data }: TrackSynergySheetContentProps) {
+  const [selectedRank, setSelectedRank] = useState<1 | 2 | null>(null);
+
   const fusionCombos = useMemo(
     () => mapFusionFromSecondary(data.secondary),
     [data.secondary],
@@ -24,6 +26,10 @@ export function TrackSynergySheetContent({ data }: TrackSynergySheetContentProps
     data.llmSynergy?.trim() ||
     '추천 트랙 조합';
 
+  const handlePrimaryPress = (rank: 1 | 2) => {
+    setSelectedRank((prev) => (prev === rank ? null : rank));
+  };
+
   return (
     <View style={styles.wrap}>
       <TrackSynergyScoreBox score={data.combinationScore} subtitle={subtitle} />
@@ -31,7 +37,12 @@ export function TrackSynergySheetContent({ data }: TrackSynergySheetContentProps
       <Text style={styles.sectionTitle}>주요 추천 트랙</Text>
       <View style={styles.primaryList}>
         {data.primary.map((track) => (
-          <TrackPrimaryItemRow key={track.rank} label={track.title} />
+          <TrackPrimaryItemRow
+            key={track.rank}
+            track={track}
+            selected={selectedRank === track.rank}
+            onPress={() => handlePrimaryPress(track.rank)}
+          />
         ))}
       </View>
 

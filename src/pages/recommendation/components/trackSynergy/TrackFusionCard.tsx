@@ -1,50 +1,77 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+import { colors } from '../../../../styles/colors';
 import type { FusionCombo } from '../../utils/mapFusionFromSecondary';
+import { TrackMainSubjectCards } from './TrackMainSubjectCards';
+import { TrackReasoningBlock } from './TrackReasoningBlock';
 
 interface TrackFusionCardProps {
   combo: FusionCombo;
+  selected: boolean;
+  onPress: () => void;
 }
 
-export function TrackFusionCard({ combo }: TrackFusionCardProps) {
+export function TrackFusionCard({ combo, selected, onPress }: TrackFusionCardProps) {
   const title =
     combo.major2 && combo.major2 !== combo.major1
       ? `${combo.major1} × ${combo.major2}`
       : combo.major1;
 
   return (
-    <View style={styles.card}>
-      <View style={styles.badge}>
-        <Text style={styles.badgeText}>✨ 이색 조합</Text>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.card,
+        selected && styles.cardSelected,
+        pressed && styles.cardPressed,
+      ]}
+    >
+      <View style={styles.headerRow}>
+        <Text style={styles.title}>{title}</Text>
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>이색 조합</Text>
+        </View>
       </View>
-      <Text style={styles.title}>{title}</Text>
-      <View style={styles.jobRow}>
-        <Text style={styles.arrow}>→</Text>
-        <Text style={styles.job}>{combo.job}</Text>
-      </View>
-      <View style={styles.chevron}>
-        <Ionicons name="chevron-forward" size={16} color="#14B8A6" />
-      </View>
-    </View>
+
+      {selected ? (
+        <View style={styles.expanded}>
+          <TrackReasoningBlock reasoning={combo.reasoning} />
+          <TrackMainSubjectCards subjects={combo.mainSubjects} />
+          <View style={styles.collapseHint}>
+            <Ionicons name="chevron-up" size={16} color={colors.primary} />
+          </View>
+        </View>
+      ) : null}
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border,
     borderRadius: 16,
     padding: 14,
     marginBottom: 10,
-    position: 'relative',
+  },
+  cardSelected: {
+    borderColor: colors.primary,
+    backgroundColor: colors.onboardingChipSelectedBg,
+  },
+  cardPressed: {
+    opacity: 0.92,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 8,
   },
   badge: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
+    flexShrink: 0,
     backgroundColor: '#EDE9FE',
     borderRadius: 999,
     paddingVertical: 2,
@@ -56,31 +83,17 @@ const styles = StyleSheet.create({
     color: '#7C3AED',
   },
   title: {
+    flex: 1,
     fontSize: 15,
     fontWeight: '700',
-    color: '#111827',
-    marginBottom: 4,
-    paddingRight: 88,
+    color: colors.textPrimary,
   },
-  jobRow: {
-    flexDirection: 'row',
+  expanded: {
+    marginTop: 8,
+    overflow: 'visible',
+  },
+  collapseHint: {
     alignItems: 'center',
-    gap: 4,
-    paddingRight: 24,
-  },
-  arrow: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#14B8A6',
-  },
-  job: {
-    flex: 1,
-    fontSize: 13,
-    color: '#4B5563',
-  },
-  chevron: {
-    position: 'absolute',
-    bottom: 14,
-    right: 12,
+    marginTop: 8,
   },
 });

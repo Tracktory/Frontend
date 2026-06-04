@@ -66,6 +66,8 @@ interface ApiSupportingTrack {
   reasoning?: string | null;
   primary?: boolean;
   isCrossCombination?: boolean;
+  mainSubjects?: ApiSubjectRef[];
+  coreSubjects?: string[];
 }
 
 interface ApiTracksPayload {
@@ -178,14 +180,23 @@ const STAGE_LABEL_MAP: Record<string, string> = {
 
 // ---------- Mapper functions ----------
 
+function mapMainSubjects(
+  mainSubjects?: ApiSubjectRef[],
+  coreSubjects?: string[]
+): { code?: string; name: string }[] {
+  if (mainSubjects?.length) {
+    return mainSubjects
+      .filter((s) => Boolean(s.name))
+      .map((s) => ({ code: s.code, name: s.name }));
+  }
+  return (coreSubjects ?? []).map((name) => ({ name }));
+}
+
 function mapSubjectNames(
   mainSubjects?: ApiSubjectRef[],
   coreSubjects?: string[]
 ): string[] {
-  if (mainSubjects?.length) {
-    return mainSubjects.map((s) => s.name).filter(Boolean);
-  }
-  return coreSubjects ?? [];
+  return mapMainSubjects(mainSubjects, coreSubjects).map((s) => s.name);
 }
 
 function mapJobs(items: ApiJobItem[]): JobRecommendation[] {
@@ -219,6 +230,7 @@ function mapTracks(tracks: ApiTracksPayload): TrackRecommendPayload {
       rankLabel,
       score: t.score ?? combinationScore ?? null,
       reasoning: t.reasoning?.trim() || null,
+      mainSubjects: mapMainSubjects(t.mainSubjects, t.coreSubjects),
       coreSubjects: mapSubjectNames(t.mainSubjects, t.coreSubjects),
       relatedJobs: t.relatedJobs ?? [],
     };
@@ -231,6 +243,7 @@ function mapTracks(tracks: ApiTracksPayload): TrackRecommendPayload {
     score: t.score ?? null,
     reasoning: t.reasoning?.trim() || null,
     isCrossCombination: t.isCrossCombination ?? false,
+    mainSubjects: mapMainSubjects(t.mainSubjects, t.coreSubjects),
   }));
 
   const combinationSummary =

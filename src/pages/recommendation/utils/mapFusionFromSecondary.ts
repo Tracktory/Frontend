@@ -1,10 +1,12 @@
-import type { SecondaryTrack } from '../../../data/mockTrackRecommendData';
+import type { SecondaryTrack, TrackSubjectRef } from '../../../data/mockTrackRecommendData';
 
 export interface FusionCombo {
   id: string;
   major1: string;
   major2: string;
   job: string;
+  reasoning: string;
+  mainSubjects: TrackSubjectRef[];
 }
 
 const SPLIT_PATTERN = /\s*[×xX]\s*/;
@@ -26,6 +28,10 @@ export function mapFusionFromSecondary(secondary: SecondaryTrack[]): FusionCombo
   return selectFusionTracks(secondary).map((track) => {
     const { major1, major2 } = parseFusionName(track.name);
     const job =
+      major2 && major2 !== major1
+        ? `${major1} × ${major2}`
+        : major1;
+    const reasoning =
       track.reasoning?.trim() ||
       (track.score != null ? `시너지 ${track.score}점 조합` : '추천 직무 탐색');
 
@@ -34,6 +40,8 @@ export function mapFusionFromSecondary(secondary: SecondaryTrack[]): FusionCombo
       major1,
       major2: major2 || major1,
       job,
+      reasoning,
+      mainSubjects: track.mainSubjects ?? [],
     };
   });
 }

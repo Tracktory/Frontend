@@ -1,27 +1,50 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+
+import type { PrimaryTrack } from '../../../../data/mockTrackRecommendData';
+import { colors } from '../../../../styles/colors';
+import { TrackMainSubjectCards } from './TrackMainSubjectCards';
+import { TrackReasoningBlock } from './TrackReasoningBlock';
 
 interface TrackPrimaryItemRowProps {
-  label: string;
-  tag?: string;
+  track: PrimaryTrack;
+  selected: boolean;
+  onPress: () => void;
 }
 
-export function TrackPrimaryItemRow({ label, tag = 'PRIMARY' }: TrackPrimaryItemRowProps) {
+export function TrackPrimaryItemRow({
+  track,
+  selected,
+  onPress,
+}: TrackPrimaryItemRowProps) {
   return (
-    <View style={styles.row}>
-      <Text style={styles.label}>{label}</Text>
-      <View style={styles.tagPill}>
-        <Text style={styles.tagText}>{tag}</Text>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.wrap,
+        selected && styles.wrapSelected,
+        pressed && styles.wrapPressed,
+      ]}
+    >
+      <View style={styles.row}>
+        <Text style={[styles.label, selected && styles.labelSelected]}>{track.title}</Text>
+        <View style={[styles.tagPill, selected && styles.tagPillSelected]}>
+          <Text style={styles.tagText}>{track.rank === 1 ? 'PRIMARY' : '2ND'}</Text>
+        </View>
       </View>
-    </View>
+
+      {selected ? (
+        <View style={styles.expanded}>
+          <TrackReasoningBlock reasoning={track.reasoning} />
+          <TrackMainSubjectCards subjects={track.mainSubjects} />
+        </View>
+      ) : null}
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  wrap: {
     backgroundColor: '#F0FDFA',
     borderWidth: 1.5,
     borderColor: '#CCFBF1',
@@ -30,6 +53,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 8,
   },
+  wrapSelected: {
+    backgroundColor: colors.onboardingChipSelectedBg,
+    borderColor: colors.primary,
+  },
+  wrapPressed: {
+    opacity: 0.92,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   label: {
     flex: 1,
     fontSize: 14,
@@ -37,15 +72,25 @@ const styles = StyleSheet.create({
     color: '#0D9488',
     marginRight: 12,
   },
+  labelSelected: {
+    color: colors.primary,
+  },
   tagPill: {
     backgroundColor: '#14B8A6',
     borderRadius: 999,
     paddingVertical: 4,
     paddingHorizontal: 12,
   },
+  tagPillSelected: {
+    backgroundColor: colors.primary,
+  },
   tagText: {
     fontSize: 11,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  expanded: {
+    marginTop: 4,
+    overflow: 'visible',
   },
 });

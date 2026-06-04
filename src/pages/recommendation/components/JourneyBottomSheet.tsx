@@ -36,6 +36,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import CompassIcon from '@/src/assets/images/compass.svg';
 import MapIcon from '@/src/assets/images/map.svg';
+import SynergyIcon from '@/src/assets/images/synergy.svg';
 import TrophyIcon from '@/src/assets/images/trophy.svg';
 import type { JourneySheetKey } from '../../../hooks/useRecommendResultViewModel';
 import { getModalBottomTabBarClearance } from '../../../navigation/layout/tabBarLayout';
@@ -61,7 +62,7 @@ function resolveSheetTitle(
 
   if (!sheetKey) return '';
 
-  if (sheetKey === 'trackSynergy') return '🔗 트랙 시너지';
+  if (sheetKey === 'trackSynergy') return '트랙 시너지';
 
   if (sheetKey === 'current') return '📍 현재 학습 현황';
 
@@ -84,6 +85,9 @@ function SheetTitleIcon({ sheetKey }: { sheetKey: JourneySheetKey | null | undef
   }
   if (sheetKey === 'job') {
     return <CompassIcon width={20} height={20} />;
+  }
+  if (sheetKey === 'trackSynergy') {
+    return <SynergyIcon width={20} height={20} />;
   }
   return null;
 }
