@@ -33,7 +33,7 @@ export interface SemesterCourse {
   description: string;
   /** 학점 */
   credits: number;
-  /** AI 추천 점수 (0~1). API 연동 시 채워짐, mock에서는 undefined */
+  /** 역량 기여 가중치 (예: 0~100). API 연동 시 채워짐, 없으면 계산 시 1로 처리 */
   score?: number;
   /** 이수 여부 (API items[].completed) */
   completed?: boolean;

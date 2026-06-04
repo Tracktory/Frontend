@@ -79,7 +79,7 @@ export function RoadmapContent({
 const styles = StyleSheet.create({
   wrap: {
     gap: 12,
-    paddingBottom: 8,
+    paddingBottom: 16,
   },
   infoBanner: {
     backgroundColor: '#F0FDFA',

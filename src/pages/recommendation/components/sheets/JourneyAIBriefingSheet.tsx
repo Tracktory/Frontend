@@ -20,8 +20,8 @@ interface JourneyAIBriefingSheetProps {
   enabled?: boolean;
 }
 
-const CARD_WIDTH = 300;
-const CARD_HEIGHT = 200;
+const CARD_WIDTH = 320;
+const CARD_HEIGHT = 224;
 const MAX_SKILL_CHIPS = 6;
 
 function formatSourceLabel(source: BriefingSource): string {
@@ -140,13 +140,13 @@ export function JourneyAIBriefingSheet({
 
 const styles = StyleSheet.create({
   wrap: {
-    paddingBottom: 8,
+    paddingBottom: 0,
   },
   intro: {
     fontSize: 13,
     color: '#6B7280',
     lineHeight: 21,
-    marginBottom: 20,
+    marginBottom: 16,
   },
   errorBlock: {
     marginBottom: 16,
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   loadingRow: {
     flexDirection: 'row',
     gap: 16,
-    marginBottom: 16,
+    marginBottom: 0,
   },
   skeletonCard: {
     width: CARD_WIDTH,
@@ -221,15 +221,15 @@ const styles = StyleSheet.create({
     color: '#0D9488',
   },
   skillsSection: {
-    minHeight: 44,
-    marginBottom: 8,
+    minHeight: 48,
+    marginBottom: 10,
     justifyContent: 'flex-start',
   },
   skillsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 6,
-    maxHeight: 44,
+    maxHeight: 48,
     overflow: 'hidden',
   },
   skillChip: {
@@ -249,15 +249,15 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     color: '#111827',
-    lineHeight: 22,
-    marginBottom: 6,
+    lineHeight: 23,
+    marginBottom: 8,
   },
   summary: {
     flex: 1,
     fontSize: 13,
     color: '#4B5563',
-    lineHeight: 20,
-    marginBottom: 8,
+    lineHeight: 21,
+    marginBottom: 10,
   },
   source: {
     fontSize: 11,

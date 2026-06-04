@@ -48,7 +48,7 @@ export function JourneyCurrentStatusSheet({
     let n = 0;
     for (const step of roadmap.semesterSteps) {
       for (const c of step.courses) {
-        if (c.completed || completedCourses.includes(c.name)) {
+        if (completedCourses.includes(c.name)) {
           n += 1;
         }
       }
