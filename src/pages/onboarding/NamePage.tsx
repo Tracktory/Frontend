@@ -9,6 +9,11 @@ import { YearSelectButton } from './components/YearSelectButton';
 import { ONBOARDING_COPY } from './data/onboardingCopy';
 import { getOnboardingProgress } from './data/onboardingProgress';
 import { OnboardingStepLayout } from './components/OnboardingStepLayout';
+import {
+  OnboardingStepTitle,
+  OnboardingTitleHighlight,
+} from './components/OnboardingStepTitle';
+import { ONBOARDING_SERVICE_NAME } from './data/onboardingCopy';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'Name'>;
 
@@ -16,21 +21,17 @@ export function NamePage({ navigation }: Props) {
   const vm = useNameViewModel(navigation);
   const copy = ONBOARDING_COPY.name;
 
-  const disabledHint =
-    !vm.name.trim()
-      ? copy.ctaDisabledHint
-      : vm.grade === null
-        ? copy.ctaGradeDisabledHint
-        : undefined;
-
   return (
     <OnboardingStepLayout
       progress={getOnboardingProgress('Name', vm.grade)}
-      title={copy.title}
+      title={
+        <OnboardingStepTitle>
+          <OnboardingTitleHighlight>{ONBOARDING_SERVICE_NAME}</OnboardingTitleHighlight>에요
+        </OnboardingStepTitle>
+      }
       subtitle={copy.subtitle}
       primaryTitle={copy.ctaPrimary}
       primaryVariant={vm.canProceed ? 'primary' : 'disabled'}
-      primarySubtitle={vm.canProceed ? undefined : disabledHint}
       onPrimaryPress={vm.handleNext}
     >
       <TextInput

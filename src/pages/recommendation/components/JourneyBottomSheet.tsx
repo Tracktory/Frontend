@@ -34,8 +34,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Ionicons } from '@expo/vector-icons';
 
+import BulbIcon from '@/src/assets/images/bulb.svg';
 import CompassIcon from '@/src/assets/images/compass.svg';
 import MapIcon from '@/src/assets/images/map.svg';
+import SynergyIcon from '@/src/assets/images/synergy.svg';
 import TrophyIcon from '@/src/assets/images/trophy.svg';
 import type { JourneySheetKey } from '../../../hooks/useRecommendResultViewModel';
 import { getModalBottomTabBarClearance } from '../../../navigation/layout/tabBarLayout';
@@ -61,9 +63,9 @@ function resolveSheetTitle(
 
   if (!sheetKey) return '';
 
-  if (sheetKey === 'trackSynergy') return '🔗 트랙 시너지';
+  if (sheetKey === 'trackSynergy') return '트랙 시너지';
 
-  if (sheetKey === 'current') return '📍 현재 학습 현황';
+  if (sheetKey === 'current') return '현재 학습 현황';
 
   if (sheetKey === 'job') return SHEET_TITLES.job;
 
@@ -85,6 +87,12 @@ function SheetTitleIcon({ sheetKey }: { sheetKey: JourneySheetKey | null | undef
   if (sheetKey === 'job') {
     return <CompassIcon width={20} height={20} />;
   }
+  if (sheetKey === 'trackSynergy') {
+    return <SynergyIcon width={20} height={20} />;
+  }
+  if (sheetKey === 'current') {
+    return <BulbIcon width={20} height={21} />;
+  }
   return null;
 }
 
@@ -103,6 +111,9 @@ interface JourneyBottomSheetProps {
   onBack?: () => void;
 
   onClose: () => void;
+
+  /** 화면 높이 대비 시트 비율 (기본 0.7) */
+  sheetHeightRatio?: number;
 
   children: React.ReactNode;
 
@@ -124,6 +135,8 @@ export function JourneyBottomSheet({
 
   onClose,
 
+  sheetHeightRatio = 0.7,
+
   children,
 
 }: JourneyBottomSheetProps) {
@@ -133,7 +146,8 @@ export function JourneyBottomSheet({
 
   const { height } = useWindowDimensions();
 
-  const sheetHeight = height * 0.7;
+  const sheetHeight = height * sheetHeightRatio;
+  const isCompactSheet = sheetKey === 'current';
 
 
 
@@ -257,7 +271,10 @@ export function JourneyBottomSheet({
 
           style={styles.scroll}
 
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            isCompactSheet && styles.scrollContentCompact,
+          ]}
 
           showsVerticalScrollIndicator={false}
 
@@ -416,6 +433,11 @@ const styles = StyleSheet.create({
 
     paddingBottom: 24,
 
+  },
+
+  scrollContentCompact: {
+    flexGrow: 0,
+    paddingBottom: 12,
   },
 
 });

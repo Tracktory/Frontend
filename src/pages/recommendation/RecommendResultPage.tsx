@@ -38,7 +38,7 @@ import { ChatFab } from '../../components/ChatFab';
 import { ChatOverlayModal } from '../../components/chat/ChatOverlayModal';
 import { getBottomTabBarClearance } from '../../navigation/layout/tabBarLayout';
 
-const GLANCE_CARD_GAP = 15;
+const GLANCE_CARD_GAP = 0;
 /** Approx. GlanceCard height (2-row climbing layout). */
 const GLANCE_CARD_HEIGHT_CLIMBING = 88;
 const GLANCE_CARD_HEIGHT_EXPLORING = 56;
@@ -57,6 +57,7 @@ export function RecommendResultPage() {
   const track2 = useOnboardingStore((s) => s.track2);
   const profile = useProfileStore((s) => s.profile);
   const userName = useAuthStore((s) => s.userName);
+  const accessToken = useAuthStore((s) => s.accessToken);
 
   const profileCurrentYear = profile?.profile.currentYear;
   const displayName = profile?.profile.name ?? userName ?? '';
@@ -130,6 +131,7 @@ export function RecommendResultPage() {
             profileCurrentYear={profileCurrentYear}
             track1={track1}
             track2={track2}
+            recommendationId={vm.recommendationId}
           />
         );
       case 'roadmap':
@@ -240,6 +242,7 @@ export function RecommendResultPage() {
       <JourneyBottomSheet
         visible={vm.activeSheet != null}
         sheetKey={vm.activeSheet}
+        sheetHeightRatio={vm.activeSheet === 'current' ? 0.57 : 0.7}
         onClose={handleCloseSheet}
       >
         {renderSheetContent()}
@@ -252,6 +255,7 @@ export function RecommendResultPage() {
         <JourneyAIBriefingSheet
           isFirstYear={isExploring}
           enabled={briefingVisible}
+          accessToken={accessToken}
         />
       </JourneyAIBriefingBottomSheet>
 

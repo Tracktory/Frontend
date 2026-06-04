@@ -7,6 +7,9 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+import PersonIcon from '@/src/assets/images/person.svg';
+import { JOURNEY_NODE_CURRENT_COLOR } from './JourneyLayout';
+
 const AVATAR_SIZE = 40;
 const LAYOUT_WIDTH = 72;
 const BREATHE_MIN_SCALE = 0.98;
@@ -42,10 +45,18 @@ export function CurrentPositionAvatar({
       onPress={onPress}
       accessibilityLabel={label}
     >
-      <Animated.View style={[styles.avatarOuter, breatheStyle]}>
-        <Text style={styles.emoji}>🧑‍💻</Text>
+      <Animated.View
+        style={[
+          styles.avatarOuter,
+          { backgroundColor: JOURNEY_NODE_CURRENT_COLOR },
+          breatheStyle,
+        ]}
+      >
+        <PersonIcon width={18} height={20} />
       </Animated.View>
-      <View style={styles.labelPill}>
+      <View
+        style={[styles.labelPill, { backgroundColor: JOURNEY_NODE_CURRENT_COLOR }]}
+      >
         <Text style={styles.labelText} numberOfLines={1}>
           {label}
         </Text>
@@ -63,7 +74,6 @@ const styles = StyleSheet.create({
     width: AVATAR_SIZE,
     height: AVATAR_SIZE,
     borderRadius: AVATAR_SIZE / 2,
-    backgroundColor: '#14B8A6',
     borderWidth: 2,
     borderColor: 'rgba(255,255,255,0.6)',
     alignItems: 'center',
@@ -75,16 +85,11 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 6,
   },
-  emoji: {
-    fontSize: 16,
-    lineHeight: 22,
-  },
   labelPill: {
     marginTop: 6,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 999,
-    backgroundColor: '#14B8A6',
     maxWidth: LAYOUT_WIDTH,
     alignSelf: 'center',
   },

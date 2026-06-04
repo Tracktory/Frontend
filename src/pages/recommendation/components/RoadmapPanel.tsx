@@ -29,12 +29,14 @@ export function RoadmapPanel({ roadmap, isLoading, isError, onRetry }: RoadmapPa
 
   const hasCompletedCourses = completedCourses.length > 0;
 
+  const studentYear = profileCurrentYear ?? grade;
+
   const semesterSteps = useMemo(() => {
     if (!roadmap) return [];
-    return applyStudentGradeToSemesterSteps(roadmap.semesterSteps, grade);
-  }, [roadmap, grade]);
+    return applyStudentGradeToSemesterSteps(roadmap.semesterSteps, studentYear);
+  }, [roadmap, studentYear]);
 
-  const currentYear = profileCurrentYear ?? grade;
+  const currentYear = studentYear;
 
   const { remainingSemesters, semesterRange } = useMemo(
     () => computeRemainingSemestersFromCurrentYear(currentYear),

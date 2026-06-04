@@ -39,6 +39,7 @@ export function useRecommendResultViewModel() {
     setActiveSheet(null);
   }, []);
 
+  const recommendationId = result?.recommendationId ?? null;
   const jobs = result?.jobs ?? [];
   const trackRecommend = result?.trackRecommend ?? null;
   const roadmap = result?.roadmap ?? null;
@@ -57,6 +58,7 @@ export function useRecommendResultViewModel() {
     openSheet,
     closeSheet,
     handleSelectJob,
+    recommendationId,
     jobs,
     hasData,
     hasJobData,

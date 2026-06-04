@@ -11,6 +11,10 @@ import { TECH_TAG_OPTIONS } from './data/onboardingOptions';
 import { ONBOARDING_COPY } from './data/onboardingCopy';
 import { getOnboardingProgress } from './data/onboardingProgress';
 import { OnboardingStepLayout } from './components/OnboardingStepLayout';
+import {
+  OnboardingStepTitle,
+  OnboardingTitleHighlight,
+} from './components/OnboardingStepTitle';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'GoalSelect'>;
 
@@ -22,7 +26,11 @@ export function ExperiencedFieldPage({ navigation }: Props) {
   return (
     <OnboardingStepLayout
       progress={getOnboardingProgress('GoalSelect', grade)}
-      title={copy.title}
+      title={
+        <OnboardingStepTitle>
+          미리 해본 <OnboardingTitleHighlight>기술</OnboardingTitleHighlight>이 있나요?
+        </OnboardingStepTitle>
+      }
       subtitle={copy.subtitle}
       showBack
       onBack={() => navigation.goBack()}

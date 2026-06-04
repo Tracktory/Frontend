@@ -4,6 +4,7 @@ import type { TrackRecommendPayload } from '../data/mockTrackRecommendData';
 import type { RoadmapPayload, SemesterStep, SemesterCourse, SemesterTiming } from '../data/mockRoadmapData';
 
 export type RecommendResult = {
+  recommendationId: number;
   jobs: JobRecommendation[];
   trackRecommend: TrackRecommendPayload;
   roadmap: RoadmapPayload;
@@ -66,6 +67,8 @@ interface ApiSupportingTrack {
   reasoning?: string | null;
   primary?: boolean;
   isCrossCombination?: boolean;
+  mainSubjects?: ApiSubjectRef[];
+  coreSubjects?: string[];
 }
 
 interface ApiTracksPayload {
@@ -97,6 +100,7 @@ interface ApiCourseItem {
   completed?: boolean;
   score?: number | null;
   credit?: number;
+  credits?: number;
   description?: string;
   stageLabel?: string;
   prerequisites?: ApiCoursePrerequisite[];
@@ -178,14 +182,23 @@ const STAGE_LABEL_MAP: Record<string, string> = {
 
 // ---------- Mapper functions ----------
 
+function mapMainSubjects(
+  mainSubjects?: ApiSubjectRef[],
+  coreSubjects?: string[]
+): { code?: string; name: string }[] {
+  if (mainSubjects?.length) {
+    return mainSubjects
+      .filter((s) => Boolean(s.name))
+      .map((s) => ({ code: s.code, name: s.name }));
+  }
+  return (coreSubjects ?? []).map((name) => ({ name }));
+}
+
 function mapSubjectNames(
   mainSubjects?: ApiSubjectRef[],
   coreSubjects?: string[]
 ): string[] {
-  if (mainSubjects?.length) {
-    return mainSubjects.map((s) => s.name).filter(Boolean);
-  }
-  return coreSubjects ?? [];
+  return mapMainSubjects(mainSubjects, coreSubjects).map((s) => s.name);
 }
 
 function mapJobs(items: ApiJobItem[]): JobRecommendation[] {
@@ -219,6 +232,7 @@ function mapTracks(tracks: ApiTracksPayload): TrackRecommendPayload {
       rankLabel,
       score: t.score ?? combinationScore ?? null,
       reasoning: t.reasoning?.trim() || null,
+      mainSubjects: mapMainSubjects(t.mainSubjects, t.coreSubjects),
       coreSubjects: mapSubjectNames(t.mainSubjects, t.coreSubjects),
       relatedJobs: t.relatedJobs ?? [],
     };
@@ -231,6 +245,7 @@ function mapTracks(tracks: ApiTracksPayload): TrackRecommendPayload {
     score: t.score ?? null,
     reasoning: t.reasoning?.trim() || null,
     isCrossCombination: t.isCrossCombination ?? false,
+    mainSubjects: mapMainSubjects(t.mainSubjects, t.coreSubjects),
   }));
 
   const combinationSummary =
@@ -288,7 +303,7 @@ function mapRoadmap(
       id: String(item.subjectId ?? item.code ?? item.name),
       name: item.name,
       description: item.description ?? '',
-      credits: item.credit ?? 3,
+      credits: item.credits ?? item.credit ?? 3,
       score: item.score ?? undefined,
       completed: item.completed ?? false,
       timing: item.timing ? normalizeTiming(item.timing) : timing,
@@ -334,13 +349,12 @@ export async function fetchRecommendResult(
   accessToken: string,
   forceRefresh = false
 ): Promise<RecommendResult> {
-  const res = await fetch(`${BASE_URL}/api/v1/recommendations`, {
+  const query = `?forceRefresh=${encodeURIComponent(String(forceRefresh))}`;
+  const res = await fetch(`${BASE_URL}/api/v1/recommendations${query}`, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
       Authorization: `Bearer ${accessToken}`,
     },
-    body: JSON.stringify({ forceRefresh }),
   });
 
   const envelope: ApiEnvelope<ApiRecommendData> = await res.json();
@@ -357,6 +371,7 @@ export async function fetchRecommendResult(
 
   const data = envelope.data;
   return {
+    recommendationId: data.recommendationId,
     jobs: mapJobs(extractJobItems(data.jobs)),
     trackRecommend: mapTracks(data.tracks),
     roadmap: mapRoadmap(data.roadmap, data.tracks, data.flow),

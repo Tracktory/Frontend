@@ -28,7 +28,6 @@ export function DevelopmentFieldSelectPage({ navigation }: Props) {
       onBack={() => navigation.goBack()}
       primaryTitle={copy.ctaPrimary}
       primaryVariant={vm.canProceed ? 'primary' : 'disabled'}
-      primarySubtitle={vm.canProceed ? undefined : copy.ctaDisabledHint}
       onPrimaryPress={vm.handleNext}
       scrollable
     >

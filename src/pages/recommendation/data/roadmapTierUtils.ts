@@ -1,5 +1,9 @@
 import { hansungCourseData, type HansungCourse } from '../../../data/hansungCourseData';
-import type { RoadmapPayload } from '../../../data/mockRoadmapData';
+import type { RoadmapPayload, SemesterCourse, SemesterTiming } from '../../../data/mockRoadmapData';
+import {
+  isUserCompletedCourse,
+  toCompletedCourseSet,
+} from '../utils/courseCompletion';
 
 const IT_TRACK_KEYWORDS = [
   '빅데이터',
@@ -21,10 +25,20 @@ const IT_TRACK_KEYWORDS = [
 export type TierNumber = 1 | 2 | 3 | 4;
 export type TierStatus = 'done' | 'current' | 'future';
 
+export interface RoadmapSemesterBlock {
+  semester: 1 | 2;
+  label: string;
+  courses: string[];
+  timing: SemesterTiming;
+  doneCount: number;
+  totalCount: number;
+}
+
 export interface RoadmapTierDefinition {
   tier: TierNumber;
   label: string;
   courses: string[];
+  semesters: RoadmapSemesterBlock[];
   warning?: string;
 }
 
@@ -66,7 +80,7 @@ const TIER_2_KEYWORDS = [
   '소프트웨어',
 ];
 
-const MAX_DISPLAY_PER_TIER = 4;
+const MAX_CATALOG_PER_TIER = 4;
 
 function normalizeTrackName(name: string): string {
   return name.replace(/·/g, 'ㆍ').trim();
@@ -94,19 +108,164 @@ function uniqueSubjects(names: string[]): string[] {
   return [...new Set(names.map((n) => n.trim()).filter(Boolean))];
 }
 
-function coursesFromSemesterSteps(roadmap: RoadmapPayload | null): Map<TierNumber, string[]> {
+function isCourseDone(course: SemesterCourse, completedSet: Set<string>): boolean {
+  return isUserCompletedCourse(course.name, completedSet);
+}
+
+/** 마이페이지·프로필 이수 과목명 목록 (API completed 플래그는 반영하지 않음) */
+export function buildEffectiveCompletedCourses(
+  _roadmap: RoadmapPayload | null,
+  completedCourseNames: string[],
+): string[] {
+  return [...toCompletedCourseSet(completedCourseNames)];
+}
+
+/** 추천 API semesterSteps → stageNumber(기초/핵심/응용/산학)별 과목 */
+function coursesFromSemesterStepsByStage(
+  roadmap: RoadmapPayload,
+): Map<TierNumber, string[]> {
   const map = new Map<TierNumber, string[]>();
-  if (!roadmap?.semesterSteps?.length) return map;
 
   for (const step of roadmap.semesterSteps) {
-    const year = step.year as TierNumber;
-    const list = map.get(year) ?? [];
+    const tier = step.stageNumber as TierNumber;
+    if (tier < 1 || tier > 4) continue;
+    const list = map.get(tier) ?? [];
     for (const c of step.courses) {
       if (!list.includes(c.name)) list.push(c.name);
     }
-    map.set(year, list);
+    map.set(tier, list);
   }
   return map;
+}
+
+function tierLabelFromRoadmap(roadmap: RoadmapPayload, tier: TierNumber): string {
+  const step = roadmap.semesterSteps.find((s) => s.stageNumber === tier);
+  if (step?.stageLabel) {
+    const yearHint = YEAR_LABELS[tier].split('·')[0]?.trim() ?? '';
+    return `${yearHint} · ${step.stageLabel}`;
+  }
+  return YEAR_LABELS[tier];
+}
+
+function computeTierStatusFromRoadmap(
+  roadmap: RoadmapPayload,
+  tier: TierNumber,
+  studentYear: number,
+  completedSet: Set<string>,
+): TierStatus {
+  const steps = roadmap.semesterSteps.filter((s) => s.stageNumber === tier);
+  if (steps.length === 0) {
+    return computeYearCardStatus(tier, studentYear);
+  }
+
+  const { doneCount, totalCount } = computeTierProgressFromRoadmap(
+    roadmap,
+    tier,
+    completedSet,
+  );
+  if (totalCount > 0 && doneCount >= totalCount) return 'done';
+  if (steps.some((s) => s.timing === 'current')) return 'current';
+  if (steps.some((s) => s.timing === 'past')) return 'current';
+  if (steps.every((s) => s.timing === 'future')) return 'future';
+  return computeYearCardStatus(tier, studentYear);
+}
+
+function buildSemesterBlocksFromRoadmap(
+  roadmap: RoadmapPayload,
+  tier: TierNumber,
+  completedSet: Set<string>,
+): RoadmapSemesterBlock[] {
+  const steps = roadmap.semesterSteps
+    .filter((s) => s.stageNumber === tier)
+    .sort((a, b) => a.year - b.year || a.semester - b.semester);
+
+  const blocks: RoadmapSemesterBlock[] = [];
+
+  for (const semester of [1, 2] as const) {
+    const semesterSteps = steps.filter((s) => s.semester === semester);
+    if (semesterSteps.length === 0) continue;
+
+    const courses: string[] = [];
+    let doneCount = 0;
+    let totalCount = 0;
+    let timing: SemesterTiming = 'future';
+
+    for (const step of semesterSteps) {
+      if (step.timing === 'current') timing = 'current';
+      else if (step.timing === 'past' && timing !== 'current') timing = 'past';
+
+      for (const course of step.courses) {
+        totalCount += 1;
+        if (!courses.includes(course.name)) courses.push(course.name);
+        if (isCourseDone(course, completedSet)) {
+          doneCount += 1;
+        }
+      }
+    }
+
+    blocks.push({
+      semester,
+      label: `${semester}학기`,
+      courses,
+      timing,
+      doneCount,
+      totalCount,
+    });
+  }
+
+  return blocks;
+}
+
+function buildSemesterBlocksFromCatalog(courses: string[]): RoadmapSemesterBlock[] {
+  if (courses.length === 0) return [];
+
+  const mid = Math.ceil(courses.length / 2);
+  const first = courses.slice(0, mid);
+  const second = courses.slice(mid);
+
+  const blocks: RoadmapSemesterBlock[] = [];
+  if (first.length > 0) {
+    blocks.push({
+      semester: 1,
+      label: '1학기',
+      courses: first,
+      timing: 'future',
+      doneCount: 0,
+      totalCount: first.length,
+    });
+  }
+  if (second.length > 0) {
+    blocks.push({
+      semester: 2,
+      label: '2학기',
+      courses: second,
+      timing: 'future',
+      doneCount: 0,
+      totalCount: second.length,
+    });
+  }
+  return blocks;
+}
+
+function computeTierProgressFromRoadmap(
+  roadmap: RoadmapPayload,
+  tier: TierNumber,
+  completedSet: Set<string>,
+): { doneCount: number; totalCount: number } {
+  let doneCount = 0;
+  let totalCount = 0;
+
+  for (const step of roadmap.semesterSteps) {
+    if (step.stageNumber !== tier) continue;
+    for (const course of step.courses) {
+      totalCount += 1;
+      if (isCourseDone(course, completedSet)) {
+        doneCount += 1;
+      }
+    }
+  }
+
+  return { doneCount, totalCount };
 }
 
 function coursesFromCatalog(track1: string, track2: string): Map<TierNumber, string[]> {
@@ -123,22 +282,39 @@ function coursesFromCatalog(track1: string, track2: string): Map<TierNumber, str
   return map;
 }
 
-function mergeTierCourses(
-  apiMap: Map<TierNumber, string[]>,
+function definitionsFromApiRoadmap(roadmap: RoadmapPayload): RoadmapTierDefinition[] {
+  const apiMap = coursesFromSemesterStepsByStage(roadmap);
+  const tiers: TierNumber[] = [1, 2, 3, 4];
+
+  return tiers.map((tier) => {
+    const courses = apiMap.get(tier) ?? [];
+    const def: RoadmapTierDefinition = {
+      tier,
+      label: tierLabelFromRoadmap(roadmap, tier),
+      courses,
+      semesters: [],
+    };
+
+    if (tier === 2 && courses.some((c) => c.includes('자료구조'))) {
+      def.warning = '알고리즘 수강 전 자료구조 이수 필요';
+    }
+
+    return def;
+  });
+}
+
+function definitionsFromCatalog(
   catalogMap: Map<TierNumber, string[]>,
-  maxPerTier: number
 ): RoadmapTierDefinition[] {
   const tiers: TierNumber[] = [1, 2, 3, 4];
 
   return tiers.map((tier) => {
-    const fromApi = apiMap.get(tier) ?? [];
-    const fromCatalog = catalogMap.get(tier) ?? [];
-    const merged = uniqueSubjects([...fromApi, ...fromCatalog]).slice(0, maxPerTier);
-
+    const courses = (catalogMap.get(tier) ?? []).slice(0, MAX_CATALOG_PER_TIER);
     const def: RoadmapTierDefinition = {
       tier,
       label: YEAR_LABELS[tier],
-      courses: merged,
+      courses,
+      semesters: buildSemesterBlocksFromCatalog(courses),
     };
 
     if (tier === 2) {
@@ -171,17 +347,48 @@ export function getRoadmapDisplayTiers(params: {
   completedCourses: string[];
   roadmap: RoadmapPayload | null;
 }): RoadmapTierViewModel[] {
-  const apiMap = coursesFromSemesterSteps(params.roadmap);
-  const catalogMap = coursesFromCatalog(params.track1, params.track2);
-  const definitions = mergeTierCourses(apiMap, catalogMap, MAX_DISPLAY_PER_TIER);
+  const effectiveCompleted = buildEffectiveCompletedCourses(
+    params.roadmap,
+    params.completedCourses,
+  );
+  const completedSet = toCompletedCourseSet(effectiveCompleted);
+
+  const hasApiRoadmap = (params.roadmap?.semesterSteps?.length ?? 0) > 0;
+  const definitions = hasApiRoadmap
+    ? definitionsFromApiRoadmap(params.roadmap!)
+    : definitionsFromCatalog(coursesFromCatalog(params.track1, params.track2));
 
   return definitions.map((def) => {
-    const { doneCount, totalCount } = computeCourseProgress(
-      def.courses,
-      params.completedCourses
-    );
-    const status = computeYearCardStatus(def.tier, params.studentYear);
-    return { ...def, status, doneCount, totalCount };
+    const semesters =
+      hasApiRoadmap && params.roadmap
+        ? buildSemesterBlocksFromRoadmap(params.roadmap, def.tier, completedSet)
+        : def.semesters.map((block) => ({
+            ...block,
+            doneCount: block.courses.filter((c) => effectiveCompleted.includes(c)).length,
+          }));
+
+    const progress =
+      hasApiRoadmap && params.roadmap
+        ? computeTierProgressFromRoadmap(params.roadmap, def.tier, completedSet)
+        : computeCourseProgress(def.courses, effectiveCompleted);
+
+    const status =
+      hasApiRoadmap && params.roadmap
+        ? computeTierStatusFromRoadmap(
+            params.roadmap,
+            def.tier,
+            params.studentYear,
+            completedSet,
+          )
+        : computeYearCardStatus(def.tier, params.studentYear);
+
+    return {
+      ...def,
+      semesters,
+      status,
+      doneCount: progress.doneCount,
+      totalCount: progress.totalCount,
+    };
   });
 }
 

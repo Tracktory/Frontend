@@ -53,7 +53,7 @@ export function useLoginViewModel(
       const data = await login(email, password);
       setAuth(data);
       if (data.onboardingCompleted) {
-        resetToRecommendLoading(rootNavigation);
+        resetToRecommendLoading(rootNavigation, true);
       } else {
         useOnboardingStore.getState().resetOnboarding();
         rootNavigation.reset({

@@ -1,39 +1,95 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  Linking,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import Animated, { FadeInRight } from 'react-native-reanimated';
 
-import { useAIBriefing } from '../../../../hooks/useAIBriefing';
-import type { BriefingItem } from '../../data/briefingMockData';
+import { useAIBriefing, type BriefingCard } from '../../../../hooks/useAIBriefing';
+import type { BriefingSource } from '../../../../api/briefingApi';
 
-export type { BriefingItem };
+export type { BriefingCard };
 
 interface JourneyAIBriefingSheetProps {
   isFirstYear: boolean;
+  accessToken: string | null;
   enabled?: boolean;
 }
 
-function BriefingTrendCard({ item, index }: { item: BriefingItem; index: number }) {
+const CARD_WIDTH = 320;
+const CARD_HEIGHT = 224;
+const MAX_SKILL_CHIPS = 6;
+
+function formatSourceLabel(source: BriefingSource): string {
+  if (source.publishedAt) {
+    return `${source.title} · ${source.publishedAt}`;
+  }
+  return source.title;
+}
+
+function BriefingTrendCard({ item, index }: { item: BriefingCard; index: number }) {
+  const skills = item.skills.slice(0, MAX_SKILL_CHIPS);
+  const sources = item.sources.slice(0, 2);
+
   return (
     <Animated.View
       entering={FadeInRight.delay(index * 100).duration(350)}
       style={styles.trendCard}
     >
-      <View style={styles.jobPill}>
-        <Text style={styles.jobPillText}>{item.job}</Text>
+      <View style={styles.trendCardInner}>
+        <View style={styles.jobPill}>
+          <Text style={styles.jobPillText} numberOfLines={1}>
+            {item.job}
+          </Text>
+        </View>
+        <View style={styles.skillsSection}>
+          {skills.length > 0 ? (
+            <View style={styles.skillsRow}>
+              {skills.map((skill) => (
+                <View key={skill} style={styles.skillChip}>
+                  <Text style={styles.skillChipText} numberOfLines={1}>
+                    {skill}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          ) : null}
+        </View>
+        <Text style={styles.headline} numberOfLines={2}>
+          {item.headline}
+        </Text>
+        <Text style={styles.summary} numberOfLines={3}>
+          {item.summary}
+        </Text>
+        <View>
+          {sources.map((source) => (
+            <Pressable
+              key={`${source.url}-${source.title}`}
+              onPress={() => Linking.openURL(source.url)}
+              accessibilityRole="link"
+            >
+              <Text style={styles.source} numberOfLines={1}>
+                {formatSourceLabel(source)}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
       </View>
-      <Text style={styles.headline}>{item.headline}</Text>
-      <Text style={styles.summary}>{item.summary}</Text>
-      <Text style={styles.source}>{item.source}</Text>
     </Animated.View>
   );
 }
 
 export function JourneyAIBriefingSheet({
   isFirstYear,
+  accessToken,
   enabled = true,
 }: JourneyAIBriefingSheetProps) {
-  const { cards, isLoading, isStreaming } = useAIBriefing({
-    isFirstYear,
+  const { cards, isLoading, isStreaming, errorMessage, isEmpty, retry } = useAIBriefing({
+    accessToken,
     enabled,
   });
 
@@ -44,6 +100,19 @@ export function JourneyAIBriefingSheet({
   return (
     <View style={styles.wrap}>
       <Text style={styles.intro}>{intro}</Text>
+      {errorMessage ? (
+        <View style={styles.errorBlock}>
+          <Text style={styles.errorText}>{errorMessage}</Text>
+          <Pressable style={styles.retryButton} onPress={retry}>
+            <Text style={styles.retryButtonText}>다시 시도</Text>
+          </Pressable>
+        </View>
+      ) : null}
+      {!errorMessage && isEmpty && !isLoading ? (
+        <Text style={styles.emptyText}>
+          현재 추천 직무에 대한 트렌드 브리핑이 준비되지 않았어요.
+        </Text>
+      ) : null}
       {isLoading ? (
         <View style={styles.loadingRow}>
           {[0, 1, 2].map((i) => (
@@ -57,7 +126,11 @@ export function JourneyAIBriefingSheet({
         contentContainerStyle={styles.scrollContent}
       >
         {cards.map((item, index) => (
-          <BriefingTrendCard key={`${item.job}-${item.headline}`} item={item} index={index} />
+          <BriefingTrendCard
+            key={`${item.code}-${item.headline}`}
+            item={item}
+            index={index}
+          />
         ))}
         {isStreaming ? <View style={styles.streamingDot} /> : null}
       </ScrollView>
@@ -67,22 +140,51 @@ export function JourneyAIBriefingSheet({
 
 const styles = StyleSheet.create({
   wrap: {
-    paddingBottom: 8,
+    paddingBottom: 0,
   },
   intro: {
     fontSize: 13,
     color: '#6B7280',
     lineHeight: 21,
-    marginBottom: 20,
+    marginBottom: 16,
+  },
+  errorBlock: {
+    marginBottom: 16,
+    gap: 10,
+  },
+  errorText: {
+    fontSize: 13,
+    color: '#DC2626',
+    lineHeight: 20,
+  },
+  retryButton: {
+    alignSelf: 'flex-start',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    backgroundColor: '#F0FDFA',
+    borderWidth: 1,
+    borderColor: '#99F6E4',
+  },
+  retryButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#0D9488',
+  },
+  emptyText: {
+    fontSize: 13,
+    color: '#6B7280',
+    lineHeight: 20,
+    marginBottom: 16,
   },
   loadingRow: {
     flexDirection: 'row',
     gap: 16,
-    marginBottom: 16,
+    marginBottom: 0,
   },
   skeletonCard: {
-    width: 300,
-    height: 160,
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
     borderRadius: 24,
     backgroundColor: '#F3F4F6',
     opacity: 0.7,
@@ -90,14 +192,19 @@ const styles = StyleSheet.create({
   scrollContent: {
     gap: 16,
     paddingRight: 8,
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   trendCard: {
-    width: 300,
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
     backgroundColor: '#F9FAFB',
     borderWidth: 1.5,
     borderColor: '#E5E7EB',
     borderRadius: 24,
+    overflow: 'hidden',
+  },
+  trendCardInner: {
+    flex: 1,
     padding: 20,
   },
   jobPill: {
@@ -113,26 +220,53 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#0D9488',
   },
+  skillsSection: {
+    minHeight: 48,
+    marginBottom: 10,
+    justifyContent: 'flex-start',
+  },
+  skillsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    maxHeight: 48,
+    overflow: 'hidden',
+  },
+  skillChip: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 999,
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+  },
+  skillChipText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#4B5563',
+  },
   headline: {
     fontSize: 15,
     fontWeight: '700',
     color: '#111827',
-    lineHeight: 22,
+    lineHeight: 23,
     marginBottom: 8,
   },
   summary: {
+    flex: 1,
     fontSize: 13,
     color: '#4B5563',
-    lineHeight: 20,
-    marginBottom: 12,
+    lineHeight: 21,
+    marginBottom: 10,
   },
   source: {
     fontSize: 11,
-    color: '#9CA3AF',
+    color: '#0D9488',
+    marginBottom: 4,
   },
   streamingDot: {
     width: 48,
-    height: 160,
+    height: CARD_HEIGHT,
     borderRadius: 16,
     borderWidth: 1.5,
     borderStyle: 'dashed',

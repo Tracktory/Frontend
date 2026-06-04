@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -20,6 +19,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { getModalBottomTabBarClearance } from '../../../../navigation/layout/tabBarLayout';
 
 const SHEET_TIMING = { duration: 280, easing: Easing.out(Easing.cubic) };
+/** 화면 대비 시트 높이 (0.7=여백 과다, 콘텐츠 맞춤=과소 → 중간값) */
+const SHEET_HEIGHT_RATIO = 0.58;
 
 interface JourneyAIBriefingBottomSheetProps {
   visible: boolean;
@@ -35,10 +36,14 @@ export function JourneyAIBriefingBottomSheet({
   const insets = useSafeAreaInsets();
   const tabBarClearance = getModalBottomTabBarClearance(insets);
   const { height } = useWindowDimensions();
-  const sheetHeight = height * 0.7;
+  const sheetHeight = height * SHEET_HEIGHT_RATIO;
 
   const [mounted, setMounted] = useState(false);
   const translateY = useSharedValue(sheetHeight);
+
+  useEffect(() => {
+    translateY.value = sheetHeight;
+  }, [sheetHeight, translateY]);
 
   useEffect(() => {
     if (visible) {
@@ -70,7 +75,7 @@ export function JourneyAIBriefingBottomSheet({
         style={[
           styles.sheet,
           sheetStyle,
-          { height: sheetHeight, bottom: tabBarClearance, paddingBottom: 16 },
+          { height: sheetHeight, bottom: tabBarClearance },
         ]}
       >
         <View style={styles.handle} />
@@ -88,14 +93,7 @@ export function JourneyAIBriefingBottomSheet({
             <Ionicons name="close" size={16} color="#6B7280" />
           </Pressable>
         </View>
-        <ScrollView
-          style={styles.scroll}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {children}
-        </ScrollView>
+        <View style={styles.body}>{children}</View>
       </Animated.View>
     </View>
   );
@@ -128,14 +126,14 @@ const styles = StyleSheet.create({
     height: 4,
     borderRadius: 2,
     backgroundColor: '#E5E7EB',
-    marginTop: 12,
-    marginBottom: 12,
+    marginTop: 10,
+    marginBottom: 10,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    marginBottom: 14,
   },
   titleRow: {
     flex: 1,
@@ -156,11 +154,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  scroll: {
+  body: {
     flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 24,
+    justifyContent: 'flex-start',
+    paddingBottom: 12,
   },
 });

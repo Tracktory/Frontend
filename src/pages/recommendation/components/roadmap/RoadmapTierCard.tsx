@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import type { RoadmapTierViewModel } from '../../data/roadmapTierUtils';
+import type { RoadmapSemesterBlock, RoadmapTierViewModel } from '../../data/roadmapTierUtils';
 import { shouldShowTierWarning } from '../../data/roadmapTierUtils';
 
 interface RoadmapTierCardProps {
@@ -31,36 +31,38 @@ const STATUS_STYLES = {
   },
 };
 
-export function RoadmapTierCard({ tier, completedCourses }: RoadmapTierCardProps) {
-  const style = STATUS_STYLES[tier.status];
-  const showWarning = shouldShowTierWarning(tier, tier.status, completedCourses);
-  const isFuture = tier.status === 'future';
-
-  if (tier.courses.length === 0) return null;
+function SemesterChipRow({
+  block,
+  tierStatus,
+  completedCourses,
+}: {
+  block: RoadmapSemesterBlock;
+  tierStatus: RoadmapTierViewModel['status'];
+  completedCourses: string[];
+}) {
+  const isFuture = block.timing === 'future' || tierStatus === 'future';
 
   return (
-    <View style={[styles.card, style.card]}>
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Ionicons name={style.icon} size={16} color={style.iconColor} />
-          <Text style={[styles.yearLabel, { color: style.labelColor }]}>{tier.label}</Text>
-        </View>
-        <Text style={styles.count}>
-          {tier.doneCount}/{tier.totalCount}
+    <View style={styles.semesterSection}>
+      <View style={styles.semesterHeader}>
+        <Text style={styles.semesterLabel}>{block.label}</Text>
+        <Text style={styles.semesterCount}>
+          {block.doneCount}/{block.totalCount}
         </Text>
       </View>
-
       <View style={styles.chipRow}>
-        {tier.courses.map((course) => {
-          if (isFuture) {
+        {block.courses.map((course) => {
+          const done = completedCourses.includes(course);
+          const showNeutral =
+            isFuture || (block.timing === 'past' && !done);
+
+          if (showNeutral) {
             return (
               <View key={course} style={[styles.chip, styles.chipDisabled]}>
                 <Text style={[styles.chipText, styles.chipTextDisabled]}>{course}</Text>
               </View>
             );
           }
-
-          const done = completedCourses.includes(course);
           return (
             <View key={course} style={[styles.chip, done ? styles.chipDone : styles.chipPending]}>
               {done ? (
@@ -75,6 +77,52 @@ export function RoadmapTierCard({ tier, completedCourses }: RoadmapTierCardProps
           );
         })}
       </View>
+    </View>
+  );
+}
+
+export function RoadmapTierCard({ tier, completedCourses }: RoadmapTierCardProps) {
+  const style = STATUS_STYLES[tier.status];
+  const showWarning = shouldShowTierWarning(tier, tier.status, completedCourses);
+
+  if (tier.totalCount === 0 && tier.courses.length === 0) return null;
+
+  const semesterBlocks =
+    tier.semesters.length > 0
+      ? tier.semesters
+      : tier.courses.length > 0
+        ? [
+            {
+              semester: 1 as const,
+              label: '1학기',
+              courses: tier.courses,
+              timing: 'future' as const,
+              doneCount: tier.doneCount,
+              totalCount: tier.totalCount,
+            },
+          ]
+        : [];
+
+  return (
+    <View style={[styles.card, style.card]}>
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <Ionicons name={style.icon} size={16} color={style.iconColor} />
+          <Text style={[styles.yearLabel, { color: style.labelColor }]}>{tier.label}</Text>
+        </View>
+        <Text style={styles.count}>
+          {tier.doneCount}/{tier.totalCount}
+        </Text>
+      </View>
+
+      {semesterBlocks.map((block) => (
+        <SemesterChipRow
+          key={block.semester}
+          block={block}
+          tierStatus={tier.status}
+          completedCourses={completedCourses}
+        />
+      ))}
 
       {showWarning && tier.warning ? (
         <View style={styles.warningBox}>
@@ -110,6 +158,24 @@ const styles = StyleSheet.create({
   },
   count: {
     fontSize: 11,
+    color: '#9CA3AF',
+    fontWeight: '600',
+  },
+  semesterSection: {
+    gap: 8,
+  },
+  semesterHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  semesterLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  semesterCount: {
+    fontSize: 10,
     color: '#9CA3AF',
     fontWeight: '600',
   },

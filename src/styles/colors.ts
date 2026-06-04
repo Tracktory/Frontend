@@ -8,8 +8,10 @@ export const colors = {
   background: '#FFFFFF',
   surface: '#FFFFFF',
   profileSurface: '#E8FBF8',
-  // 이수 과목 칩 배경 (민트 계열) 
+  // 이수 과목 칩 배경 (민트 계열)
   chipMintBg: '#DCFEFA',
+  /** 온보딩 칩·리스트 선택 시 — background보다 살짝 진한 민트 */
+  onboardingChipSelectedBg: '#D9F7F2',
   white: '#FFFFFF',
   inputSurface: '#F3F4F6',
   chipSurface: '#F4F4F4',

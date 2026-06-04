@@ -3,7 +3,10 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import MapIcon from '@/src/assets/images/map.svg';
 
 import type { RoadmapPayload } from '../../../../data/mockRoadmapData';
-import { getRoadmapDisplayTiers } from '../../data/roadmapTierUtils';
+import {
+  buildEffectiveCompletedCourses,
+  getRoadmapDisplayTiers,
+} from '../../data/roadmapTierUtils';
 import { RoadmapTierCard } from './RoadmapTierCard';
 
 interface RoadmapContentProps {
@@ -25,16 +28,21 @@ export function RoadmapContent({
   roadmap,
   onRegister,
 }: RoadmapContentProps) {
+  const effectiveCompleted = useMemo(
+    () => buildEffectiveCompletedCourses(roadmap, completedCourses),
+    [roadmap, completedCourses],
+  );
+
   const tiers = useMemo(
     () =>
       getRoadmapDisplayTiers({
         track1,
         track2,
         studentYear,
-        completedCourses,
+        completedCourses: effectiveCompleted,
         roadmap,
       }),
-    [track1, track2, studentYear, completedCourses, roadmap]
+    [track1, track2, studentYear, effectiveCompleted, roadmap],
   );
 
   const jobLabel = targetJob !== '직무 미정' ? targetJob : 'Backend Developer';
@@ -52,7 +60,7 @@ export function RoadmapContent({
           <RoadmapTierCard
             key={tier.tier}
             tier={tier}
-            completedCourses={completedCourses}
+            completedCourses={effectiveCompleted}
           />
         ))}
       </View>
@@ -71,7 +79,7 @@ export function RoadmapContent({
 const styles = StyleSheet.create({
   wrap: {
     gap: 12,
-    paddingBottom: 8,
+    paddingBottom: 16,
   },
   infoBanner: {
     backgroundColor: '#F0FDFA',

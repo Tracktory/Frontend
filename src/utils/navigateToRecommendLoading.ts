@@ -9,7 +9,8 @@ type NavigationWithParent = {
 };
 
 export function resetToRecommendLoading(
-  rootNavigation: NavigationProp<RootStackParamList>
+  rootNavigation: NavigationProp<RootStackParamList>,
+  forceRefresh = true
 ) {
   rootNavigation.reset({
     index: 0,
@@ -17,16 +18,19 @@ export function resetToRecommendLoading(
       {
         name: 'Main',
         state: {
-          routes: [{ name: 'RecommendLoading', params: { forceRefresh: false } }],
+          routes: [{ name: 'RecommendLoading', params: { forceRefresh } }],
         },
       },
     ],
   });
 }
 
-export function navigateToRecommendLoading(navigation: NavigationWithParent) {
+export function navigateToRecommendLoading(
+  navigation: NavigationWithParent,
+  forceRefresh = false
+) {
   const parent = navigation.getParent<StackNavigationProp<MainStackParamList>>();
   if (parent) {
-    parent.navigate('RecommendLoading', { forceRefresh: false });
+    parent.navigate('RecommendLoading', { forceRefresh });
   }
 }

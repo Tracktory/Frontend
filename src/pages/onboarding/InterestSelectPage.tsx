@@ -11,6 +11,10 @@ import { INTEREST_OPTIONS } from './data/onboardingOptions';
 import { ONBOARDING_COPY } from './data/onboardingCopy';
 import { getOnboardingProgress } from './data/onboardingProgress';
 import { OnboardingStepLayout } from './components/OnboardingStepLayout';
+import {
+  OnboardingStepTitle,
+  OnboardingTitleHighlight,
+} from './components/OnboardingStepTitle';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'InterestSelect'>;
 
@@ -22,13 +26,16 @@ export function InterestSelectPage({ navigation }: Props) {
   return (
     <OnboardingStepLayout
       progress={getOnboardingProgress('InterestSelect', grade)}
-      title={copy.title}
+      title={
+        <OnboardingStepTitle>
+          요즘 <OnboardingTitleHighlight>어떤 분야</OnboardingTitleHighlight>에 눈길이 가나요?
+        </OnboardingStepTitle>
+      }
       subtitle={copy.subtitle}
       showBack
       onBack={() => navigation.goBack()}
       primaryTitle={copy.ctaPrimary}
       primaryVariant={vm.canProceed ? 'primary' : 'disabled'}
-      primarySubtitle={vm.canProceed ? undefined : copy.ctaDisabledHint}
       onPrimaryPress={vm.handleNext}
       scrollable
     >

@@ -83,10 +83,12 @@ export function mapReportJobs(
       id: field.jobCode,
       jobCode: field.jobCode,
       title: field.jobName,
+      description: store?.description ?? '',
+      reasoning: store?.reasoning ?? '',
       match: matchScore,
-      coveragePercent: field.currentPercent,
-      gapTokens: field.missingTokens.slice(0, 6),
-      isAnchor: anchorJobCode === field.jobCode,
+      techStack: store?.techStackReady ? (store?.techStack ?? []) : [],
+      coreSkills: store?.coreSkills ?? [],
+      advancedSkills: store?.advancedSkills ?? [],
     };
   });
 }

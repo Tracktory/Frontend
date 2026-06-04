@@ -21,8 +21,10 @@ import { ChatMessageBubble } from './ChatMessageBubble';
 import { ChatTypingBubble } from './ChatTypingBubble';
 
 const HEADER_HEIGHT = 52;
-/** inputRow: paddingTop 10 + input 42 + paddingBottom 10 */
-const INPUT_BAR_HEIGHT = 62;
+/** inputRow: paddingTop 10 + input 42 */
+const INPUT_ROW_CORE_HEIGHT = 52;
+/** 키보드 상단과 입력창 사이 미세 간격 */
+const KEYBOARD_ABOVE_GAP = 1;
 
 interface ChatContentProps {
   /** 온보딩 미완료 상태이면 true — 입력/칩 차단 */
@@ -58,21 +60,23 @@ export function ChatContent({
 
   const keyboardVisible = keyboardHeight > 0;
 
-  /** 오버레이 시트는 ChatOverlayModal paddingBottom으로 safe area 처리 */
   const restingBottom = overlayMode ? 0 : bottomInset;
 
   const inputBottom = useMemo(() => {
     if (!keyboardVisible) return restingBottom;
-    if (overlayMode) return keyboardHeight;
-    return Platform.OS === 'ios' ? keyboardHeight : 0;
-  }, [keyboardVisible, keyboardHeight, overlayMode, restingBottom]);
+    // Android adjustResize shrinks the window; only add a small breathing gap above the keyboard.
+    if (Platform.OS === 'android') return KEYBOARD_ABOVE_GAP;
+    return keyboardHeight + KEYBOARD_ABOVE_GAP;
+  }, [keyboardVisible, keyboardHeight, restingBottom]);
 
   const inputPaddingBottom = useMemo(() => {
-    if (!keyboardVisible) return 10;
-    return overlayMode ? Math.max(insets.bottom, 8) : 8;
+    if (keyboardVisible) return 0;
+    if (overlayMode) return insets.bottom;
+    return 10;
   }, [keyboardVisible, overlayMode, insets.bottom]);
 
-  const scrollPaddingBottom = INPUT_BAR_HEIGHT + inputBottom;
+  const scrollPaddingBottom =
+    INPUT_ROW_CORE_HEIGHT + inputPaddingBottom + inputBottom;
 
   const scrollToEnd = () => {
     setTimeout(() => {

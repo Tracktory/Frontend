@@ -2,6 +2,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
 import { colors } from '../../../styles/colors';
+import { onboardingSelectedText } from './onboardingSelectionStyles';
 
 interface YearSelectButtonProps {
   year: number;
@@ -46,7 +47,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.selectSurface,
   },
   selectedButton: {
-    backgroundColor: colors.selectSurfaceActive,
+    backgroundColor: colors.onboardingChipSelectedBg,
   },
   pressed: {
     opacity: 0.92,
@@ -58,12 +59,12 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   selectedLabel: {
-    color: colors.primary,
-    fontWeight: '600',
+    color: onboardingSelectedText,
+    fontWeight: '700',
   },
   check: {
     fontSize: 18,
     fontWeight: '700',
-    color: colors.primary,
+    color: onboardingSelectedText,
   },
 });

@@ -12,16 +12,7 @@ const STAGE_COLORS: Record<1 | 2 | 3 | 4, string> = {
   4: colors.stageCap,
 };
 
-function isCourseCompleted(
-  course: SemesterCourse,
-  completedCourses: string[],
-  stepTiming: SemesterTiming
-): boolean {
-  if (stepTiming !== 'past') {
-    return completedCourses.includes(course.name);
-  }
-  if (course.completed === true) return true;
-  if (course.completed === false) return false;
+function isCourseCompleted(course: SemesterCourse, completedCourses: string[]): boolean {
   return completedCourses.includes(course.name);
 }
 
@@ -40,7 +31,7 @@ export function RoadmapSemesterCard({ step, completedCourses, onPressCourse }: R
   const isPastSemester = step.timing === 'past';
 
   const courseCompletions = step.courses.map((c) =>
-    isCourseCompleted(c, completedCourses, step.timing)
+    isCourseCompleted(c, completedCourses)
   );
   const earnedCredits = step.courses.reduce(
     (sum, c, i) => sum + (courseCompletions[i] ? c.credits : 0),

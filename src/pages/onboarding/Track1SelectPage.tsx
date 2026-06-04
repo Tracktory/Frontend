@@ -7,7 +7,11 @@ import { useTrack1SelectViewModel } from '../../hooks/useTrack1SelectViewModel';
 import { ONBOARDING_COPY } from './data/onboardingCopy';
 import { getOnboardingProgress } from './data/onboardingProgress';
 import { OnboardingStepLayout } from './components/OnboardingStepLayout';
-import { TrackSelectList } from './components/TrackSelectList';
+import {
+  OnboardingStepTitle,
+  OnboardingTitleHighlight,
+} from './components/OnboardingStepTitle';
+import { TrackTextInputForm } from './components/TrackTextInputForm';
 
 type Props = StackScreenProps<OnboardingStackParamList, 'Track1Select'>;
 
@@ -19,20 +23,28 @@ export function Track1SelectPage({ navigation }: Props) {
   return (
     <OnboardingStepLayout
       progress={getOnboardingProgress('Track1Select', grade)}
-      title={copy.title}
+      title={
+        <OnboardingStepTitle>
+          <OnboardingTitleHighlight>1·2트랙</OnboardingTitleHighlight>을 알려주세요
+        </OnboardingStepTitle>
+      }
       subtitle={copy.subtitle}
       showBack
       onBack={() => navigation.goBack()}
       primaryTitle={copy.ctaPrimary}
       primaryVariant={vm.canProceed ? 'primary' : 'disabled'}
-      primarySubtitle={vm.canProceed ? undefined : copy.ctaDisabledHint}
       onPrimaryPress={vm.handleNext}
+      secondaryTitle={copy.ctaSecondary}
+      onSecondaryPress={vm.handleSkip}
       scrollable
     >
-      <TrackSelectList
-        value={vm.track1}
-        onSelect={vm.setTrack1}
-        hint="1트랙은 주전공 트랙만 가능해요"
+      <TrackTextInputForm
+        track1Input={vm.track1Input}
+        track2Input={vm.track2Input}
+        onTrack1Change={vm.setTrack1Input}
+        onTrack2Change={vm.setTrack2Input}
+        track1Error={vm.track1Error}
+        track2Error={vm.track2Error}
       />
     </OnboardingStepLayout>
   );

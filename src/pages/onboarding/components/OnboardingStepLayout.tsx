@@ -17,14 +17,13 @@ const ONBOARDING_BG = '#F0FDFA';
 
 interface OnboardingStepLayoutProps {
   progress: number;
-  title: string;
+  title: React.ReactNode;
   subtitle?: string;
   children: React.ReactNode;
   showBack?: boolean;
   onBack?: () => void;
   primaryTitle: string;
   primaryVariant?: 'primary' | 'disabled';
-  primarySubtitle?: string;
   onPrimaryPress?: () => void;
   secondaryTitle?: string;
   onSecondaryPress?: () => void;
@@ -46,7 +45,6 @@ export function OnboardingStepLayout({
   onBack,
   primaryTitle,
   primaryVariant = 'primary',
-  primarySubtitle,
   onPrimaryPress,
   secondaryTitle,
   onSecondaryPress,
@@ -62,7 +60,7 @@ export function OnboardingStepLayout({
       {!hideProgress ? <ProgressBar progress={progress} /> : null}
       {!hideTitleBlock ? (
         <>
-          <Text style={styles.title}>{title}</Text>
+          {typeof title === 'string' ? <Text style={styles.title}>{title}</Text> : title}
           {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
         </>
       ) : null}
@@ -111,7 +109,6 @@ export function OnboardingStepLayout({
               title={primaryTitle}
               variant={primaryVariant}
               onPress={onPrimaryPress}
-              subtitle={primarySubtitle}
             />
           </>
         )}
