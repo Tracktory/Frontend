@@ -57,6 +57,7 @@ export function RecommendResultPage() {
   const track2 = useOnboardingStore((s) => s.track2);
   const profile = useProfileStore((s) => s.profile);
   const userName = useAuthStore((s) => s.userName);
+  const accessToken = useAuthStore((s) => s.accessToken);
 
   const profileCurrentYear = profile?.profile.currentYear;
   const displayName = profile?.profile.name ?? userName ?? '';
@@ -254,6 +255,7 @@ export function RecommendResultPage() {
         <JourneyAIBriefingSheet
           isFirstYear={isExploring}
           enabled={briefingVisible}
+          accessToken={accessToken}
         />
       </JourneyAIBriefingBottomSheet>
 

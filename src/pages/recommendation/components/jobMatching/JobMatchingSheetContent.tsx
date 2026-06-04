@@ -46,6 +46,6 @@ export function JobMatchingSheetContent({
 const styles = StyleSheet.create({
   wrap: {
     gap: 12,
-    paddingBottom: 8,
+    paddingBottom: 16,
   },
 });

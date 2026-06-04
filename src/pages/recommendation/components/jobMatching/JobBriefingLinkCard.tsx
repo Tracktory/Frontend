@@ -33,6 +33,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 16,
     marginTop: 8,
+    marginBottom: 12,
   },
   pressed: {
     opacity: 0.92,
