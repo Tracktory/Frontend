@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 
@@ -96,22 +95,15 @@ export function useAnalysisReport({
               onFatalError?.();
               break;
             case 'ONBOARDING_NOT_FOUND':
-              Alert.alert('온보딩 필요', err.message, [
-                {
-                  text: '확인',
-                  onPress: () =>
-                    rootNavigation.reset({ index: 0, routes: [{ name: 'Onboarding' }] }),
-                },
-              ]);
+              rootNavigation.reset({ index: 0, routes: [{ name: 'Onboarding' }] });
               onFatalError?.();
               break;
             case 'INVALID_ANCHOR_JOB':
-              Alert.alert('기준 직무 오류', err.message);
+              setErrorMessage(err.message);
               setAnchorJobCode(undefined);
               void loadReport(undefined, false);
               break;
             case 'AUTH_REQUIRED':
-              Alert.alert('인증 만료', '다시 로그인해주세요.');
               rootNavigation.reset({ index: 0, routes: [{ name: 'Auth' }] });
               onFatalError?.();
               break;

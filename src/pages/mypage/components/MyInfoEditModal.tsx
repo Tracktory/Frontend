@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Modal,
   Pressable,
   ScrollView,
@@ -221,12 +220,7 @@ export function MyInfoEditModal({
     if (section === 'grade') {
       ok = await onSaveGrade(draftGrade);
     } else if (section === 'tracks') {
-      if (!draftCollege) {
-        Alert.alert('입력 오류', '단과대를 선택해주세요.');
-        return;
-      }
-      if (!draftTrack1.trim()) {
-        Alert.alert('입력 오류', '1트랙을 선택해주세요.');
+      if (!draftCollege || !draftTrack1.trim()) {
         return;
       }
       ok = await onSaveTracks({ track1: draftTrack1, track2: draftTrack2 });

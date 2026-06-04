@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 
@@ -175,20 +174,11 @@ export function useMyPageViewModel() {
         case 'AUTH_REQUIRED':
           rootNavigation.reset({ index: 0, routes: [{ name: 'Auth' }] });
           break;
-        case 'RESOURCE_NOT_FOUND':
-          Alert.alert('알림', '해당 이수 과목이 존재하지 않습니다.');
-          break;
-        case 'SUBJECT_ALREADY_COMPLETED':
-          Alert.alert('알림', '이미 이수 처리된 과목입니다.');
-          break;
-        case 'VALIDATION_FAILED':
-          Alert.alert('입력 오류', '입력 내용을 다시 확인해주세요.');
-          break;
         default:
-          Alert.alert('오류', err.message);
+          if (__DEV__) console.warn('[myPage/course]', err.code, err.message);
       }
-    } else {
-      Alert.alert('네트워크 오류', '잠시 후 다시 시도해주세요.');
+    } else if (__DEV__) {
+      console.warn('[myPage/course] network error');
     }
   };
 
@@ -201,17 +191,11 @@ export function useMyPageViewModel() {
         case 'RESOURCE_NOT_FOUND':
           rootNavigation.reset({ index: 0, routes: [{ name: 'Onboarding' }] });
           break;
-        case 'SUBJECT_ALREADY_COMPLETED':
-          Alert.alert('알림', '이미 이수 처리된 과목입니다.');
-          break;
-        case 'VALIDATION_FAILED':
-          Alert.alert('입력 오류', '입력 내용을 다시 확인해주세요.');
-          break;
         default:
-          Alert.alert('오류', err.message);
+          if (__DEV__) console.warn('[myPage/patch]', err.code, err.message);
       }
-    } else {
-      Alert.alert('네트워크 오류', '잠시 후 다시 시도해주세요.');
+    } else if (__DEV__) {
+      console.warn('[myPage/patch] network error');
     }
   };
 
@@ -272,7 +256,6 @@ export function useMyPageViewModel() {
     const id2 = resolveTrackId(next.track2.trim());
     if (id2) tracks.push({ trackId: id2, trackOrder: 2 });
     if (tracks.length === 0) {
-      Alert.alert('입력 오류', '1트랙을 선택해주세요.');
       return false;
     }
     const departmentId = resolveDepartmentIdForTrack(next.track1.trim());
@@ -298,14 +281,9 @@ export function useMyPageViewModel() {
     const semester: 1 | 2 = 1;
 
     if (completedCourses.includes(name)) {
-      Alert.alert('알림', '이미 이수 과목에 추가된 과목입니다.');
       return false;
     }
     if (completedCourses.length >= MAX_COMPLETED_COURSES) {
-      Alert.alert(
-        '알림',
-        `이수 과목은 최대 ${MAX_COMPLETED_COURSES}개까지 추가할 수 있습니다.`
-      );
       return false;
     }
 
@@ -330,7 +308,6 @@ export function useMyPageViewModel() {
   const removeCompletedCourse = async (name: string): Promise<void> => {
     const subjectId = profile?.completedSubjects.find((s) => s.name === name)?.subjectId;
     if (subjectId == null) {
-      Alert.alert('알림', '과목 정보를 찾을 수 없습니다.');
       return;
     }
     if (!accessToken) {

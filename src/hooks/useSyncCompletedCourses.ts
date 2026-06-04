@@ -1,5 +1,4 @@
 import { useCallback, useState } from 'react';
-import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 
@@ -28,17 +27,11 @@ export function useSyncCompletedCourses(defaultYear: number) {
           case 'AUTH_REQUIRED':
             rootNavigation.reset({ index: 0, routes: [{ name: 'Auth' }] });
             break;
-          case 'SUBJECT_ALREADY_COMPLETED':
-            Alert.alert('알림', '이미 이수 처리된 과목입니다.');
-            break;
-          case 'VALIDATION_FAILED':
-            Alert.alert('입력 오류', '입력 내용을 다시 확인해주세요.');
-            break;
           default:
-            Alert.alert('오류', err.message);
+            if (__DEV__) console.warn('[syncCourses]', err.code, err.message);
         }
-      } else {
-        Alert.alert('네트워크 오류', '잠시 후 다시 시도해주세요.');
+      } else if (__DEV__) {
+        console.warn('[syncCourses] network error');
       }
     },
     [rootNavigation]
@@ -53,10 +46,6 @@ export function useSyncCompletedCourses(defaultYear: number) {
 
       const uniqueNext = [...new Set(nextNames.map((n) => n.trim()).filter(Boolean))];
       if (uniqueNext.length > MAX_COMPLETED_COURSES) {
-        Alert.alert(
-          '알림',
-          `이수 과목은 최대 ${MAX_COMPLETED_COURSES}개까지 등록할 수 있습니다.`
-        );
         return false;
       }
 

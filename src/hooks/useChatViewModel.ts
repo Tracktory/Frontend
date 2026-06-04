@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 
@@ -68,17 +67,11 @@ export function useChatViewModel() {
           case 'AUTH_REQUIRED':
             rootNavigation.reset({ index: 0, routes: [{ name: 'Auth' }] });
             break;
-          case 'VALIDATION_FAILED':
-            Alert.alert('입력 오류', '메시지가 너무 길거나 형식이 올바르지 않습니다.');
-            break;
-          case 'INTERNAL_SERVER_ERROR':
-            Alert.alert('서비스 오류', 'AI 서비스가 일시적으로 응답하지 않습니다. 잠시 후 다시 시도해주세요.');
-            break;
           default:
-            Alert.alert('오류', err.message);
+            if (__DEV__) console.warn('[chat]', err.code, err.message);
         }
-      } else {
-        Alert.alert('연결 오류', '잠시 후 다시 시도해주세요.');
+      } else if (__DEV__) {
+        console.warn('[chat] network error');
       }
     } finally {
       setIsTyping(false);
@@ -115,22 +108,8 @@ export function useChatViewModel() {
   const handleReset = () => {
     if (userId == null) return;
 
-    Alert.alert(
-      '새 대화 시작',
-      '정말 초기화하시겠습니까?',
-      [
-        { text: '취소', style: 'cancel' },
-        {
-          text: '확인',
-          style: 'destructive',
-          onPress: () => {
-            const displayName = profileName?.trim() || userName?.trim() || null;
-            resetConversationForUser(userId, displayName);
-          },
-        },
-      ],
-      { cancelable: true }
-    );
+    const displayName = profileName?.trim() || userName?.trim() || null;
+    resetConversationForUser(userId, displayName);
   };
 
   const handleLoadHistory = () => {

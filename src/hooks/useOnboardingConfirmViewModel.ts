@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 
@@ -14,7 +13,6 @@ import type { RootStackParamList } from '../navigation/RootNavigator';
 import { resetToRecommendLoading } from '../utils/navigateToRecommendLoading';
 import { resetToMainTabs } from '../utils/resetToMainTabs';
 import { buildOnboardingRequestBody } from '../utils/buildOnboardingRequestBody';
-import { formatValidationDetails } from '../utils/formatValidationDetails';
 
 type Navigation = StackNavigationProp<OnboardingStackParamList, 'OnboardingConfirm'>;
 
@@ -78,7 +76,7 @@ export function useOnboardingConfirmViewModel(_navigation: Navigation) {
 
   const handleSave = async () => {
     if (!accessToken) {
-      Alert.alert('오류', '로그인 상태를 확인해주세요.');
+      rootNavigation.reset({ index: 0, routes: [{ name: 'Auth' }] });
       return;
     }
 
@@ -97,7 +95,6 @@ export function useOnboardingConfirmViewModel(_navigation: Navigation) {
     });
 
     if (!built.ok) {
-      Alert.alert('입력 오류', built.error);
       return;
     }
 
@@ -111,36 +108,16 @@ export function useOnboardingConfirmViewModel(_navigation: Navigation) {
       if (err instanceof AuthApiError) {
         switch (err.code) {
           case 'AUTH_REQUIRED':
-            Alert.alert('인증 만료', '다시 로그인해주세요.');
             rootNavigation.reset({ index: 0, routes: [{ name: 'Auth' }] });
             break;
           case 'ONBOARDING_ALREADY_COMPLETED':
-            Alert.alert(
-              '이미 설정 완료',
-              '온보딩이 완료된 계정이에요. 마이페이지에서 정보를 수정할 수 있어요.',
-              [
-                {
-                  text: '확인',
-                  onPress: () => resetToMainTabs(rootNavigation),
-                },
-              ]
-            );
+            resetToMainTabs(rootNavigation);
             break;
-          case 'VALIDATION_FAILED': {
-            const detailText = formatValidationDetails(err.details);
-            Alert.alert(
-              '입력 오류',
-              detailText
-                ? `${err.message}\n\n${detailText}`
-                : err.message || '입력 내용을 다시 확인해주세요.'
-            );
-            break;
-          }
           default:
-            Alert.alert('오류', err.message);
+            if (__DEV__) console.warn('[onboarding]', err.code, err.message);
         }
-      } else {
-        Alert.alert('네트워크 오류', '잠시 후 다시 시도해주세요.');
+      } else if (__DEV__) {
+        console.warn('[onboarding] network error');
       }
     } finally {
       setIsSubmitting(false);

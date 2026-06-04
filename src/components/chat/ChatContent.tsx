@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Alert,
   Keyboard,
   Platform,
   Pressable,
@@ -111,10 +110,7 @@ export function ChatContent({
 
   const handleSend = () => {
     if (onboardingRequired) return;
-    const ok = vm.handleSend();
-    if (!ok) {
-      Alert.alert('알림', '질문을 입력해주세요.');
-    }
+    void vm.handleSend();
   };
 
   const handleChip = (id: string, label: string) => {

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Alert } from 'react-native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 
 import { login, AuthApiError } from '../api/authApi';
@@ -69,13 +68,13 @@ export function useLoginViewModel(
             setLoginError('이메일 또는 비밀번호가 일치하지 않습니다.');
             break;
           case 'VALIDATION_FAILED':
-            Alert.alert('입력 오류', '요청 형식이 올바르지 않습니다.');
+            setLoginError('요청 형식이 올바르지 않습니다.');
             break;
           default:
-            Alert.alert('오류', err.message);
+            setLoginError(err.message);
         }
       } else {
-        Alert.alert('네트워크 오류', '잠시 후 다시 시도해주세요.');
+        setLoginError('잠시 후 다시 시도해주세요.');
       }
     } finally {
       setIsSubmitting(false);
