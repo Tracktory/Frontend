@@ -1,14 +1,12 @@
 import React from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 
-import type { RootStackParamList } from '../../../navigation/RootNavigator';
-import { performLogout } from '../../../utils/performLogout';
+import { performLogout, type LogoutNavigation } from '../../../utils/performLogout';
 
 export function MySettingsSection() {
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const navigation = useNavigation();
 
   const handleLogout = () => {
     Alert.alert('로그아웃', '로그아웃 하시겠습니까?', [
@@ -16,7 +14,7 @@ export function MySettingsSection() {
       {
         text: '로그아웃',
         style: 'destructive',
-        onPress: () => performLogout(navigation),
+        onPress: () => performLogout(navigation as LogoutNavigation),
       },
     ]);
   };
