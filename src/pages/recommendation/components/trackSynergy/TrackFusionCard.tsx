@@ -1,6 +1,5 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 
 import { colors } from '../../../../styles/colors';
 import type { FusionCombo } from '../../utils/mapFusionFromSecondary';
@@ -39,9 +38,6 @@ export function TrackFusionCard({ combo, selected, onPress }: TrackFusionCardPro
         <View style={styles.expanded}>
           <TrackReasoningBlock reasoning={combo.reasoning} />
           <TrackMainSubjectCards subjects={combo.mainSubjects} />
-          <View style={styles.collapseHint}>
-            <Ionicons name="chevron-up" size={16} color={colors.primary} />
-          </View>
         </View>
       ) : null}
     </Pressable>
@@ -89,11 +85,6 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   expanded: {
-    marginTop: 8,
-    overflow: 'visible',
-  },
-  collapseHint: {
-    alignItems: 'center',
     marginTop: 8,
   },
 });

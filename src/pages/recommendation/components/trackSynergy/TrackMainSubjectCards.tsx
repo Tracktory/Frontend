@@ -1,34 +1,84 @@
-import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useMemo } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  Easing,
+  cancelAnimation,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
 
 import type { TrackSubjectRef } from '../../../../data/mockTrackRecommendData';
 import { colors } from '../../../../styles/colors';
+
+const CARD_WIDTH = 132;
+const CARD_GAP = 8;
+const PX_PER_SECOND = 30;
 
 interface TrackMainSubjectCardsProps {
   subjects: TrackSubjectRef[];
 }
 
+function SubjectCard({ subject }: { subject: TrackSubjectRef }) {
+  return (
+    <View style={styles.card}>
+      <Text style={styles.name} numberOfLines={2}>
+        {subject.name}
+      </Text>
+    </View>
+  );
+}
+
 export function TrackMainSubjectCards({ subjects }: TrackMainSubjectCardsProps) {
+  const translateX = useSharedValue(0);
+
+  const loopSubjects = useMemo(() => {
+    if (subjects.length === 0) return [];
+    return [...subjects, ...subjects];
+  }, [subjects]);
+
+  const segmentWidth = subjects.length * (CARD_WIDTH + CARD_GAP);
+
+  useEffect(() => {
+    if (subjects.length === 0 || segmentWidth <= 0) return;
+
+    translateX.value = 0;
+    const durationMs = Math.max(6000, (segmentWidth / PX_PER_SECOND) * 1000);
+
+    translateX.value = withRepeat(
+      withTiming(-segmentWidth, {
+        duration: durationMs,
+        easing: Easing.linear,
+      }),
+      -1,
+      false,
+    );
+
+    return () => {
+      cancelAnimation(translateX);
+    };
+  }, [subjects, segmentWidth, translateX]);
+
+  const stripStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
+
   if (subjects.length === 0) return null;
 
   return (
     <View style={styles.wrap}>
       <Text style={styles.label}>주요 과목</Text>
-      <ScrollView
-        horizontal
-        nestedScrollEnabled
-        showsHorizontalScrollIndicator={false}
-        style={styles.scroll}
-        contentContainerStyle={styles.row}
-      >
-        {subjects.map((subject, index) => (
-          <View key={`${subject.name}-${index}`} style={styles.card}>
-            <Text style={styles.name} numberOfLines={2}>
-              {subject.name}
-            </Text>
-          </View>
-        ))}
-      </ScrollView>
+      <View style={styles.viewport}>
+        <Animated.View style={[styles.strip, stripStyle]}>
+          {loopSubjects.map((subject, index) => (
+            <SubjectCard
+              key={`${subject.name}-${index}`}
+              subject={subject}
+            />
+          ))}
+        </Animated.View>
+      </View>
     </View>
   );
 }
@@ -36,28 +86,23 @@ export function TrackMainSubjectCards({ subjects }: TrackMainSubjectCardsProps) 
 const styles = StyleSheet.create({
   wrap: {
     marginTop: 10,
-    marginHorizontal: -4,
-    overflow: 'visible',
   },
   label: {
     fontSize: 12,
     fontWeight: '700',
     color: colors.textSecondary,
     marginBottom: 8,
-    marginHorizontal: 4,
   },
-  scroll: {
-    flexGrow: 0,
+  viewport: {
+    overflow: 'hidden',
+    borderRadius: 12,
   },
-  row: {
+  strip: {
     flexDirection: 'row',
-    gap: 8,
-    paddingHorizontal: 4,
-    paddingRight: 12,
+    gap: CARD_GAP,
   },
   card: {
-    flexShrink: 0,
-    width: 132,
+    width: CARD_WIDTH,
     backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: colors.border,
