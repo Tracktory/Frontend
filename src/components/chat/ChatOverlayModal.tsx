@@ -35,11 +35,7 @@ export function ChatOverlayModal({ visible, onClose }: ChatOverlayModalProps) {
             },
           ]}
         >
-          <ChatContent
-            showClose
-            onClose={onClose}
-            includeTopInsetInOffset={false}
-          />
+          <ChatContent showClose overlayMode onClose={onClose} />
         </View>
       </View>
     </Modal>

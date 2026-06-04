@@ -22,6 +22,30 @@ export function AuthKeyboardScreen({
   contentContainerStyle,
 }: AuthKeyboardScreenProps) {
   const insets = useSafeAreaInsets();
+  const isWeb = Platform.OS === 'web';
+
+  const scroll = (
+    <ScrollView
+      style={styles.scroll}
+      contentContainerStyle={[styles.scrollContent, contentContainerStyle]}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+    >
+      {children}
+    </ScrollView>
+  );
+
+  const body = isWeb ? (
+    scroll
+  ) : (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      {scroll}
+    </TouchableWithoutFeedback>
+  );
+
+  if (isWeb) {
+    return <View style={styles.flex}>{body}</View>;
+  }
 
   return (
     <KeyboardAvoidingView
@@ -29,16 +53,7 @@ export function AuthKeyboardScreen({
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={insets.top}
     >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <ScrollView
-          style={styles.scroll}
-          contentContainerStyle={[styles.scrollContent, contentContainerStyle]}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          {children}
-        </ScrollView>
-      </TouchableWithoutFeedback>
+      {body}
     </KeyboardAvoidingView>
   );
 }

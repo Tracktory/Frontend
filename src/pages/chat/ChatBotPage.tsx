@@ -18,7 +18,6 @@ export function ChatBotPage() {
           showClose={false}
           showMinimize={false}
           bottomInset={tabBarClearance}
-          includeTopInsetInOffset={false}
         />
       </View>
     </SafeAreaView>

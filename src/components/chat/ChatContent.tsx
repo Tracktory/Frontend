@@ -1,8 +1,7 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Keyboard,
-  KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
@@ -23,6 +22,8 @@ import { ChatMessageBubble } from './ChatMessageBubble';
 import { ChatTypingBubble } from './ChatTypingBubble';
 
 const HEADER_HEIGHT = 52;
+/** inputRow: paddingTop 10 + input 42 + paddingBottom 10 */
+const INPUT_BAR_HEIGHT = 62;
 
 interface ChatContentProps {
   /** 온보딩 미완료 상태이면 true — 입력/칩 차단 */
@@ -32,10 +33,10 @@ interface ChatContentProps {
   showClose?: boolean;
   onMinimize?: () => void;
   onClose?: () => void;
-  /** 플로팅 탭바 등 하단 여백 (탭 챗봇) */
+  /** 플로팅 탭바 등 하단 여백 (키보드 닫힌 resting, 탭 챗봇) */
   bottomInset?: number;
-  /** 오버레이 시트 등 상단 safe area가 별도일 때 0 */
-  includeTopInsetInOffset?: boolean;
+  /** 홈 FAB 오버레이 시트 — 키보드 열릴 때 bottom에 keyboardHeight 적용 */
+  overlayMode?: boolean;
 }
 
 export function ChatContent({
@@ -45,20 +46,34 @@ export function ChatContent({
   onMinimize,
   onClose,
   bottomInset = 0,
-  includeTopInsetInOffset = true,
+  overlayMode = false,
 }: ChatContentProps) {
   const vm = useChatViewModel();
   const scrollRef = useRef<ScrollView>(null);
   const insets = useSafeAreaInsets();
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const userId = useAuthStore((s) => s.userId);
   const userName = useAuthStore((s) => s.userName);
   const profileName = useProfileStore((s) => s.profile?.profile.name);
   const enterChatScreen = useChatStore((s) => s.enterChatScreen);
 
-  const keyboardVerticalOffset = useMemo(
-    () => (includeTopInsetInOffset ? insets.top : 0),
-    [includeTopInsetInOffset, insets.top],
-  );
+  const keyboardVisible = keyboardHeight > 0;
+
+  /** 오버레이 시트는 ChatOverlayModal paddingBottom으로 safe area 처리 */
+  const restingBottom = overlayMode ? 0 : bottomInset;
+
+  const inputBottom = useMemo(() => {
+    if (!keyboardVisible) return restingBottom;
+    if (overlayMode) return keyboardHeight;
+    return Platform.OS === 'ios' ? keyboardHeight : 0;
+  }, [keyboardVisible, keyboardHeight, overlayMode, restingBottom]);
+
+  const inputPaddingBottom = useMemo(() => {
+    if (!keyboardVisible) return 10;
+    return overlayMode ? Math.max(insets.bottom, 8) : 8;
+  }, [keyboardVisible, overlayMode, insets.bottom]);
+
+  const scrollPaddingBottom = INPUT_BAR_HEIGHT + inputBottom;
 
   const scrollToEnd = () => {
     setTimeout(() => {
@@ -78,8 +93,20 @@ export function ChatContent({
 
   useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const sub = Keyboard.addListener(showEvent, scrollToEnd);
-    return () => sub.remove();
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSub = Keyboard.addListener(showEvent, (e) => {
+      setKeyboardHeight(e.endCoordinates.height);
+      scrollToEnd();
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setKeyboardHeight(0);
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
   }, []);
 
   const handleSend = () => {
@@ -96,12 +123,7 @@ export function ChatContent({
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior="padding"
-      keyboardVerticalOffset={keyboardVerticalOffset}
-    >
-      {/* 헤더 */}
+    <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>AI 학습경로 챗봇</Text>
         <View style={styles.headerIcons}>
@@ -145,7 +167,10 @@ export function ChatContent({
       <ScrollView
         ref={scrollRef}
         style={styles.messageArea}
-        contentContainerStyle={styles.messageContent}
+        contentContainerStyle={[
+          styles.messageContent,
+          { paddingBottom: scrollPaddingBottom },
+        ]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         onContentSizeChange={scrollToEnd}
@@ -160,7 +185,15 @@ export function ChatContent({
         {vm.isTyping && <ChatTypingBubble />}
       </ScrollView>
 
-      <View style={[styles.inputRow, { paddingBottom: 10 + bottomInset }]}>
+      <View
+        style={[
+          styles.inputRow,
+          {
+            bottom: inputBottom,
+            paddingBottom: inputPaddingBottom,
+          },
+        ]}
+      >
         <TextInput
           style={styles.input}
           placeholder="궁금한 점을 물어보세요..."
@@ -185,7 +218,7 @@ export function ChatContent({
           />
         </Pressable>
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -235,10 +268,14 @@ const styles = StyleSheet.create({
   },
   messageContent: {
     padding: 16,
-    paddingBottom: 8,
     flexGrow: 1,
   },
   inputRow: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    elevation: 10,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
