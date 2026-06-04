@@ -4,6 +4,7 @@ import type { TrackRecommendPayload } from '../data/mockTrackRecommendData';
 import type { RoadmapPayload, SemesterStep, SemesterCourse, SemesterTiming } from '../data/mockRoadmapData';
 
 export type RecommendResult = {
+  recommendationId: number;
   jobs: JobRecommendation[];
   trackRecommend: TrackRecommendPayload;
   roadmap: RoadmapPayload;
@@ -370,6 +371,7 @@ export async function fetchRecommendResult(
 
   const data = envelope.data;
   return {
+    recommendationId: data.recommendationId,
     jobs: mapJobs(extractJobItems(data.jobs)),
     trackRecommend: mapTracks(data.tracks),
     roadmap: mapRoadmap(data.roadmap, data.tracks, data.flow),

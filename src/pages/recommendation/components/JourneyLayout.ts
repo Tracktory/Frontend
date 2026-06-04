@@ -1,6 +1,11 @@
 import type { JourneySheetKey } from '../../../hooks/useRecommendResultViewModel';
 import { CLIMB_VIEWBOX } from './homeMountainPaths';
 
+/** 직무 매칭(#0F766E) · 학습 로드맵(#14B8A6) 사이 톤 — 현재 위치 노드 */
+export const JOURNEY_NODE_JOB_COLOR = '#0F766E';
+export const JOURNEY_NODE_ROADMAP_COLOR = '#14B8A6';
+export const JOURNEY_NODE_CURRENT_COLOR = '#12978A';
+
 export const JOURNEY_NODE_LAYOUT: {
   key: JourneySheetKey;
   label: string;
@@ -26,7 +31,7 @@ export const JOURNEY_NODE_LAYOUT: {
     x: 177,
     y: 245,
     icon: 'compass',
-    nodeColor: '#0F766E',
+    nodeColor: JOURNEY_NODE_JOB_COLOR,
   },
   {
     key: 'current',
@@ -34,7 +39,7 @@ export const JOURNEY_NODE_LAYOUT: {
     x: 220,
     y: 330,
     icon: 'person',
-    nodeColor: '#14B8A6',
+    nodeColor: JOURNEY_NODE_CURRENT_COLOR,
   },
   {
     key: 'roadmap',
@@ -42,7 +47,7 @@ export const JOURNEY_NODE_LAYOUT: {
     x: 192,
     y: 425,
     icon: 'library',
-    nodeColor: '#14B8A6',
+    nodeColor: JOURNEY_NODE_ROADMAP_COLOR,
   },
   {
     key: 'trackSynergy',

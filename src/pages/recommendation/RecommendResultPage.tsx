@@ -130,6 +130,7 @@ export function RecommendResultPage() {
             profileCurrentYear={profileCurrentYear}
             track1={track1}
             track2={track2}
+            recommendationId={vm.recommendationId}
           />
         );
       case 'roadmap':
@@ -240,6 +241,7 @@ export function RecommendResultPage() {
       <JourneyBottomSheet
         visible={vm.activeSheet != null}
         sheetKey={vm.activeSheet}
+        sheetHeightRatio={vm.activeSheet === 'current' ? 0.57 : 0.7}
         onClose={handleCloseSheet}
       >
         {renderSheetContent()}

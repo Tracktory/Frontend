@@ -13,6 +13,7 @@ interface JourneyCurrentStatusSheetProps {
   profileCurrentYear: number | null | undefined;
   track1: string;
   track2: string;
+  recommendationId: number | null;
 }
 
 function formatTrackChipLabel(track: string): string {
@@ -26,6 +27,7 @@ export function JourneyCurrentStatusSheet({
   profileCurrentYear,
   track1,
   track2,
+  recommendationId,
 }: JourneyCurrentStatusSheetProps) {
   const studentGrade = profileCurrentYear ?? grade;
   const stats = useMemo(
@@ -55,8 +57,8 @@ export function JourneyCurrentStatusSheet({
   }, [roadmap, completedCourses]);
 
   const nextActionMessage = useMemo(
-    () => buildCurrentStatusNextAction(currentSemesterLabel, stats),
-    [currentSemesterLabel, stats],
+    () => buildCurrentStatusNextAction(recommendationId),
+    [recommendationId],
   );
 
   const tracks = [track1, track2].filter(Boolean).map(formatTrackChipLabel);
@@ -104,7 +106,7 @@ export function JourneyCurrentStatusSheet({
 
 const styles = StyleSheet.create({
   wrap: {
-    paddingBottom: 8,
+    paddingBottom: 4,
   },
   metricsBox: {
     backgroundColor: '#F0FDFA',
