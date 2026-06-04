@@ -103,7 +103,7 @@ export function useOnboardingConfirmViewModel(_navigation: Navigation) {
       await submitOnboarding(built.body, accessToken);
       setUserName(built.body.profile.name);
       await loadProfile(accessToken, rootNavigation);
-      resetToRecommendLoading(rootNavigation);
+      resetToRecommendLoading(rootNavigation, true);
     } catch (err) {
       if (err instanceof AuthApiError) {
         switch (err.code) {

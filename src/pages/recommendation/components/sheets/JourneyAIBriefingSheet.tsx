@@ -20,6 +20,8 @@ interface JourneyAIBriefingSheetProps {
   enabled?: boolean;
 }
 
+const CARD_WIDTH = 300;
+const CARD_HEIGHT = 200;
 const MAX_SKILL_CHIPS = 6;
 
 function formatSourceLabel(source: BriefingSource): string {
@@ -38,29 +40,45 @@ function BriefingTrendCard({ item, index }: { item: BriefingCard; index: number 
       entering={FadeInRight.delay(index * 100).duration(350)}
       style={styles.trendCard}
     >
-      <View style={styles.jobPill}>
-        <Text style={styles.jobPillText}>{item.job}</Text>
-      </View>
-      {skills.length > 0 ? (
-        <View style={styles.skillsRow}>
-          {skills.map((skill) => (
-            <View key={skill} style={styles.skillChip}>
-              <Text style={styles.skillChipText}>{skill}</Text>
+      <View style={styles.trendCardInner}>
+        <View style={styles.jobPill}>
+          <Text style={styles.jobPillText} numberOfLines={1}>
+            {item.job}
+          </Text>
+        </View>
+        <View style={styles.skillsSection}>
+          {skills.length > 0 ? (
+            <View style={styles.skillsRow}>
+              {skills.map((skill) => (
+                <View key={skill} style={styles.skillChip}>
+                  <Text style={styles.skillChipText} numberOfLines={1}>
+                    {skill}
+                  </Text>
+                </View>
+              ))}
             </View>
+          ) : null}
+        </View>
+        <Text style={styles.headline} numberOfLines={2}>
+          {item.headline}
+        </Text>
+        <Text style={styles.summary} numberOfLines={3}>
+          {item.summary}
+        </Text>
+        <View>
+          {sources.map((source) => (
+            <Pressable
+              key={`${source.url}-${source.title}`}
+              onPress={() => Linking.openURL(source.url)}
+              accessibilityRole="link"
+            >
+              <Text style={styles.source} numberOfLines={1}>
+                {formatSourceLabel(source)}
+              </Text>
+            </Pressable>
           ))}
         </View>
-      ) : null}
-      <Text style={styles.headline}>{item.headline}</Text>
-      <Text style={styles.summary}>{item.summary}</Text>
-      {sources.map((source) => (
-        <Pressable
-          key={`${source.url}-${source.title}`}
-          onPress={() => Linking.openURL(source.url)}
-          accessibilityRole="link"
-        >
-          <Text style={styles.source}>{formatSourceLabel(source)}</Text>
-        </Pressable>
-      ))}
+      </View>
     </Animated.View>
   );
 }
@@ -165,8 +183,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   skeletonCard: {
-    width: 300,
-    height: 160,
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
     borderRadius: 24,
     backgroundColor: '#F3F4F6',
     opacity: 0.7,
@@ -174,14 +192,19 @@ const styles = StyleSheet.create({
   scrollContent: {
     gap: 16,
     paddingRight: 8,
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   trendCard: {
-    width: 300,
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
     backgroundColor: '#F9FAFB',
     borderWidth: 1.5,
     borderColor: '#E5E7EB',
     borderRadius: 24,
+    overflow: 'hidden',
+  },
+  trendCardInner: {
+    flex: 1,
     padding: 20,
   },
   jobPill: {
@@ -197,11 +220,17 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#0D9488',
   },
+  skillsSection: {
+    minHeight: 44,
+    marginBottom: 8,
+    justifyContent: 'flex-start',
+  },
   skillsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 6,
-    marginBottom: 12,
+    maxHeight: 44,
+    overflow: 'hidden',
   },
   skillChip: {
     backgroundColor: '#FFFFFF',
@@ -221,13 +250,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#111827',
     lineHeight: 22,
-    marginBottom: 8,
+    marginBottom: 6,
   },
   summary: {
+    flex: 1,
     fontSize: 13,
     color: '#4B5563',
     lineHeight: 20,
-    marginBottom: 12,
+    marginBottom: 8,
   },
   source: {
     fontSize: 11,
@@ -236,7 +266,7 @@ const styles = StyleSheet.create({
   },
   streamingDot: {
     width: 48,
-    height: 160,
+    height: CARD_HEIGHT,
     borderRadius: 16,
     borderWidth: 1.5,
     borderStyle: 'dashed',

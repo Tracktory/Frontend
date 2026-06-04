@@ -199,6 +199,10 @@ export function useMyPageViewModel() {
     }
   };
 
+  const markForceRefreshOnHomeFocus = useRecommendStore(
+    (s) => s.markForceRefreshOnHomeFocus
+  );
+
   const runPatch = async (
     body: Parameters<typeof patchProfile>[1]
   ): Promise<boolean> => {
@@ -210,6 +214,7 @@ export function useMyPageViewModel() {
     setIsSaving(true);
     try {
       await patchProfile(accessToken, body, rootNavigation);
+      markForceRefreshOnHomeFocus();
       return true;
     } catch (err) {
       handlePatchError(err);
